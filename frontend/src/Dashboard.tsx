@@ -109,11 +109,55 @@ export default function Dashboard() {
     setSelectedPlan(plan); setSelectedOS(plan.supportedOS?.[0] || "Ubuntu 22.04"); setCoupon("");
   };
   const activeCount = vpsList.filter((v) => v.status === "RUNNING").length;
-  const visiblePlans = useMemo(() => plans.filter((plan) => {
-    if (page === "Windows VPS") return plan.supportedOS?.some((os) => os.toLowerCase().includes("windows"));
-    if (page === "Linux VPS") return plan.productType === "LINUX_IP_VPS" || plan.supportedOS?.some((os) => !os.toLowerCase().includes("windows"));
-    return true;
-  }), [plans, page]);
+  // Product Type and Operating System are different fields.
+  // Windows VPS: VPS hosting plans that support Windows, plus VPS plans
+  // where the OS list is not supplied by the API yet.
+  // Linux VPS: Linux IP VPS plans, plus any VPS hosting plan that supports Linux.
+  const visiblePlans = useMemo(() => {
+    const isWindowsOS = (os: string) =>
+      /windows|win server/i.test(os);
+
+    const isLinuxOS = (os: string) =>
+      /linux|ubuntu|debian|centos|rocky|alma|fedora|alpine|opensuse/i.test(os);
+
+    return plans.filter((plan) => {
+      const productType = String(plan.productType ?? "")
+        .trim()
+        .toUpperCase()
+        .replace(/[\s-]+/g, "_");
+
+      const supportedOS = Array.isArray(plan.supportedOS)
+        ? plan.supportedOS.map((os) => String(os).trim())
+        : [];
+
+      const hasWindowsOS = supportedOS.some(isWindowsOS);
+      const hasLinuxOS = supportedOS.some(isLinuxOS);
+      const hasOSList = supportedOS.length > 0;
+
+      if (page === "Windows VPS") {
+        // If OS data exists, show only plans that actually offer Windows.
+        // If the API has not populated supportedOS, keep VPS hosting plans visible.
+        return (
+          productType === "VPS_HOSTING" ||
+          productType === "VPS" ||
+          productType === "WINDOWS_VPS" ||
+          (hasWindowsOS && !hasOSList)
+        ) && (!hasOSList || hasWindowsOS);
+      }
+
+      if (page === "Linux VPS") {
+        return (
+          productType === "LINUX_IP_VPS" ||
+          productType === "LINUX" ||
+          productType === "LINUX_VPS" ||
+          (hasLinuxOS && !hasWindowsOS)
+        );
+      }
+
+      // Home / Explore Plans shows every active plan.
+      return true;
+    });
+  }, [plans, page]);
 
   const PlanCard = ({ plan, index }: { plan: VPSPlan; index: number }) => {
     const availableOS = plan.supportedOS || [];
@@ -122,7 +166,7 @@ export default function Dashboard() {
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-600" />
         {index === 1 && <span className="absolute right-4 top-4 rounded-full bg-cyan-300/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-200">Popular</span>}
         <div className="flex items-start justify-between gap-3 pr-16">
-          <div className="flex items-center gap-2 text-cyan-100"><Monitor size={18}/><span className="text-xs font-semibold uppercase tracking-wider">{plan.productType === "LINUX_IP_VPS" ? "Linux IP VPS" : "Windows / VPS"}</span></div>
+          <div className="flex items-center gap-2 text-cyan-100"><Monitor size={18}/><span className="text-xs font-semibold uppercase tracking-wider">{plan.productType === "LINUX_IP_VPS" ? "Linux IP VPS" : "VPS Hosting"}</span></div>
           <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Available</span>
         </div>
         <h3 className="mt-4 min-h-12 text-lg font-extrabold leading-snug text-white">{plan.name}</h3>
