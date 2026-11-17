@@ -198,6 +198,7 @@ export type AdminWhereInput = {
   isActive?: Prisma.BoolFilter<"Admin"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Admin"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Admin"> | Date | string
+  priceHistory?: Prisma.PriceHistoryListRelationFilter
 }
 
 export type AdminOrderByWithRelationInput = {
@@ -208,6 +209,7 @@ export type AdminOrderByWithRelationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  priceHistory?: Prisma.PriceHistoryOrderByRelationAggregateInput
 }
 
 export type AdminWhereUniqueInput = Prisma.AtLeast<{
@@ -221,6 +223,7 @@ export type AdminWhereUniqueInput = Prisma.AtLeast<{
   isActive?: Prisma.BoolFilter<"Admin"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Admin"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Admin"> | Date | string
+  priceHistory?: Prisma.PriceHistoryListRelationFilter
 }, "id" | "email">
 
 export type AdminOrderByWithAggregationInput = {
@@ -257,6 +260,7 @@ export type AdminCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  priceHistory?: Prisma.PriceHistoryCreateNestedManyWithoutAdminInput
 }
 
 export type AdminUncheckedCreateInput = {
@@ -267,6 +271,7 @@ export type AdminUncheckedCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  priceHistory?: Prisma.PriceHistoryUncheckedCreateNestedManyWithoutAdminInput
 }
 
 export type AdminUpdateInput = {
@@ -277,6 +282,7 @@ export type AdminUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  priceHistory?: Prisma.PriceHistoryUpdateManyWithoutAdminNestedInput
 }
 
 export type AdminUncheckedUpdateInput = {
@@ -287,6 +293,7 @@ export type AdminUncheckedUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  priceHistory?: Prisma.PriceHistoryUncheckedUpdateManyWithoutAdminNestedInput
 }
 
 export type AdminCreateManyInput = {
@@ -349,6 +356,112 @@ export type AdminMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type AdminNullableScalarRelationFilter = {
+  is?: Prisma.AdminWhereInput | null
+  isNot?: Prisma.AdminWhereInput | null
+}
+
+export type AdminCreateNestedOneWithoutPriceHistoryInput = {
+  create?: Prisma.XOR<Prisma.AdminCreateWithoutPriceHistoryInput, Prisma.AdminUncheckedCreateWithoutPriceHistoryInput>
+  connectOrCreate?: Prisma.AdminCreateOrConnectWithoutPriceHistoryInput
+  connect?: Prisma.AdminWhereUniqueInput
+}
+
+export type AdminUpdateOneWithoutPriceHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.AdminCreateWithoutPriceHistoryInput, Prisma.AdminUncheckedCreateWithoutPriceHistoryInput>
+  connectOrCreate?: Prisma.AdminCreateOrConnectWithoutPriceHistoryInput
+  upsert?: Prisma.AdminUpsertWithoutPriceHistoryInput
+  disconnect?: Prisma.AdminWhereInput | boolean
+  delete?: Prisma.AdminWhereInput | boolean
+  connect?: Prisma.AdminWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AdminUpdateToOneWithWhereWithoutPriceHistoryInput, Prisma.AdminUpdateWithoutPriceHistoryInput>, Prisma.AdminUncheckedUpdateWithoutPriceHistoryInput>
+}
+
+export type AdminCreateWithoutPriceHistoryInput = {
+  id?: string
+  name: string
+  email: string
+  passwordHash: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AdminUncheckedCreateWithoutPriceHistoryInput = {
+  id?: string
+  name: string
+  email: string
+  passwordHash: string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AdminCreateOrConnectWithoutPriceHistoryInput = {
+  where: Prisma.AdminWhereUniqueInput
+  create: Prisma.XOR<Prisma.AdminCreateWithoutPriceHistoryInput, Prisma.AdminUncheckedCreateWithoutPriceHistoryInput>
+}
+
+export type AdminUpsertWithoutPriceHistoryInput = {
+  update: Prisma.XOR<Prisma.AdminUpdateWithoutPriceHistoryInput, Prisma.AdminUncheckedUpdateWithoutPriceHistoryInput>
+  create: Prisma.XOR<Prisma.AdminCreateWithoutPriceHistoryInput, Prisma.AdminUncheckedCreateWithoutPriceHistoryInput>
+  where?: Prisma.AdminWhereInput
+}
+
+export type AdminUpdateToOneWithWhereWithoutPriceHistoryInput = {
+  where?: Prisma.AdminWhereInput
+  data: Prisma.XOR<Prisma.AdminUpdateWithoutPriceHistoryInput, Prisma.AdminUncheckedUpdateWithoutPriceHistoryInput>
+}
+
+export type AdminUpdateWithoutPriceHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AdminUncheckedUpdateWithoutPriceHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type AdminCountOutputType
+ */
+
+export type AdminCountOutputType = {
+  priceHistory: number
+}
+
+export type AdminCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  priceHistory?: boolean | AdminCountOutputTypeCountPriceHistoryArgs
+}
+
+/**
+ * AdminCountOutputType without action
+ */
+export type AdminCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AdminCountOutputType
+   */
+  select?: Prisma.AdminCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AdminCountOutputType without action
+ */
+export type AdminCountOutputTypeCountPriceHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PriceHistoryWhereInput
+}
 
 
 export type AdminSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -359,6 +472,8 @@ export type AdminSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  priceHistory?: boolean | Prisma.Admin$priceHistoryArgs<ExtArgs>
+  _count?: boolean | Prisma.AdminCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["admin"]>
 
 export type AdminSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -392,10 +507,18 @@ export type AdminSelectScalar = {
 }
 
 export type AdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "passwordHash" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["admin"]>
+export type AdminInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  priceHistory?: boolean | Prisma.Admin$priceHistoryArgs<ExtArgs>
+  _count?: boolean | Prisma.AdminCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type AdminIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type AdminIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $AdminPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Admin"
-  objects: {}
+  objects: {
+    priceHistory: Prisma.$PriceHistoryPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
@@ -798,6 +921,7 @@ readonly fields: AdminFieldRefs;
  */
 export interface Prisma__AdminClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  priceHistory<T extends Prisma.Admin$priceHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Admin$priceHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PriceHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -851,6 +975,10 @@ export type AdminFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
+  /**
    * Filter, which Admin to fetch.
    */
   where: Prisma.AdminWhereUniqueInput
@@ -869,6 +997,10 @@ export type AdminFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
+  /**
    * Filter, which Admin to fetch.
    */
   where: Prisma.AdminWhereUniqueInput
@@ -886,6 +1018,10 @@ export type AdminFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Admin
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
   /**
    * Filter, which Admin to fetch.
    */
@@ -935,6 +1071,10 @@ export type AdminFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
+  /**
    * Filter, which Admin to fetch.
    */
   where?: Prisma.AdminWhereInput
@@ -982,6 +1122,10 @@ export type AdminFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Admin
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
   /**
    * Filter, which Admins to fetch.
    */
@@ -1031,6 +1175,10 @@ export type AdminCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
+  /**
    * The data needed to create a Admin.
    */
   data: Prisma.XOR<Prisma.AdminCreateInput, Prisma.AdminUncheckedCreateInput>
@@ -1078,6 +1226,10 @@ export type AdminUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Admin
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
   /**
    * The data needed to update a Admin.
    */
@@ -1145,6 +1297,10 @@ export type AdminUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
+  /**
    * The filter to search for the Admin to update in case it exists.
    */
   where: Prisma.AdminWhereUniqueInput
@@ -1171,6 +1327,10 @@ export type AdminDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
+  /**
    * Filter which Admin to delete.
    */
   where: Prisma.AdminWhereUniqueInput
@@ -1191,6 +1351,30 @@ export type AdminDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
+ * Admin.priceHistory
+ */
+export type Admin$priceHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PriceHistory
+   */
+  select?: Prisma.PriceHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PriceHistory
+   */
+  omit?: Prisma.PriceHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PriceHistoryInclude<ExtArgs> | null
+  where?: Prisma.PriceHistoryWhereInput
+  orderBy?: Prisma.PriceHistoryOrderByWithRelationInput | Prisma.PriceHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.PriceHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PriceHistoryScalarFieldEnum | Prisma.PriceHistoryScalarFieldEnum[]
+}
+
+/**
  * Admin without action
  */
 export type AdminDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1202,4 +1386,8 @@ export type AdminDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Admin
    */
   omit?: Prisma.AdminOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminInclude<ExtArgs> | null
 }

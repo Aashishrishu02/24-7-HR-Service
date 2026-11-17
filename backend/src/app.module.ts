@@ -11,6 +11,11 @@ import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module.j
 import { AdminCustomersModule } from './admin-customers/admin-customers.module.js';
 import { AdminVpsModule } from './admin-vps/admin-vps.module.js';
 import { AdminPlansModule } from './admin-plans/admin-plans.module.js';
+import { AdminProvidersModule } from './admin-providers/admin-providers.module.js';
+import { AdminInventoryModule } from './admin-inventory/admin-inventory.module.js';
+import { AdminProviderProductsModule } from './admin-provider-products/admin-provider-products.module.js';
+import { AdminPlanProviderMappingsModule } from './admin-plan-provider-mappings/admin-plan-provider-mappings.module.js';
+import { ProvisioningModule } from './provisioning/provisioning.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,8 +28,13 @@ import { AdminPlansModule } from './admin-plans/admin-plans.module.js';
     AdminAuthModule,
     AdminDashboardModule,
     AdminCustomersModule,
-  AdminVpsModule,
+    AdminProviderProductsModule,
+    AdminVpsModule,
     AdminPlansModule,
+    AdminProvidersModule,
+    AdminInventoryModule,
+    AdminPlanProviderMappingsModule,
+    ProvisioningModule,
   ],
   
 })

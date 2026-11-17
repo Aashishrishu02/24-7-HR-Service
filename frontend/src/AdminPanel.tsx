@@ -3,9 +3,15 @@ import {
   LayoutDashboard, Users, Server, ShoppingCart, CreditCard,
   Settings, ShieldCheck, LogOut, RefreshCw, Menu, X,
   Search, ChevronLeft, ChevronRight, Eye, Power, Mail, Calendar, Package,
+  Network, Activity,
 } from "lucide-react";
 import adminApi from "./adminApi";
 import AdminPlans from "./AdminPlans";
+import Providers from "./admin/Providers";
+import ProviderProducts from "./admin/ProviderProducts";
+import Inventory from "./admin/Inventory";
+import PlanProviderMapping from "./admin/PlanProviderMapping";
+import Provisioning from "./admin/Provisioning";
 
 type Stats = {
   totalCustomers: number;
@@ -304,6 +310,11 @@ export default function AdminPanel() {
     ["Dashboard", LayoutDashboard],
     ["Customers", Users],
     ["VPS Management", Server],
+    ["Providers", Network],
+    ["Provider Products", Package],
+    ["Inventory", Server],
+    ["Plan Provider Mapping", Network],
+    ["Provisioning", Activity],
     ["Plans", Package],
     ["Orders", ShoppingCart],
     ["Payments & Wallet", CreditCard],
@@ -325,7 +336,7 @@ export default function AdminPanel() {
           className="fixed inset-0 z-40 bg-black/60 lg:hidden" />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-800 bg-[#0d1525] p-5 transition-transform lg:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-hidden border-r border-slate-800 bg-[#0d1525] p-5 transition-transform lg:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="mb-10 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-black">24<span className="text-blue-400">/7</span></h1>
@@ -334,7 +345,7 @@ export default function AdminPanel() {
           <button onClick={() => setMenuOpen(false)} className="lg:hidden"><X /></button>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto pb-4 pr-1">
           {links.map(([label, Icon]) => (
             <button key={label}
               onClick={() => {
@@ -350,7 +361,7 @@ export default function AdminPanel() {
         </nav>
 
         <button onClick={logout}
-          className="absolute bottom-6 left-5 flex items-center gap-3 rounded-lg p-3 text-sm text-red-400 hover:bg-red-500/10">
+          className="mt-3 flex w-full shrink-0 items-center gap-3 rounded-lg border-t border-slate-800 px-3 py-4 text-sm text-red-400 hover:bg-red-500/10">
           <LogOut size={18} /> Sign Out
         </button>
       </aside>
@@ -685,8 +696,21 @@ export default function AdminPanel() {
           )}
 
           {page === "Plans" && <AdminPlans />}
+          {page === "Providers" && <Providers />}
+          {page === "Provider Products" && <ProviderProducts />}
+          {page === "Inventory" && <Inventory />}
+          {page === "Plan Provider Mapping" && <PlanProviderMapping />}
+          {page === "Provisioning" && <Provisioning />}
 
-          {page !== "Dashboard" && page !== "Customers" && page !== "VPS Management" && page !== "Plans" && (
+          {page !== "Dashboard" &&
+            page !== "Customers" &&
+            page !== "VPS Management" &&
+            page !== "Plans" &&
+            page !== "Providers" &&
+            page !== "Provider Products" &&
+            page !== "Inventory" &&
+            page !== "Plan Provider Mapping" &&
+            page !== "Provisioning" && (
             <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-10 text-center">
               <Settings className="mx-auto mb-4 text-blue-400" size={36} />
               <h2 className="text-xl font-bold">{page}</h2>

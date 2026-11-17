@@ -48,3 +48,39 @@ export const PaymentStatus = {
 } as const
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
+
+
+export const InventoryStatus = {
+  AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
+  ASSIGNED: 'ASSIGNED',
+  MAINTENANCE: 'MAINTENANCE',
+  EXPIRED: 'EXPIRED',
+  SUSPENDED: 'SUSPENDED',
+  FAILED: 'FAILED'
+} as const
+
+export type InventoryStatus = (typeof InventoryStatus)[keyof typeof InventoryStatus]
+
+
+export const ProvisioningStatus = {
+  PENDING: 'PENDING',
+  CHECKING_INVENTORY: 'CHECKING_INVENTORY',
+  RESERVED: 'RESERVED',
+  PURCHASING: 'PURCHASING',
+  PROVISIONING: 'PROVISIONING',
+  COMPLETED: 'COMPLETED',
+  RETRYING: 'RETRYING',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type ProvisioningStatus = (typeof ProvisioningStatus)[keyof typeof ProvisioningStatus]
+
+
+export const ProvisioningSource = {
+  INVENTORY: 'INVENTORY',
+  PROVIDER_API: 'PROVIDER_API'
+} as const
+
+export type ProvisioningSource = (typeof ProvisioningSource)[keyof typeof ProvisioningSource]

@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -7,6 +6,9 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ==========================================
+// ENUMS
 
 enum UserRole {
   CUSTOMER
@@ -37,6 +39,37 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum InventoryStatus {
+  AVAILABLE
+  RESERVED
+  ASSIGNED
+  MAINTENANCE
+  EXPIRED
+  SUSPENDED
+  FAILED
+}
+
+enum ProvisioningStatus {
+  PENDING
+  CHECKING_INVENTORY
+  RESERVED
+  PURCHASING
+  PROVISIONING
+  COMPLETED
+  RETRYING
+  FAILED
+  CANCELLED
+}
+
+enum ProvisioningSource {
+  INVENTORY
+  PROVIDER_API
+}
+
+// ==========================================
+// USER & AUTHENTICATION
+// ==========================================
+
 model User {
   id              String    @id @default(uuid())
   name            String?
@@ -48,10 +81,13 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  emailOtps       EmailVerificationOtp[]
-  passwordOtps    PasswordResetOtp[]
-  vpsInstances    VPSInstance[]
-  orders          Order[]
+  emailOtps    EmailVerificationOtp[]
+  passwordOtps PasswordResetOtp[]
+  vpsInstances VPSInstance[]
+  orders       Order[]
+
+  @@index([role])
+  @@index([isActive])
 }
 
 model EmailVerificationOtp {
@@ -65,6 +101,7 @@ model EmailVerificationOtp {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expiresAt])
 }
 
 model PasswordResetOtp {
@@ -78,29 +115,12 @@ model PasswordResetOtp {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expiresAt])
 }
 
-model VPSInstance {
-  id              String    @id @default(uuid())
-  userId          String
-  orderId         String?   @unique
-  provider        String    @default("SMARTVPS")
-  providerVpsId   String?   @unique
-  ipAddress       String    @unique
-  hostname        String?
-  operatingSystem String?
-  ram             Int?
-  status          String    @default("PENDING")
-  expiresAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([status])
-}
+// ==========================================
+// ADMIN
+// ==========================================
 
 model Admin {
   id           String   @id @default(uuid())
@@ -110,49 +130,74 @@ model Admin {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  priceHistory PriceHistory[]
+
+  @@index([isActive])
 }
 
-model VPSPlan {
-  id           String      @id @default(uuid())
-  name         String
-  productType  ProductType
-  description  String?
-  cpuCores     Int
-  ramGb        Int
-  storageGb    Int
-  bandwidthGb  Int?
-  price        Decimal     @db.Decimal(10, 2)
-  currency     String      @default("INR")
-  durationDays Int
-  supportedOS  String[]
-  isActive     Boolean     @default(true)
-  sortOrder    Int         @default(0)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+// ==========================================
+// VPS PLANS
+// ==========================================
 
-  orders Order[]
+model VPSPlan {
+  id          String      @id @default(uuid())
+  name        String
+  productType ProductType
+  description String?
+
+  cpuCores    Int
+  ramGb       Int
+  storageGb   Int
+  bandwidthGb Int?
+
+  // Customer-facing selling price only
+  price        Decimal @db.Decimal(10, 2)
+  currency     String  @default("INR")
+  durationDays Int
+
+  supportedOS String[]
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders           Order[]
+  providerMappings VPSPlanProviderMapping[]
+  priceHistory     PriceHistory[]
 
   @@index([productType])
   @@index([isActive])
 }
 
+// ==========================================
+// CUSTOMER ORDERS
+// ==========================================
+
 model Order {
-  id              String      @id @default(uuid())
-  orderNumber     String      @unique
-  userId          String
-  planId          String
+  id          String @id @default(uuid())
+  orderNumber String @unique
+
+  userId String
+  planId String
+
   planName        String
   operatingSystem String
-  amount          Decimal     @db.Decimal(10, 2)
-  currency        String      @default("INR")
-  status          OrderStatus @default(PENDING)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
-  plan        VPSPlan     @relation(fields: [planId], references: [id], onDelete: Restrict)
-  payment     Payment?
-  vpsInstance VPSInstance?
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("INR")
+
+  status OrderStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan             VPSPlan           @relation(fields: [planId], references: [id], onDelete: Restrict)
+  payment          Payment?
+  vpsInstance      VPSInstance?
+  provisioningJobs ProvisioningJob[]
 
   @@index([userId])
   @@index([planId])
@@ -160,20 +205,289 @@ model Order {
   @@index([createdAt])
 }
 
+// ==========================================
+// PAYMENTS
+// ==========================================
+
 model Payment {
-  id                String        @id @default(uuid())
-  orderId           String        @unique
-  provider          String        @default("RAZORPAY")
-  razorpayOrderId   String        @unique
-  razorpayPaymentId String?       @unique
+  id      String @id @default(uuid())
+  orderId String @unique
+
+  provider String @default("RAZORPAY")
+
+  razorpayOrderId   String  @unique
+  razorpayPaymentId String? @unique
   razorpaySignature String?
-  amount            Decimal       @db.Decimal(10, 2)
-  currency          String        @default("INR")
-  status            PaymentStatus @default(CREATED)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("INR")
+
+  status PaymentStatus @default(CREATED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 
   @@index([status])
+}
+
+// ==========================================
+// VPS PROVIDERS
+// ==========================================
+
+model Provider {
+  id String @id @default(uuid())
+
+  name    String
+  code    String  @unique
+  baseUrl String?
+
+  isActive           Boolean @default(true)
+  apiPurchaseEnabled Boolean @default(false)
+
+  priority Int @default(100)
+
+  // Maximum allowed purchase cost for this provider
+  maxPurchaseAmount Decimal? @db.Decimal(10, 2)
+  currency          String   @default("INR")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  credential ProviderCredential?
+  products   ProviderProduct[]
+  inventory  ProviderInventory[]
+  mappings   VPSPlanProviderMapping[]
+  jobs       ProvisioningJob[]
+
+  @@index([isActive, priority])
+}
+
+// ==========================================
+// ENCRYPTED PROVIDER CREDENTIALS
+// ==========================================
+
+model ProviderCredential {
+  id         String @id @default(uuid())
+  providerId String @unique
+
+  usernameEncrypted  String?
+  passwordEncrypted  String?
+  apiKeyEncrypted    String?
+  apiSecretEncrypted String?
+
+  updatedAt DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// PROVIDER PRODUCTS / PLANS
+// ==========================================
+
+model ProviderProduct {
+  id String @id @default(uuid())
+
+  providerId        String
+  externalProductId String
+
+  name        String
+  productType ProductType
+
+  cpuCores    Int
+  ramGb       Int
+  storageGb   Int
+  bandwidthGb Int?
+
+  region      String?
+  supportedOS String[]
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider Provider                 @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  mappings VPSPlanProviderMapping[]
+
+  @@unique([providerId, externalProductId])
+  @@index([providerId, isActive])
+}
+
+// ==========================================
+// VPS INVENTORY
+// VPS PURCHASED BY ADMIN IN ADVANCE
+// ==========================================
+
+model ProviderInventory {
+  id String @id @default(uuid())
+
+  providerId    String
+  providerVpsId String
+
+  ipAddress String?
+  hostname  String?
+
+  cpuCores    Int
+  ramGb       Int
+  storageGb   Int
+  bandwidthGb Int?
+
+  region          String?
+  operatingSystem String?
+
+  // Internal provider purchase cost
+  providerCost Decimal @db.Decimal(10, 2)
+  currency     String  @default("INR")
+
+  status InventoryStatus @default(AVAILABLE)
+
+  expiresAt DateTime?
+
+  // Encrypted root/password/access credentials
+  encryptedAccessDetails String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider         Provider          @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  vpsInstance      VPSInstance?
+  provisioningJobs ProvisioningJob[]
+
+  @@unique([providerId, providerVpsId])
+  @@index([status, region])
+  @@index([providerId, status])
+}
+
+// ==========================================
+// VPS PLAN TO PROVIDER PRODUCT MAPPING
+// ==========================================
+
+model VPSPlanProviderMapping {
+  id String @id @default(uuid())
+
+  planId            String
+  providerId        String
+  providerProductId String
+
+  priority Int @default(100)
+
+  isEnabled           Boolean @default(true)
+  autoPurchaseEnabled Boolean @default(false)
+
+  maxAllowedCost Decimal? @db.Decimal(10, 2)
+
+  regionMapping Json?
+  osMapping     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan            VPSPlan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  provider        Provider        @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  providerProduct ProviderProduct @relation(fields: [providerProductId], references: [id], onDelete: Restrict)
+
+  @@unique([planId, providerId, providerProductId])
+  @@index([planId, isEnabled, priority])
+}
+
+// ==========================================
+// VPS INSTANCES ASSIGNED TO CUSTOMERS
+// ==========================================
+
+model VPSInstance {
+  id String @id @default(uuid())
+
+  userId  String
+  orderId String? @unique
+
+  // Link to purchased inventory, if inventory was used
+  inventoryId String? @unique
+
+  provider      String  @default("SMARTVPS")
+  providerVpsId String? @unique
+
+  ipAddress       String  @unique
+  hostname        String?
+  operatingSystem String?
+
+  ram    Int?
+  status String @default("PENDING")
+
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order     Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  inventory ProviderInventory? @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+}
+
+// ==========================================
+// PROVISIONING JOBS
+// INVENTORY FIRST, PROVIDER API SECOND
+// ==========================================
+
+model ProvisioningJob {
+  id String @id @default(uuid())
+
+  orderId     String
+  providerId  String?
+  inventoryId String?
+
+  source ProvisioningSource @default(INVENTORY)
+  status ProvisioningStatus @default(PENDING)
+
+  attemptNumber Int @default(1)
+
+  // Prevent duplicate purchase / assignment
+  idempotencyKey String @unique
+
+  providerRequestId String?
+
+  errorCode    String?
+  errorMessage String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order     Order              @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  provider  Provider?          @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  inventory ProviderInventory? @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, status])
+  @@index([status, createdAt])
+  @@index([providerId, status])
+}
+
+// ==========================================
+// VPS SELLING PRICE HISTORY
+// ==========================================
+
+model PriceHistory {
+  id String @id @default(uuid())
+
+  planId           String
+  changedByAdminId String?
+
+  oldPrice Decimal @db.Decimal(10, 2)
+  newPrice Decimal @db.Decimal(10, 2)
+
+  currency String @default("INR")
+
+  createdAt DateTime @default(now())
+
+  plan  VPSPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  admin Admin?  @relation(fields: [changedByAdminId], references: [id], onDelete: SetNull)
+
+  @@index([planId, createdAt])
+  @@index([changedByAdminId])
 }

@@ -54,11 +54,18 @@ export const ModelName = {
   User: 'User',
   EmailVerificationOtp: 'EmailVerificationOtp',
   PasswordResetOtp: 'PasswordResetOtp',
-  VPSInstance: 'VPSInstance',
   Admin: 'Admin',
   VPSPlan: 'VPSPlan',
   Order: 'Order',
-  Payment: 'Payment'
+  Payment: 'Payment',
+  Provider: 'Provider',
+  ProviderCredential: 'ProviderCredential',
+  ProviderProduct: 'ProviderProduct',
+  ProviderInventory: 'ProviderInventory',
+  VPSPlanProviderMapping: 'VPSPlanProviderMapping',
+  VPSInstance: 'VPSInstance',
+  ProvisioningJob: 'ProvisioningJob',
+  PriceHistory: 'PriceHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -114,25 +121,6 @@ export const PasswordResetOtpScalarFieldEnum = {
 } as const
 
 export type PasswordResetOtpScalarFieldEnum = (typeof PasswordResetOtpScalarFieldEnum)[keyof typeof PasswordResetOtpScalarFieldEnum]
-
-
-export const VPSInstanceScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  orderId: 'orderId',
-  provider: 'provider',
-  providerVpsId: 'providerVpsId',
-  ipAddress: 'ipAddress',
-  hostname: 'hostname',
-  operatingSystem: 'operatingSystem',
-  ram: 'ram',
-  status: 'status',
-  expiresAt: 'expiresAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type VPSInstanceScalarFieldEnum = (typeof VPSInstanceScalarFieldEnum)[keyof typeof VPSInstanceScalarFieldEnum]
 
 
 export const AdminScalarFieldEnum = {
@@ -204,12 +192,166 @@ export const PaymentScalarFieldEnum = {
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
+export const ProviderScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  code: 'code',
+  baseUrl: 'baseUrl',
+  isActive: 'isActive',
+  apiPurchaseEnabled: 'apiPurchaseEnabled',
+  priority: 'priority',
+  maxPurchaseAmount: 'maxPurchaseAmount',
+  currency: 'currency',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderScalarFieldEnum = (typeof ProviderScalarFieldEnum)[keyof typeof ProviderScalarFieldEnum]
+
+
+export const ProviderCredentialScalarFieldEnum = {
+  id: 'id',
+  providerId: 'providerId',
+  usernameEncrypted: 'usernameEncrypted',
+  passwordEncrypted: 'passwordEncrypted',
+  apiKeyEncrypted: 'apiKeyEncrypted',
+  apiSecretEncrypted: 'apiSecretEncrypted',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderCredentialScalarFieldEnum = (typeof ProviderCredentialScalarFieldEnum)[keyof typeof ProviderCredentialScalarFieldEnum]
+
+
+export const ProviderProductScalarFieldEnum = {
+  id: 'id',
+  providerId: 'providerId',
+  externalProductId: 'externalProductId',
+  name: 'name',
+  productType: 'productType',
+  cpuCores: 'cpuCores',
+  ramGb: 'ramGb',
+  storageGb: 'storageGb',
+  bandwidthGb: 'bandwidthGb',
+  region: 'region',
+  supportedOS: 'supportedOS',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderProductScalarFieldEnum = (typeof ProviderProductScalarFieldEnum)[keyof typeof ProviderProductScalarFieldEnum]
+
+
+export const ProviderInventoryScalarFieldEnum = {
+  id: 'id',
+  providerId: 'providerId',
+  providerVpsId: 'providerVpsId',
+  ipAddress: 'ipAddress',
+  hostname: 'hostname',
+  cpuCores: 'cpuCores',
+  ramGb: 'ramGb',
+  storageGb: 'storageGb',
+  bandwidthGb: 'bandwidthGb',
+  region: 'region',
+  operatingSystem: 'operatingSystem',
+  providerCost: 'providerCost',
+  currency: 'currency',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  encryptedAccessDetails: 'encryptedAccessDetails',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderInventoryScalarFieldEnum = (typeof ProviderInventoryScalarFieldEnum)[keyof typeof ProviderInventoryScalarFieldEnum]
+
+
+export const VPSPlanProviderMappingScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  providerId: 'providerId',
+  providerProductId: 'providerProductId',
+  priority: 'priority',
+  isEnabled: 'isEnabled',
+  autoPurchaseEnabled: 'autoPurchaseEnabled',
+  maxAllowedCost: 'maxAllowedCost',
+  regionMapping: 'regionMapping',
+  osMapping: 'osMapping',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VPSPlanProviderMappingScalarFieldEnum = (typeof VPSPlanProviderMappingScalarFieldEnum)[keyof typeof VPSPlanProviderMappingScalarFieldEnum]
+
+
+export const VPSInstanceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  orderId: 'orderId',
+  inventoryId: 'inventoryId',
+  provider: 'provider',
+  providerVpsId: 'providerVpsId',
+  ipAddress: 'ipAddress',
+  hostname: 'hostname',
+  operatingSystem: 'operatingSystem',
+  ram: 'ram',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VPSInstanceScalarFieldEnum = (typeof VPSInstanceScalarFieldEnum)[keyof typeof VPSInstanceScalarFieldEnum]
+
+
+export const ProvisioningJobScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  providerId: 'providerId',
+  inventoryId: 'inventoryId',
+  source: 'source',
+  status: 'status',
+  attemptNumber: 'attemptNumber',
+  idempotencyKey: 'idempotencyKey',
+  providerRequestId: 'providerRequestId',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProvisioningJobScalarFieldEnum = (typeof ProvisioningJobScalarFieldEnum)[keyof typeof ProvisioningJobScalarFieldEnum]
+
+
+export const PriceHistoryScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  changedByAdminId: 'changedByAdminId',
+  oldPrice: 'oldPrice',
+  newPrice: 'newPrice',
+  currency: 'currency',
+  createdAt: 'createdAt'
+} as const
+
+export type PriceHistoryScalarFieldEnum = (typeof PriceHistoryScalarFieldEnum)[keyof typeof PriceHistoryScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -226,4 +368,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
