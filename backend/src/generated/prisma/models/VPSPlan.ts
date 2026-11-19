@@ -327,6 +327,7 @@ export type VPSPlanWhereInput = {
   orders?: Prisma.OrderListRelationFilter
   providerMappings?: Prisma.VPSPlanProviderMappingListRelationFilter
   priceHistory?: Prisma.PriceHistoryListRelationFilter
+  hostHeavenMapping?: Prisma.XOR<Prisma.HostHeavenPlanMappingNullableScalarRelationFilter, Prisma.HostHeavenPlanMappingWhereInput> | null
 }
 
 export type VPSPlanOrderByWithRelationInput = {
@@ -349,6 +350,7 @@ export type VPSPlanOrderByWithRelationInput = {
   orders?: Prisma.OrderOrderByRelationAggregateInput
   providerMappings?: Prisma.VPSPlanProviderMappingOrderByRelationAggregateInput
   priceHistory?: Prisma.PriceHistoryOrderByRelationAggregateInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingOrderByWithRelationInput
 }
 
 export type VPSPlanWhereUniqueInput = Prisma.AtLeast<{
@@ -374,6 +376,7 @@ export type VPSPlanWhereUniqueInput = Prisma.AtLeast<{
   orders?: Prisma.OrderListRelationFilter
   providerMappings?: Prisma.VPSPlanProviderMappingListRelationFilter
   priceHistory?: Prisma.PriceHistoryListRelationFilter
+  hostHeavenMapping?: Prisma.XOR<Prisma.HostHeavenPlanMappingNullableScalarRelationFilter, Prisma.HostHeavenPlanMappingWhereInput> | null
 }, "id">
 
 export type VPSPlanOrderByWithAggregationInput = {
@@ -442,6 +445,7 @@ export type VPSPlanCreateInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutPlanInput
   providerMappings?: Prisma.VPSPlanProviderMappingCreateNestedManyWithoutPlanInput
   priceHistory?: Prisma.PriceHistoryCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanUncheckedCreateInput = {
@@ -464,6 +468,7 @@ export type VPSPlanUncheckedCreateInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutPlanInput
   providerMappings?: Prisma.VPSPlanProviderMappingUncheckedCreateNestedManyWithoutPlanInput
   priceHistory?: Prisma.PriceHistoryUncheckedCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanUpdateInput = {
@@ -486,6 +491,7 @@ export type VPSPlanUpdateInput = {
   orders?: Prisma.OrderUpdateManyWithoutPlanNestedInput
   providerMappings?: Prisma.VPSPlanProviderMappingUpdateManyWithoutPlanNestedInput
   priceHistory?: Prisma.PriceHistoryUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUpdateOneWithoutPlanNestedInput
 }
 
 export type VPSPlanUncheckedUpdateInput = {
@@ -508,6 +514,7 @@ export type VPSPlanUncheckedUpdateInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutPlanNestedInput
   providerMappings?: Prisma.VPSPlanProviderMappingUncheckedUpdateManyWithoutPlanNestedInput
   priceHistory?: Prisma.PriceHistoryUncheckedUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedUpdateOneWithoutPlanNestedInput
 }
 
 export type VPSPlanCreateManyInput = {
@@ -679,14 +686,6 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type DecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
-}
-
 export type VPSPlanUpdatesupportedOSInput = {
   set?: string[]
   push?: string | string[]
@@ -734,6 +733,20 @@ export type VPSPlanUpdateOneRequiredWithoutPriceHistoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VPSPlanUpdateToOneWithWhereWithoutPriceHistoryInput, Prisma.VPSPlanUpdateWithoutPriceHistoryInput>, Prisma.VPSPlanUncheckedUpdateWithoutPriceHistoryInput>
 }
 
+export type VPSPlanCreateNestedOneWithoutHostHeavenMappingInput = {
+  create?: Prisma.XOR<Prisma.VPSPlanCreateWithoutHostHeavenMappingInput, Prisma.VPSPlanUncheckedCreateWithoutHostHeavenMappingInput>
+  connectOrCreate?: Prisma.VPSPlanCreateOrConnectWithoutHostHeavenMappingInput
+  connect?: Prisma.VPSPlanWhereUniqueInput
+}
+
+export type VPSPlanUpdateOneRequiredWithoutHostHeavenMappingNestedInput = {
+  create?: Prisma.XOR<Prisma.VPSPlanCreateWithoutHostHeavenMappingInput, Prisma.VPSPlanUncheckedCreateWithoutHostHeavenMappingInput>
+  connectOrCreate?: Prisma.VPSPlanCreateOrConnectWithoutHostHeavenMappingInput
+  upsert?: Prisma.VPSPlanUpsertWithoutHostHeavenMappingInput
+  connect?: Prisma.VPSPlanWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VPSPlanUpdateToOneWithWhereWithoutHostHeavenMappingInput, Prisma.VPSPlanUpdateWithoutHostHeavenMappingInput>, Prisma.VPSPlanUncheckedUpdateWithoutHostHeavenMappingInput>
+}
+
 export type VPSPlanCreateWithoutOrdersInput = {
   id?: string
   name: string
@@ -753,6 +766,7 @@ export type VPSPlanCreateWithoutOrdersInput = {
   updatedAt?: Date | string
   providerMappings?: Prisma.VPSPlanProviderMappingCreateNestedManyWithoutPlanInput
   priceHistory?: Prisma.PriceHistoryCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanUncheckedCreateWithoutOrdersInput = {
@@ -774,6 +788,7 @@ export type VPSPlanUncheckedCreateWithoutOrdersInput = {
   updatedAt?: Date | string
   providerMappings?: Prisma.VPSPlanProviderMappingUncheckedCreateNestedManyWithoutPlanInput
   priceHistory?: Prisma.PriceHistoryUncheckedCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanCreateOrConnectWithoutOrdersInput = {
@@ -811,6 +826,7 @@ export type VPSPlanUpdateWithoutOrdersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   providerMappings?: Prisma.VPSPlanProviderMappingUpdateManyWithoutPlanNestedInput
   priceHistory?: Prisma.PriceHistoryUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUpdateOneWithoutPlanNestedInput
 }
 
 export type VPSPlanUncheckedUpdateWithoutOrdersInput = {
@@ -832,6 +848,7 @@ export type VPSPlanUncheckedUpdateWithoutOrdersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   providerMappings?: Prisma.VPSPlanProviderMappingUncheckedUpdateManyWithoutPlanNestedInput
   priceHistory?: Prisma.PriceHistoryUncheckedUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedUpdateOneWithoutPlanNestedInput
 }
 
 export type VPSPlanCreateWithoutProviderMappingsInput = {
@@ -853,6 +870,7 @@ export type VPSPlanCreateWithoutProviderMappingsInput = {
   updatedAt?: Date | string
   orders?: Prisma.OrderCreateNestedManyWithoutPlanInput
   priceHistory?: Prisma.PriceHistoryCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanUncheckedCreateWithoutProviderMappingsInput = {
@@ -874,6 +892,7 @@ export type VPSPlanUncheckedCreateWithoutProviderMappingsInput = {
   updatedAt?: Date | string
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutPlanInput
   priceHistory?: Prisma.PriceHistoryUncheckedCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanCreateOrConnectWithoutProviderMappingsInput = {
@@ -911,6 +930,7 @@ export type VPSPlanUpdateWithoutProviderMappingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orders?: Prisma.OrderUpdateManyWithoutPlanNestedInput
   priceHistory?: Prisma.PriceHistoryUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUpdateOneWithoutPlanNestedInput
 }
 
 export type VPSPlanUncheckedUpdateWithoutProviderMappingsInput = {
@@ -932,6 +952,7 @@ export type VPSPlanUncheckedUpdateWithoutProviderMappingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orders?: Prisma.OrderUncheckedUpdateManyWithoutPlanNestedInput
   priceHistory?: Prisma.PriceHistoryUncheckedUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedUpdateOneWithoutPlanNestedInput
 }
 
 export type VPSPlanCreateWithoutPriceHistoryInput = {
@@ -953,6 +974,7 @@ export type VPSPlanCreateWithoutPriceHistoryInput = {
   updatedAt?: Date | string
   orders?: Prisma.OrderCreateNestedManyWithoutPlanInput
   providerMappings?: Prisma.VPSPlanProviderMappingCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanUncheckedCreateWithoutPriceHistoryInput = {
@@ -974,6 +996,7 @@ export type VPSPlanUncheckedCreateWithoutPriceHistoryInput = {
   updatedAt?: Date | string
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutPlanInput
   providerMappings?: Prisma.VPSPlanProviderMappingUncheckedCreateNestedManyWithoutPlanInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedCreateNestedOneWithoutPlanInput
 }
 
 export type VPSPlanCreateOrConnectWithoutPriceHistoryInput = {
@@ -1011,6 +1034,7 @@ export type VPSPlanUpdateWithoutPriceHistoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orders?: Prisma.OrderUpdateManyWithoutPlanNestedInput
   providerMappings?: Prisma.VPSPlanProviderMappingUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUpdateOneWithoutPlanNestedInput
 }
 
 export type VPSPlanUncheckedUpdateWithoutPriceHistoryInput = {
@@ -1032,6 +1056,111 @@ export type VPSPlanUncheckedUpdateWithoutPriceHistoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orders?: Prisma.OrderUncheckedUpdateManyWithoutPlanNestedInput
   providerMappings?: Prisma.VPSPlanProviderMappingUncheckedUpdateManyWithoutPlanNestedInput
+  hostHeavenMapping?: Prisma.HostHeavenPlanMappingUncheckedUpdateOneWithoutPlanNestedInput
+}
+
+export type VPSPlanCreateWithoutHostHeavenMappingInput = {
+  id?: string
+  name: string
+  productType: $Enums.ProductType
+  description?: string | null
+  cpuCores: number
+  ramGb: number
+  storageGb: number
+  bandwidthGb?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  durationDays: number
+  supportedOS?: Prisma.VPSPlanCreatesupportedOSInput | string[]
+  isActive?: boolean
+  sortOrder?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  orders?: Prisma.OrderCreateNestedManyWithoutPlanInput
+  providerMappings?: Prisma.VPSPlanProviderMappingCreateNestedManyWithoutPlanInput
+  priceHistory?: Prisma.PriceHistoryCreateNestedManyWithoutPlanInput
+}
+
+export type VPSPlanUncheckedCreateWithoutHostHeavenMappingInput = {
+  id?: string
+  name: string
+  productType: $Enums.ProductType
+  description?: string | null
+  cpuCores: number
+  ramGb: number
+  storageGb: number
+  bandwidthGb?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  durationDays: number
+  supportedOS?: Prisma.VPSPlanCreatesupportedOSInput | string[]
+  isActive?: boolean
+  sortOrder?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutPlanInput
+  providerMappings?: Prisma.VPSPlanProviderMappingUncheckedCreateNestedManyWithoutPlanInput
+  priceHistory?: Prisma.PriceHistoryUncheckedCreateNestedManyWithoutPlanInput
+}
+
+export type VPSPlanCreateOrConnectWithoutHostHeavenMappingInput = {
+  where: Prisma.VPSPlanWhereUniqueInput
+  create: Prisma.XOR<Prisma.VPSPlanCreateWithoutHostHeavenMappingInput, Prisma.VPSPlanUncheckedCreateWithoutHostHeavenMappingInput>
+}
+
+export type VPSPlanUpsertWithoutHostHeavenMappingInput = {
+  update: Prisma.XOR<Prisma.VPSPlanUpdateWithoutHostHeavenMappingInput, Prisma.VPSPlanUncheckedUpdateWithoutHostHeavenMappingInput>
+  create: Prisma.XOR<Prisma.VPSPlanCreateWithoutHostHeavenMappingInput, Prisma.VPSPlanUncheckedCreateWithoutHostHeavenMappingInput>
+  where?: Prisma.VPSPlanWhereInput
+}
+
+export type VPSPlanUpdateToOneWithWhereWithoutHostHeavenMappingInput = {
+  where?: Prisma.VPSPlanWhereInput
+  data: Prisma.XOR<Prisma.VPSPlanUpdateWithoutHostHeavenMappingInput, Prisma.VPSPlanUncheckedUpdateWithoutHostHeavenMappingInput>
+}
+
+export type VPSPlanUpdateWithoutHostHeavenMappingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  productType?: Prisma.EnumProductTypeFieldUpdateOperationsInput | $Enums.ProductType
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cpuCores?: Prisma.IntFieldUpdateOperationsInput | number
+  ramGb?: Prisma.IntFieldUpdateOperationsInput | number
+  storageGb?: Prisma.IntFieldUpdateOperationsInput | number
+  bandwidthGb?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  durationDays?: Prisma.IntFieldUpdateOperationsInput | number
+  supportedOS?: Prisma.VPSPlanUpdatesupportedOSInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUpdateManyWithoutPlanNestedInput
+  providerMappings?: Prisma.VPSPlanProviderMappingUpdateManyWithoutPlanNestedInput
+  priceHistory?: Prisma.PriceHistoryUpdateManyWithoutPlanNestedInput
+}
+
+export type VPSPlanUncheckedUpdateWithoutHostHeavenMappingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  productType?: Prisma.EnumProductTypeFieldUpdateOperationsInput | $Enums.ProductType
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cpuCores?: Prisma.IntFieldUpdateOperationsInput | number
+  ramGb?: Prisma.IntFieldUpdateOperationsInput | number
+  storageGb?: Prisma.IntFieldUpdateOperationsInput | number
+  bandwidthGb?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  durationDays?: Prisma.IntFieldUpdateOperationsInput | number
+  supportedOS?: Prisma.VPSPlanUpdatesupportedOSInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutPlanNestedInput
+  providerMappings?: Prisma.VPSPlanProviderMappingUncheckedUpdateManyWithoutPlanNestedInput
+  priceHistory?: Prisma.PriceHistoryUncheckedUpdateManyWithoutPlanNestedInput
 }
 
 
@@ -1103,6 +1232,7 @@ export type VPSPlanSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   orders?: boolean | Prisma.VPSPlan$ordersArgs<ExtArgs>
   providerMappings?: boolean | Prisma.VPSPlan$providerMappingsArgs<ExtArgs>
   priceHistory?: boolean | Prisma.VPSPlan$priceHistoryArgs<ExtArgs>
+  hostHeavenMapping?: boolean | Prisma.VPSPlan$hostHeavenMappingArgs<ExtArgs>
   _count?: boolean | Prisma.VPSPlanCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["vPSPlan"]>
 
@@ -1168,6 +1298,7 @@ export type VPSPlanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   orders?: boolean | Prisma.VPSPlan$ordersArgs<ExtArgs>
   providerMappings?: boolean | Prisma.VPSPlan$providerMappingsArgs<ExtArgs>
   priceHistory?: boolean | Prisma.VPSPlan$priceHistoryArgs<ExtArgs>
+  hostHeavenMapping?: boolean | Prisma.VPSPlan$hostHeavenMappingArgs<ExtArgs>
   _count?: boolean | Prisma.VPSPlanCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VPSPlanIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1179,6 +1310,7 @@ export type $VPSPlanPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     orders: Prisma.$OrderPayload<ExtArgs>[]
     providerMappings: Prisma.$VPSPlanProviderMappingPayload<ExtArgs>[]
     priceHistory: Prisma.$PriceHistoryPayload<ExtArgs>[]
+    hostHeavenMapping: Prisma.$HostHeavenPlanMappingPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1594,6 +1726,7 @@ export interface Prisma__VPSPlanClient<T, Null = never, ExtArgs extends runtime.
   orders<T extends Prisma.VPSPlan$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSPlan$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   providerMappings<T extends Prisma.VPSPlan$providerMappingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSPlan$providerMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VPSPlanProviderMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   priceHistory<T extends Prisma.VPSPlan$priceHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSPlan$priceHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PriceHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  hostHeavenMapping<T extends Prisma.VPSPlan$hostHeavenMappingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSPlan$hostHeavenMappingArgs<ExtArgs>>): Prisma.Prisma__HostHeavenPlanMappingClient<runtime.Types.Result.GetResult<Prisma.$HostHeavenPlanMappingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2101,6 +2234,25 @@ export type VPSPlan$priceHistoryArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.PriceHistoryScalarFieldEnum | Prisma.PriceHistoryScalarFieldEnum[]
+}
+
+/**
+ * VPSPlan.hostHeavenMapping
+ */
+export type VPSPlan$hostHeavenMappingArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the HostHeavenPlanMapping
+   */
+  select?: Prisma.HostHeavenPlanMappingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the HostHeavenPlanMapping
+   */
+  omit?: Prisma.HostHeavenPlanMappingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HostHeavenPlanMappingInclude<ExtArgs> | null
+  where?: Prisma.HostHeavenPlanMappingWhereInput
 }
 
 /**

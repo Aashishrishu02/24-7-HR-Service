@@ -28,7 +28,17 @@ function App() {
     return <AdminPanel />;
   }
 
-  if (pathname === "/dashboard") {
+  if (
+    pathname === "/dashboard" ||
+    pathname === "/wallet" ||
+    pathname === "/orders" ||
+    pathname === "/servers" ||
+    pathname === "/my-vps" ||
+    pathname === "/windows-vps" ||
+    pathname === "/linux-vps" ||
+    pathname === "/support" ||
+    pathname === "/checkout"
+  ) {
     return <Dashboard />;
   }
 

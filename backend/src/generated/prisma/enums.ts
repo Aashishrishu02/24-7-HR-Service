@@ -50,6 +50,52 @@ export const PaymentStatus = {
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 
+export const PaymentPurpose = {
+  VPS_ORDER: 'VPS_ORDER',
+  WALLET_TOPUP: 'WALLET_TOPUP',
+  VPS_RENEWAL: 'VPS_RENEWAL'
+} as const
+
+export type PaymentPurpose = (typeof PaymentPurpose)[keyof typeof PaymentPurpose]
+
+
+export const PaymentProvider = {
+  RAZORPAY: 'RAZORPAY',
+  WALLET: 'WALLET'
+} as const
+
+export type PaymentProvider = (typeof PaymentProvider)[keyof typeof PaymentProvider]
+
+
+export const WalletTransactionType = {
+  CREDIT: 'CREDIT',
+  DEBIT: 'DEBIT',
+  REFUND: 'REFUND'
+} as const
+
+export type WalletTransactionType = (typeof WalletTransactionType)[keyof typeof WalletTransactionType]
+
+
+export const VPSStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  STOPPED: 'STOPPED',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  TERMINATED: 'TERMINATED'
+} as const
+
+export type VPSStatus = (typeof VPSStatus)[keyof typeof VPSStatus]
+
+
+export const ConsentAction = {
+  CONSENT_GRANTED: 'CONSENT_GRANTED',
+  CONSENT_REVOKED: 'CONSENT_REVOKED'
+} as const
+
+export type ConsentAction = (typeof ConsentAction)[keyof typeof ConsentAction]
+
+
 export const InventoryStatus = {
   AVAILABLE: 'AVAILABLE',
   RESERVED: 'RESERVED',

@@ -1,17 +1,17 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
-  LayoutDashboard, Users, Server, ShoppingCart, CreditCard,
-  Settings, ShieldCheck, LogOut, RefreshCw, Menu, X,
+  LayoutDashboard, Users, Server,
+  ShieldCheck, LogOut, RefreshCw, Menu, X,
   Search, ChevronLeft, ChevronRight, Eye, Power, Mail, Calendar, Package,
-  Network, Activity,
+  Network, Activity, Cloud,
 } from "lucide-react";
 import adminApi from "./adminApi";
 import AdminPlans from "./AdminPlans";
 import Providers from "./admin/Providers";
-import ProviderProducts from "./admin/ProviderProducts";
-import Inventory from "./admin/Inventory";
 import PlanProviderMapping from "./admin/PlanProviderMapping";
 import Provisioning from "./admin/Provisioning";
+import RenewalLifecycle from "./admin/RenewalLifecycle";
+import HostHeavenMapping from "./admin/HostHeavenMapping";
 
 type Stats = {
   totalCustomers: number;
@@ -311,14 +311,11 @@ export default function AdminPanel() {
     ["Customers", Users],
     ["VPS Management", Server],
     ["Providers", Network],
-    ["Provider Products", Package],
-    ["Inventory", Server],
+    ["HostHeaven Mappings", Cloud],
     ["Plan Provider Mapping", Network],
     ["Provisioning", Activity],
+    ["Auto-Renewal & Lifecycle", RefreshCw],
     ["Plans", Package],
-    ["Orders", ShoppingCart],
-    ["Payments & Wallet", CreditCard],
-    ["Settings", Settings],
   ] as const;
 
   const cards = [
@@ -697,26 +694,10 @@ export default function AdminPanel() {
 
           {page === "Plans" && <AdminPlans />}
           {page === "Providers" && <Providers />}
-          {page === "Provider Products" && <ProviderProducts />}
-          {page === "Inventory" && <Inventory />}
+          {page === "HostHeaven Mappings" && <HostHeavenMapping />}
           {page === "Plan Provider Mapping" && <PlanProviderMapping />}
           {page === "Provisioning" && <Provisioning />}
-
-          {page !== "Dashboard" &&
-            page !== "Customers" &&
-            page !== "VPS Management" &&
-            page !== "Plans" &&
-            page !== "Providers" &&
-            page !== "Provider Products" &&
-            page !== "Inventory" &&
-            page !== "Plan Provider Mapping" &&
-            page !== "Provisioning" && (
-            <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-10 text-center">
-              <Settings className="mx-auto mb-4 text-blue-400" size={36} />
-              <h2 className="text-xl font-bold">{page}</h2>
-              <p className="mt-2 text-sm text-slate-400">This module will be implemented next.</p>
-            </div>
-          )}
+          {page === "Auto-Renewal & Lifecycle" && <RenewalLifecycle />}
         </section>
       </main>
 

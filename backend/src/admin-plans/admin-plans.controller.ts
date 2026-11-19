@@ -1,8 +1,10 @@
+
 import {
   Controller,
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Query,
   Body,
@@ -60,5 +62,10 @@ export class AdminPlansController {
     @Body() dto: UpdatePlanDto,
   ) {
     return this.adminPlansService.update(id, dto);
+  }
+
+  @Delete(':id')
+  delete(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminPlansService.delete(id);
   }
 }

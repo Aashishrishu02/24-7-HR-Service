@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
@@ -46,6 +47,8 @@ type ProvisioningJob = {
       ipAddress: string;
       hostname?: string | null;
       status: string;
+      provider?: string;
+      providerVpsId?: string | null;
       expiresAt?: string | null;
     } | null;
   } | null;
@@ -57,6 +60,7 @@ type ProvisioningJob = {
   } | null;
   inventory?: {
     id: string;
+    providerVpsId?: string | null;
     ipAddress?: string | null;
     hostname?: string | null;
     status: string;
@@ -75,6 +79,7 @@ type ReconciliationResult = {
   assessment: string;
   recommendation: string;
   job: ProvisioningJob;
+  hostheavenCheck?: unknown;
   checks: {
     orderExists: boolean;
     orderStatus: string;
@@ -161,6 +166,81 @@ function InfoItem({
   );
 }
 
+function HostHeavenVerification({
+  result,
+}: {
+  result: unknown;
+}) {
+  const data =
+    result && typeof result === "object"
+      ? (result as Record<string, unknown>)
+      : null;
+
+  const skipped = data?.skipped === true;
+  const verified = data?.verified === true;
+  const error = data?.error;
+
+  return (
+    <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 p-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h4 className="text-sm font-semibold text-purple-300">
+          HostHeaven Provider Verification
+        </h4>
+
+        <span
+          className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${
+            skipped
+              ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-300"
+              : verified
+                ? "border-green-500/30 bg-green-500/10 text-green-300"
+                : error
+                  ? "border-red-500/30 bg-red-500/10 text-red-300"
+                  : "border-slate-600 bg-slate-700/30 text-slate-300"
+          }`}
+        >
+          {skipped
+            ? "MANUAL REVIEW REQUIRED"
+            : verified
+              ? "PROVIDER RESPONSE RECEIVED"
+              : error
+                ? "LOOKUP FAILED"
+                : "RESPONSE RECEIVED"}
+        </span>
+      </div>
+
+      {typeof data?.reason === "string" && (
+        <div className="mb-3 rounded-lg bg-[#080e1c] p-3">
+          <p className="text-xs text-slate-500">Reason</p>
+          <p className="mt-1 text-sm text-yellow-300">
+            {data.reason}
+          </p>
+        </div>
+      )}
+
+      {typeof error === "string" && (
+        <div className="mb-3 rounded-lg bg-[#080e1c] p-3">
+          <p className="text-xs text-slate-500">Lookup Error</p>
+          <p className="mt-1 break-words text-sm text-red-300">
+            {error}
+          </p>
+        </div>
+      )}
+
+      <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-[#080e1c] p-3 text-xs text-slate-300">
+        {typeof result === "string"
+          ? result
+          : JSON.stringify(result, null, 2)}
+      </pre>
+
+      <p className="mt-3 text-xs text-slate-500">
+        A provider response or skipped lookup does not by itself prove
+        that a VPS was successfully created. Verify the actual provider
+        VM record before taking action.
+      </p>
+    </div>
+  );
+}
+
 export default function Provisioning() {
   const [jobs, setJobs] = useState<ProvisioningJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -180,7 +260,6 @@ export default function Provisioning() {
   const [reconciliation, setReconciliation] =
     useState<ReconciliationResult | null>(null);
 
-  // Load provisioning jobs
   const loadJobs = useCallback(async (showRefresh = false) => {
     if (showRefresh) {
       setRefreshing(true);
@@ -208,7 +287,6 @@ export default function Provisioning() {
     void loadJobs();
   }, [loadJobs]);
 
-  // Dashboard counts
   const counts = useMemo(
     () => ({
       total: jobs.length,
@@ -235,7 +313,6 @@ export default function Provisioning() {
     [jobs],
   );
 
-  // Search and status filtering
   const filteredJobs = useMemo(() => {
     const term = search.trim().toLowerCase();
 
@@ -250,13 +327,13 @@ export default function Provisioning() {
         job.orderId.toLowerCase().includes(term) ||
         (job.order?.orderNumber || "").toLowerCase().includes(term) ||
         (job.provider?.name || "").toLowerCase().includes(term) ||
-        (job.inventory?.ipAddress || "").toLowerCase().includes(term);
+        (job.inventory?.ipAddress || "").toLowerCase().includes(term) ||
+        (job.providerRequestId || "").toLowerCase().includes(term);
 
       return matchesStatus && matchesSearch;
     });
   }, [jobs, search, statusFilter]);
 
-  // Different tab views
   const displayedJobs = useMemo(() => {
     switch (activeTab) {
       case "OVERVIEW":
@@ -268,16 +345,12 @@ export default function Provisioning() {
         );
 
       case "RECONCILIATION":
-        // Inspection is performed individually from job details.
-        return filteredJobs;
-
       case "ALL":
       default:
         return filteredJobs;
     }
   }, [activeTab, filteredJobs]);
 
-  // Open job details
   const openJob = async (id: string) => {
     setDetailLoading(true);
     setSelectedJob(null);
@@ -300,7 +373,6 @@ export default function Provisioning() {
     }
   };
 
-  // Read-only reconciliation
   const inspectJob = async () => {
     if (!selectedJob) return;
 
@@ -368,8 +440,6 @@ export default function Provisioning() {
 
   return (
     <div className="space-y-6">
-
-      {/* PAGE HEADER */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2">
@@ -394,12 +464,10 @@ export default function Provisioning() {
             size={16}
             className={refreshing ? "animate-spin" : ""}
           />
-
           Refresh Jobs
         </button>
       </div>
 
-      {/* ERROR MESSAGE */}
       {error && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
           <span>{error}</span>
@@ -413,7 +481,6 @@ export default function Provisioning() {
         </div>
       )}
 
-      {/* SUMMARY CARDS */}
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
           {
@@ -468,7 +535,6 @@ export default function Provisioning() {
         })}
       </div>
 
-      {/* TABS */}
       <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -489,7 +555,6 @@ export default function Provisioning() {
               }`}
             >
               <Icon size={16} />
-
               {tab.label}
 
               {tab.count !== undefined && (
@@ -508,7 +573,6 @@ export default function Provisioning() {
         })}
       </div>
 
-      {/* OVERVIEW INFORMATION */}
       {activeTab === "OVERVIEW" && (
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
@@ -555,7 +619,6 @@ export default function Provisioning() {
         </div>
       )}
 
-      {/* RECONCILIATION INFORMATION */}
       {activeTab === "RECONCILIATION" && (
         <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5">
           <div className="flex items-start gap-3">
@@ -570,9 +633,9 @@ export default function Provisioning() {
               </h3>
 
               <p className="mt-1 text-sm leading-6 text-slate-400">
-                Select any provisioning job, open its details and click
-                Inspect Job. The system will compare order, inventory
-                and VPS records and provide a recommendation.
+                Select a provisioning job, open its details and click
+                Inspect Job. The system compares order, inventory,
+                VPS and available provider records.
               </p>
 
               <p className="mt-2 text-xs text-green-400">
@@ -584,10 +647,7 @@ export default function Provisioning() {
         </div>
       )}
 
-      {/* JOBS TABLE */}
       <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#111a2b]">
-
-        {/* SEARCH AND FILTER */}
         <div className="flex flex-col gap-3 border-b border-slate-800 p-4 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <Search
@@ -610,9 +670,7 @@ export default function Provisioning() {
           >
             <option value="ALL">All statuses</option>
             <option value="PENDING">Pending</option>
-            <option value="CHECKING_INVENTORY">
-              Checking inventory
-            </option>
+            <option value="CHECKING_INVENTORY">Checking inventory</option>
             <option value="RESERVED">Reserved</option>
             <option value="PROVISIONING">Provisioning</option>
             <option value="PURCHASING">Purchasing</option>
@@ -623,25 +681,20 @@ export default function Provisioning() {
           </select>
         </div>
 
-        {/* TABLE HEADER */}
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
-          <h2 className="font-semibold">
-            {tableTitle}
-          </h2>
+          <h2 className="font-semibold">{tableTitle}</h2>
 
           <span className="text-xs text-slate-500">
             {displayedJobs.length} of {jobs.length} jobs
           </span>
         </div>
 
-        {/* TABLE CONTENT */}
         {loading ? (
           <div className="p-12 text-center text-slate-400">
             <RefreshCw
               className="mx-auto mb-3 animate-spin"
               size={25}
             />
-
             Loading provisioning jobs...
           </div>
         ) : displayedJobs.length === 0 ? (
@@ -680,10 +733,7 @@ export default function Provisioning() {
 
               <tbody className="divide-y divide-slate-800">
                 {displayedJobs.map((job) => (
-                  <tr
-                    key={job.id}
-                    className="hover:bg-slate-800/30"
-                  >
+                  <tr key={job.id} className="hover:bg-slate-800/30">
                     <td className="px-4 py-4">
                       <p className="font-mono text-xs text-slate-300">
                         {job.id.slice(0, 12)}...
@@ -728,7 +778,6 @@ export default function Provisioning() {
                         className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs text-blue-400 hover:bg-slate-700"
                       >
                         <Eye size={14} />
-
                         Details
                       </button>
                     </td>
@@ -740,21 +789,15 @@ export default function Provisioning() {
         )}
       </div>
 
-      {/* DETAIL LOADING */}
       {detailLoading && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70">
           <div className="flex items-center gap-3 rounded-xl border border-slate-700 bg-[#111a2b] px-6 py-4 text-sm">
-            <RefreshCw
-              className="animate-spin"
-              size={18}
-            />
-
+            <RefreshCw className="animate-spin" size={18} />
             Loading job details...
           </div>
         </div>
       )}
 
-      {/* JOB DETAILS MODAL */}
       {selectedJob && (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-4"
@@ -764,7 +807,6 @@ export default function Provisioning() {
             className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-700 bg-[#111a2b] p-5 sm:p-7"
             onClick={(event) => event.stopPropagation()}
           >
-            {/* MODAL HEADER */}
             <div className="mb-6 flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold">
@@ -785,7 +827,6 @@ export default function Provisioning() {
               </button>
             </div>
 
-            {/* STATUS */}
             <div className="mb-6 flex flex-wrap items-center gap-3">
               <StatusBadge status={selectedJob.status} />
 
@@ -799,54 +840,35 @@ export default function Provisioning() {
             </div>
 
             <div className="space-y-5">
-
-              {/* JOB INFORMATION */}
               <section>
                 <h3 className="mb-3 text-sm font-semibold text-slate-300">
                   Job Information
                 </h3>
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <InfoItem
-                    label="Job ID"
-                    value={selectedJob.id}
-                  />
-
-                  <InfoItem
-                    label="Order ID"
-                    value={selectedJob.orderId}
-                  />
-
+                  <InfoItem label="Job ID" value={selectedJob.id} />
+                  <InfoItem label="Order ID" value={selectedJob.orderId} />
                   <InfoItem
                     label="Order Number"
                     value={selectedJob.order?.orderNumber}
                   />
-
-                  <InfoItem
-                    label="Job Source"
-                    value={selectedJob.source}
-                  />
-
+                  <InfoItem label="Job Source" value={selectedJob.source} />
                   <InfoItem
                     label="Created At"
                     value={formatDate(selectedJob.createdAt)}
                   />
-
                   <InfoItem
                     label="Started At"
                     value={formatDate(selectedJob.startedAt)}
                   />
-
                   <InfoItem
                     label="Completed At"
                     value={formatDate(selectedJob.completedAt)}
                   />
-
                   <InfoItem
                     label="Provider Request ID"
                     value={selectedJob.providerRequestId}
                   />
-
                   <InfoItem
                     label="Updated At"
                     value={formatDate(selectedJob.updatedAt)}
@@ -854,7 +876,6 @@ export default function Provisioning() {
                 </div>
               </section>
 
-              {/* ORDER INFORMATION */}
               <section>
                 <h3 className="mb-3 text-sm font-semibold text-slate-300">
                   Order Information
@@ -865,12 +886,10 @@ export default function Provisioning() {
                     label="Plan"
                     value={selectedJob.order?.planName}
                   />
-
                   <InfoItem
                     label="Order Status"
                     value={selectedJob.order?.status}
                   />
-
                   <InfoItem
                     label="Order Amount"
                     value={
@@ -879,12 +898,10 @@ export default function Provisioning() {
                         : "—"
                     }
                   />
-
                   <InfoItem
                     label="Operating System"
                     value={selectedJob.order?.operatingSystem}
                   />
-
                   <InfoItem
                     label="Customer ID"
                     value={selectedJob.order?.userId}
@@ -892,7 +909,6 @@ export default function Provisioning() {
                 </div>
               </section>
 
-              {/* VPS INFORMATION */}
               <section>
                 <h3 className="mb-3 text-sm font-semibold text-slate-300">
                   VPS Information
@@ -903,22 +919,26 @@ export default function Provisioning() {
                     label="VPS Instance ID"
                     value={selectedJob.order?.vpsInstance?.id}
                   />
-
                   <InfoItem
                     label="VPS IP Address"
                     value={selectedJob.order?.vpsInstance?.ipAddress}
                   />
-
                   <InfoItem
                     label="VPS Hostname"
                     value={selectedJob.order?.vpsInstance?.hostname}
                   />
-
                   <InfoItem
                     label="VPS Status"
                     value={selectedJob.order?.vpsInstance?.status}
                   />
-
+                  <InfoItem
+                    label="VPS Provider"
+                    value={selectedJob.order?.vpsInstance?.provider}
+                  />
+                  <InfoItem
+                    label="Provider VM ID"
+                    value={selectedJob.order?.vpsInstance?.providerVpsId}
+                  />
                   <InfoItem
                     label="VPS Expiry"
                     value={formatDate(
@@ -928,7 +948,6 @@ export default function Provisioning() {
                 </div>
               </section>
 
-              {/* PROVIDER AND INVENTORY */}
               <section>
                 <h3 className="mb-3 text-sm font-semibold text-slate-300">
                   Provider & Inventory
@@ -939,42 +958,38 @@ export default function Provisioning() {
                     label="Provider"
                     value={selectedJob.provider?.name}
                   />
-
                   <InfoItem
                     label="Provider Code"
                     value={selectedJob.provider?.code}
                   />
-
                   <InfoItem
                     label="Provider Active"
                     value={selectedJob.provider?.isActive}
                   />
-
                   <InfoItem
                     label="Inventory ID"
                     value={selectedJob.inventory?.id || selectedJob.inventoryId}
                   />
-
+                  <InfoItem
+                    label="Inventory Provider VM ID"
+                    value={selectedJob.inventory?.providerVpsId}
+                  />
                   <InfoItem
                     label="Inventory IP"
                     value={selectedJob.inventory?.ipAddress}
                   />
-
                   <InfoItem
                     label="Inventory Hostname"
                     value={selectedJob.inventory?.hostname}
                   />
-
                   <InfoItem
                     label="Inventory Status"
                     value={selectedJob.inventory?.status}
                   />
-
                   <InfoItem
                     label="Inventory VPS ID"
                     value={selectedJob.inventory?.vpsInstance?.id}
                   />
-
                   <InfoItem
                     label="Inventory VPS IP"
                     value={selectedJob.inventory?.vpsInstance?.ipAddress}
@@ -982,12 +997,10 @@ export default function Provisioning() {
                 </div>
               </section>
 
-              {/* FAILURE INFORMATION */}
               {selectedJob.errorMessage && (
                 <section className="rounded-lg border border-red-500/30 bg-red-500/5 p-4">
                   <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-red-400">
                     <AlertCircle size={16} />
-
                     Failure Information
                   </h3>
 
@@ -1001,7 +1014,6 @@ export default function Provisioning() {
                 </section>
               )}
 
-              {/* RECONCILIATION */}
               <section className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4">
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <div>
@@ -1010,13 +1022,12 @@ export default function Provisioning() {
                         size={18}
                         className="text-blue-400"
                       />
-
                       Reconciliation Inspection
                     </h3>
 
                     <p className="mt-1 text-xs text-slate-400">
-                      Inspect database consistency without changing VPS
-                      or inventory records.
+                      Inspect database and available provider information
+                      without changing VPS or inventory records.
                     </p>
                   </div>
 
@@ -1029,14 +1040,12 @@ export default function Provisioning() {
                       size={15}
                       className={reconciling ? "animate-spin" : ""}
                     />
-
                     {reconciling ? "Inspecting..." : "Inspect Job"}
                   </button>
                 </div>
 
                 {reconciliation && (
                   <div className="mt-5 space-y-4 border-t border-slate-700/70 pt-4">
-
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-semibold">
                         Assessment
@@ -1069,9 +1078,15 @@ export default function Provisioning() {
                       )}
                     </div>
 
+                    {reconciliation.hostheavenCheck !== undefined &&
+                      reconciliation.hostheavenCheck !== null && (
+                        <HostHeavenVerification
+                          result={reconciliation.hostheavenCheck}
+                        />
+                      )}
+
                     <p className="flex items-center gap-2 text-xs text-green-400">
                       <ShieldCheck size={15} />
-
                       Read-only inspection completed. No records were modified.
                     </p>
                   </div>

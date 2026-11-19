@@ -28,10 +28,12 @@ export type AggregateVPSInstance = {
 
 export type VPSInstanceAvgAggregateOutputType = {
   ram: number | null
+  gracePeriodDays: number | null
 }
 
 export type VPSInstanceSumAggregateOutputType = {
   ram: number | null
+  gracePeriodDays: number | null
 }
 
 export type VPSInstanceMinAggregateOutputType = {
@@ -45,8 +47,15 @@ export type VPSInstanceMinAggregateOutputType = {
   hostname: string | null
   operatingSystem: string | null
   ram: number | null
-  status: string | null
+  status: $Enums.VPSStatus | null
   expiresAt: Date | null
+  autoRenew: boolean | null
+  autoRenewConsentAt: Date | null
+  autoRenewDisabledAt: Date | null
+  gracePeriodDays: number | null
+  gracePeriodExpiresAt: Date | null
+  suspendedAt: Date | null
+  providerSuspended: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -62,8 +71,15 @@ export type VPSInstanceMaxAggregateOutputType = {
   hostname: string | null
   operatingSystem: string | null
   ram: number | null
-  status: string | null
+  status: $Enums.VPSStatus | null
   expiresAt: Date | null
+  autoRenew: boolean | null
+  autoRenewConsentAt: Date | null
+  autoRenewDisabledAt: Date | null
+  gracePeriodDays: number | null
+  gracePeriodExpiresAt: Date | null
+  suspendedAt: Date | null
+  providerSuspended: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -81,6 +97,13 @@ export type VPSInstanceCountAggregateOutputType = {
   ram: number
   status: number
   expiresAt: number
+  autoRenew: number
+  autoRenewConsentAt: number
+  autoRenewDisabledAt: number
+  gracePeriodDays: number
+  gracePeriodExpiresAt: number
+  suspendedAt: number
+  providerSuspended: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -89,10 +112,12 @@ export type VPSInstanceCountAggregateOutputType = {
 
 export type VPSInstanceAvgAggregateInputType = {
   ram?: true
+  gracePeriodDays?: true
 }
 
 export type VPSInstanceSumAggregateInputType = {
   ram?: true
+  gracePeriodDays?: true
 }
 
 export type VPSInstanceMinAggregateInputType = {
@@ -108,6 +133,13 @@ export type VPSInstanceMinAggregateInputType = {
   ram?: true
   status?: true
   expiresAt?: true
+  autoRenew?: true
+  autoRenewConsentAt?: true
+  autoRenewDisabledAt?: true
+  gracePeriodDays?: true
+  gracePeriodExpiresAt?: true
+  suspendedAt?: true
+  providerSuspended?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -125,6 +157,13 @@ export type VPSInstanceMaxAggregateInputType = {
   ram?: true
   status?: true
   expiresAt?: true
+  autoRenew?: true
+  autoRenewConsentAt?: true
+  autoRenewDisabledAt?: true
+  gracePeriodDays?: true
+  gracePeriodExpiresAt?: true
+  suspendedAt?: true
+  providerSuspended?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -142,6 +181,13 @@ export type VPSInstanceCountAggregateInputType = {
   ram?: true
   status?: true
   expiresAt?: true
+  autoRenew?: true
+  autoRenewConsentAt?: true
+  autoRenewDisabledAt?: true
+  gracePeriodDays?: true
+  gracePeriodExpiresAt?: true
+  suspendedAt?: true
+  providerSuspended?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -244,8 +290,15 @@ export type VPSInstanceGroupByOutputType = {
   hostname: string | null
   operatingSystem: string | null
   ram: number | null
-  status: string
+  status: $Enums.VPSStatus
   expiresAt: Date | null
+  autoRenew: boolean
+  autoRenewConsentAt: Date | null
+  autoRenewDisabledAt: Date | null
+  gracePeriodDays: number
+  gracePeriodExpiresAt: Date | null
+  suspendedAt: Date | null
+  providerSuspended: boolean
   createdAt: Date
   updatedAt: Date
   _count: VPSInstanceCountAggregateOutputType | null
@@ -284,13 +337,23 @@ export type VPSInstanceWhereInput = {
   hostname?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   operatingSystem?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   ram?: Prisma.IntNullableFilter<"VPSInstance"> | number | null
-  status?: Prisma.StringFilter<"VPSInstance"> | string
+  status?: Prisma.EnumVPSStatusFilter<"VPSInstance"> | $Enums.VPSStatus
   expiresAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  autoRenew?: Prisma.BoolFilter<"VPSInstance"> | boolean
+  autoRenewConsentAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  autoRenewDisabledAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  gracePeriodDays?: Prisma.IntFilter<"VPSInstance"> | number
+  gracePeriodExpiresAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  suspendedAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  providerSuspended?: Prisma.BoolFilter<"VPSInstance"> | boolean
   createdAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   order?: Prisma.XOR<Prisma.OrderNullableScalarRelationFilter, Prisma.OrderWhereInput> | null
   inventory?: Prisma.XOR<Prisma.ProviderInventoryNullableScalarRelationFilter, Prisma.ProviderInventoryWhereInput> | null
+  consentAudits?: Prisma.VPSConsentAuditListRelationFilter
+  renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
+  notifications?: Prisma.NotificationLogListRelationFilter
 }
 
 export type VPSInstanceOrderByWithRelationInput = {
@@ -306,11 +369,21 @@ export type VPSInstanceOrderByWithRelationInput = {
   ram?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoRenew?: Prisma.SortOrder
+  autoRenewConsentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoRenewDisabledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  gracePeriodDays?: Prisma.SortOrder
+  gracePeriodExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerSuspended?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   order?: Prisma.OrderOrderByWithRelationInput
   inventory?: Prisma.ProviderInventoryOrderByWithRelationInput
+  consentAudits?: Prisma.VPSConsentAuditOrderByRelationAggregateInput
+  renewalAttempts?: Prisma.RenewalAttemptOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationLogOrderByRelationAggregateInput
 }
 
 export type VPSInstanceWhereUniqueInput = Prisma.AtLeast<{
@@ -327,13 +400,23 @@ export type VPSInstanceWhereUniqueInput = Prisma.AtLeast<{
   hostname?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   operatingSystem?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   ram?: Prisma.IntNullableFilter<"VPSInstance"> | number | null
-  status?: Prisma.StringFilter<"VPSInstance"> | string
+  status?: Prisma.EnumVPSStatusFilter<"VPSInstance"> | $Enums.VPSStatus
   expiresAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  autoRenew?: Prisma.BoolFilter<"VPSInstance"> | boolean
+  autoRenewConsentAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  autoRenewDisabledAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  gracePeriodDays?: Prisma.IntFilter<"VPSInstance"> | number
+  gracePeriodExpiresAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  suspendedAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  providerSuspended?: Prisma.BoolFilter<"VPSInstance"> | boolean
   createdAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   order?: Prisma.XOR<Prisma.OrderNullableScalarRelationFilter, Prisma.OrderWhereInput> | null
   inventory?: Prisma.XOR<Prisma.ProviderInventoryNullableScalarRelationFilter, Prisma.ProviderInventoryWhereInput> | null
+  consentAudits?: Prisma.VPSConsentAuditListRelationFilter
+  renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
+  notifications?: Prisma.NotificationLogListRelationFilter
 }, "id" | "orderId" | "inventoryId" | "providerVpsId" | "ipAddress">
 
 export type VPSInstanceOrderByWithAggregationInput = {
@@ -349,6 +432,13 @@ export type VPSInstanceOrderByWithAggregationInput = {
   ram?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoRenew?: Prisma.SortOrder
+  autoRenewConsentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoRenewDisabledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  gracePeriodDays?: Prisma.SortOrder
+  gracePeriodExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerSuspended?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.VPSInstanceCountOrderByAggregateInput
@@ -372,8 +462,15 @@ export type VPSInstanceScalarWhereWithAggregatesInput = {
   hostname?: Prisma.StringNullableWithAggregatesFilter<"VPSInstance"> | string | null
   operatingSystem?: Prisma.StringNullableWithAggregatesFilter<"VPSInstance"> | string | null
   ram?: Prisma.IntNullableWithAggregatesFilter<"VPSInstance"> | number | null
-  status?: Prisma.StringWithAggregatesFilter<"VPSInstance"> | string
+  status?: Prisma.EnumVPSStatusWithAggregatesFilter<"VPSInstance"> | $Enums.VPSStatus
   expiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"VPSInstance"> | Date | string | null
+  autoRenew?: Prisma.BoolWithAggregatesFilter<"VPSInstance"> | boolean
+  autoRenewConsentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"VPSInstance"> | Date | string | null
+  autoRenewDisabledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"VPSInstance"> | Date | string | null
+  gracePeriodDays?: Prisma.IntWithAggregatesFilter<"VPSInstance"> | number
+  gracePeriodExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"VPSInstance"> | Date | string | null
+  suspendedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"VPSInstance"> | Date | string | null
+  providerSuspended?: Prisma.BoolWithAggregatesFilter<"VPSInstance"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"VPSInstance"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"VPSInstance"> | Date | string
 }
@@ -386,13 +483,23 @@ export type VPSInstanceCreateInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
   order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
   inventory?: Prisma.ProviderInventoryCreateNestedOneWithoutVpsInstanceInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceUncheckedCreateInput = {
@@ -406,10 +513,20 @@ export type VPSInstanceUncheckedCreateInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceUpdateInput = {
@@ -420,13 +537,23 @@ export type VPSInstanceUpdateInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
   order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
   inventory?: Prisma.ProviderInventoryUpdateOneWithoutVpsInstanceNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceUncheckedUpdateInput = {
@@ -440,10 +567,20 @@ export type VPSInstanceUncheckedUpdateInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceCreateManyInput = {
@@ -457,8 +594,15 @@ export type VPSInstanceCreateManyInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -471,8 +615,15 @@ export type VPSInstanceUpdateManyMutationInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -488,8 +639,15 @@ export type VPSInstanceUncheckedUpdateManyInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -522,12 +680,20 @@ export type VPSInstanceCountOrderByAggregateInput = {
   ram?: Prisma.SortOrder
   status?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  autoRenew?: Prisma.SortOrder
+  autoRenewConsentAt?: Prisma.SortOrder
+  autoRenewDisabledAt?: Prisma.SortOrder
+  gracePeriodDays?: Prisma.SortOrder
+  gracePeriodExpiresAt?: Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrder
+  providerSuspended?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type VPSInstanceAvgOrderByAggregateInput = {
   ram?: Prisma.SortOrder
+  gracePeriodDays?: Prisma.SortOrder
 }
 
 export type VPSInstanceMaxOrderByAggregateInput = {
@@ -543,6 +709,13 @@ export type VPSInstanceMaxOrderByAggregateInput = {
   ram?: Prisma.SortOrder
   status?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  autoRenew?: Prisma.SortOrder
+  autoRenewConsentAt?: Prisma.SortOrder
+  autoRenewDisabledAt?: Prisma.SortOrder
+  gracePeriodDays?: Prisma.SortOrder
+  gracePeriodExpiresAt?: Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrder
+  providerSuspended?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -560,12 +733,25 @@ export type VPSInstanceMinOrderByAggregateInput = {
   ram?: Prisma.SortOrder
   status?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  autoRenew?: Prisma.SortOrder
+  autoRenewConsentAt?: Prisma.SortOrder
+  autoRenewDisabledAt?: Prisma.SortOrder
+  gracePeriodDays?: Prisma.SortOrder
+  gracePeriodExpiresAt?: Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrder
+  providerSuspended?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type VPSInstanceSumOrderByAggregateInput = {
   ram?: Prisma.SortOrder
+  gracePeriodDays?: Prisma.SortOrder
+}
+
+export type VPSInstanceScalarRelationFilter = {
+  is?: Prisma.VPSInstanceWhereInput
+  isNot?: Prisma.VPSInstanceWhereInput
 }
 
 export type VPSInstanceCreateNestedManyWithoutUserInput = {
@@ -674,6 +860,54 @@ export type VPSInstanceUncheckedUpdateOneWithoutInventoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VPSInstanceUpdateToOneWithWhereWithoutInventoryInput, Prisma.VPSInstanceUpdateWithoutInventoryInput>, Prisma.VPSInstanceUncheckedUpdateWithoutInventoryInput>
 }
 
+export type EnumVPSStatusFieldUpdateOperationsInput = {
+  set?: $Enums.VPSStatus
+}
+
+export type VPSInstanceCreateNestedOneWithoutConsentAuditsInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutConsentAuditsInput, Prisma.VPSInstanceUncheckedCreateWithoutConsentAuditsInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutConsentAuditsInput
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+}
+
+export type VPSInstanceUpdateOneRequiredWithoutConsentAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutConsentAuditsInput, Prisma.VPSInstanceUncheckedCreateWithoutConsentAuditsInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutConsentAuditsInput
+  upsert?: Prisma.VPSInstanceUpsertWithoutConsentAuditsInput
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VPSInstanceUpdateToOneWithWhereWithoutConsentAuditsInput, Prisma.VPSInstanceUpdateWithoutConsentAuditsInput>, Prisma.VPSInstanceUncheckedUpdateWithoutConsentAuditsInput>
+}
+
+export type VPSInstanceCreateNestedOneWithoutRenewalAttemptsInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutRenewalAttemptsInput, Prisma.VPSInstanceUncheckedCreateWithoutRenewalAttemptsInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutRenewalAttemptsInput
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+}
+
+export type VPSInstanceUpdateOneRequiredWithoutRenewalAttemptsNestedInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutRenewalAttemptsInput, Prisma.VPSInstanceUncheckedCreateWithoutRenewalAttemptsInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutRenewalAttemptsInput
+  upsert?: Prisma.VPSInstanceUpsertWithoutRenewalAttemptsInput
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VPSInstanceUpdateToOneWithWhereWithoutRenewalAttemptsInput, Prisma.VPSInstanceUpdateWithoutRenewalAttemptsInput>, Prisma.VPSInstanceUncheckedUpdateWithoutRenewalAttemptsInput>
+}
+
+export type VPSInstanceCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutNotificationsInput, Prisma.VPSInstanceUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+}
+
+export type VPSInstanceUpdateOneWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.VPSInstanceCreateWithoutNotificationsInput, Prisma.VPSInstanceUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.VPSInstanceCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.VPSInstanceUpsertWithoutNotificationsInput
+  disconnect?: Prisma.VPSInstanceWhereInput | boolean
+  delete?: Prisma.VPSInstanceWhereInput | boolean
+  connect?: Prisma.VPSInstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VPSInstanceUpdateToOneWithWhereWithoutNotificationsInput, Prisma.VPSInstanceUpdateWithoutNotificationsInput>, Prisma.VPSInstanceUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type VPSInstanceCreateWithoutUserInput = {
   id?: string
   provider?: string
@@ -682,12 +916,22 @@ export type VPSInstanceCreateWithoutUserInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
   inventory?: Prisma.ProviderInventoryCreateNestedOneWithoutVpsInstanceInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceUncheckedCreateWithoutUserInput = {
@@ -700,10 +944,20 @@ export type VPSInstanceUncheckedCreateWithoutUserInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceCreateOrConnectWithoutUserInput = {
@@ -746,8 +1000,15 @@ export type VPSInstanceScalarWhereInput = {
   hostname?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   operatingSystem?: Prisma.StringNullableFilter<"VPSInstance"> | string | null
   ram?: Prisma.IntNullableFilter<"VPSInstance"> | number | null
-  status?: Prisma.StringFilter<"VPSInstance"> | string
+  status?: Prisma.EnumVPSStatusFilter<"VPSInstance"> | $Enums.VPSStatus
   expiresAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  autoRenew?: Prisma.BoolFilter<"VPSInstance"> | boolean
+  autoRenewConsentAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  autoRenewDisabledAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  gracePeriodDays?: Prisma.IntFilter<"VPSInstance"> | number
+  gracePeriodExpiresAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  suspendedAt?: Prisma.DateTimeNullableFilter<"VPSInstance"> | Date | string | null
+  providerSuspended?: Prisma.BoolFilter<"VPSInstance"> | boolean
   createdAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"VPSInstance"> | Date | string
 }
@@ -760,12 +1021,22 @@ export type VPSInstanceCreateWithoutOrderInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
   inventory?: Prisma.ProviderInventoryCreateNestedOneWithoutVpsInstanceInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceUncheckedCreateWithoutOrderInput = {
@@ -778,10 +1049,20 @@ export type VPSInstanceUncheckedCreateWithoutOrderInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceCreateOrConnectWithoutOrderInput = {
@@ -808,12 +1089,22 @@ export type VPSInstanceUpdateWithoutOrderInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
   inventory?: Prisma.ProviderInventoryUpdateOneWithoutVpsInstanceNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceUncheckedUpdateWithoutOrderInput = {
@@ -826,10 +1117,20 @@ export type VPSInstanceUncheckedUpdateWithoutOrderInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceCreateWithoutInventoryInput = {
@@ -840,12 +1141,22 @@ export type VPSInstanceCreateWithoutInventoryInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
   order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceUncheckedCreateWithoutInventoryInput = {
@@ -858,10 +1169,20 @@ export type VPSInstanceUncheckedCreateWithoutInventoryInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutVpsInput
 }
 
 export type VPSInstanceCreateOrConnectWithoutInventoryInput = {
@@ -888,12 +1209,22 @@ export type VPSInstanceUpdateWithoutInventoryInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
   order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceUncheckedUpdateWithoutInventoryInput = {
@@ -906,10 +1237,380 @@ export type VPSInstanceUncheckedUpdateWithoutInventoryInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutVpsNestedInput
+}
+
+export type VPSInstanceCreateWithoutConsentAuditsInput = {
+  id?: string
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: $Enums.VPSStatus
+  expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
+  order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
+  inventory?: Prisma.ProviderInventoryCreateNestedOneWithoutVpsInstanceInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutVpsInput
+}
+
+export type VPSInstanceUncheckedCreateWithoutConsentAuditsInput = {
+  id?: string
+  userId: string
+  orderId?: string | null
+  inventoryId?: string | null
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: $Enums.VPSStatus
+  expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutVpsInput
+}
+
+export type VPSInstanceCreateOrConnectWithoutConsentAuditsInput = {
+  where: Prisma.VPSInstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutConsentAuditsInput, Prisma.VPSInstanceUncheckedCreateWithoutConsentAuditsInput>
+}
+
+export type VPSInstanceUpsertWithoutConsentAuditsInput = {
+  update: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutConsentAuditsInput, Prisma.VPSInstanceUncheckedUpdateWithoutConsentAuditsInput>
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutConsentAuditsInput, Prisma.VPSInstanceUncheckedCreateWithoutConsentAuditsInput>
+  where?: Prisma.VPSInstanceWhereInput
+}
+
+export type VPSInstanceUpdateToOneWithWhereWithoutConsentAuditsInput = {
+  where?: Prisma.VPSInstanceWhereInput
+  data: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutConsentAuditsInput, Prisma.VPSInstanceUncheckedUpdateWithoutConsentAuditsInput>
+}
+
+export type VPSInstanceUpdateWithoutConsentAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
+  order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
+  inventory?: Prisma.ProviderInventoryUpdateOneWithoutVpsInstanceNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutVpsNestedInput
+}
+
+export type VPSInstanceUncheckedUpdateWithoutConsentAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutVpsNestedInput
+}
+
+export type VPSInstanceCreateWithoutRenewalAttemptsInput = {
+  id?: string
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: $Enums.VPSStatus
+  expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
+  order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
+  inventory?: Prisma.ProviderInventoryCreateNestedOneWithoutVpsInstanceInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutVpsInput
+}
+
+export type VPSInstanceUncheckedCreateWithoutRenewalAttemptsInput = {
+  id?: string
+  userId: string
+  orderId?: string | null
+  inventoryId?: string | null
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: $Enums.VPSStatus
+  expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutVpsInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutVpsInput
+}
+
+export type VPSInstanceCreateOrConnectWithoutRenewalAttemptsInput = {
+  where: Prisma.VPSInstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutRenewalAttemptsInput, Prisma.VPSInstanceUncheckedCreateWithoutRenewalAttemptsInput>
+}
+
+export type VPSInstanceUpsertWithoutRenewalAttemptsInput = {
+  update: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutRenewalAttemptsInput, Prisma.VPSInstanceUncheckedUpdateWithoutRenewalAttemptsInput>
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutRenewalAttemptsInput, Prisma.VPSInstanceUncheckedCreateWithoutRenewalAttemptsInput>
+  where?: Prisma.VPSInstanceWhereInput
+}
+
+export type VPSInstanceUpdateToOneWithWhereWithoutRenewalAttemptsInput = {
+  where?: Prisma.VPSInstanceWhereInput
+  data: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutRenewalAttemptsInput, Prisma.VPSInstanceUncheckedUpdateWithoutRenewalAttemptsInput>
+}
+
+export type VPSInstanceUpdateWithoutRenewalAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
+  order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
+  inventory?: Prisma.ProviderInventoryUpdateOneWithoutVpsInstanceNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutVpsNestedInput
+}
+
+export type VPSInstanceUncheckedUpdateWithoutRenewalAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutVpsNestedInput
+}
+
+export type VPSInstanceCreateWithoutNotificationsInput = {
+  id?: string
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: $Enums.VPSStatus
+  expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutVpsInstancesInput
+  order?: Prisma.OrderCreateNestedOneWithoutVpsInstanceInput
+  inventory?: Prisma.ProviderInventoryCreateNestedOneWithoutVpsInstanceInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutVpsInput
+}
+
+export type VPSInstanceUncheckedCreateWithoutNotificationsInput = {
+  id?: string
+  userId: string
+  orderId?: string | null
+  inventoryId?: string | null
+  provider?: string
+  providerVpsId?: string | null
+  ipAddress: string
+  hostname?: string | null
+  operatingSystem?: string | null
+  ram?: number | null
+  status?: $Enums.VPSStatus
+  expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutVpsInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutVpsInput
+}
+
+export type VPSInstanceCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.VPSInstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutNotificationsInput, Prisma.VPSInstanceUncheckedCreateWithoutNotificationsInput>
+}
+
+export type VPSInstanceUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutNotificationsInput, Prisma.VPSInstanceUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.VPSInstanceCreateWithoutNotificationsInput, Prisma.VPSInstanceUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.VPSInstanceWhereInput
+}
+
+export type VPSInstanceUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.VPSInstanceWhereInput
+  data: Prisma.XOR<Prisma.VPSInstanceUpdateWithoutNotificationsInput, Prisma.VPSInstanceUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type VPSInstanceUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutVpsInstancesNestedInput
+  order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
+  inventory?: Prisma.ProviderInventoryUpdateOneWithoutVpsInstanceNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutVpsNestedInput
+}
+
+export type VPSInstanceUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  providerVpsId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ipAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceCreateManyUserInput = {
@@ -922,8 +1623,15 @@ export type VPSInstanceCreateManyUserInput = {
   hostname?: string | null
   operatingSystem?: string | null
   ram?: number | null
-  status?: string
+  status?: $Enums.VPSStatus
   expiresAt?: Date | string | null
+  autoRenew?: boolean
+  autoRenewConsentAt?: Date | string | null
+  autoRenewDisabledAt?: Date | string | null
+  gracePeriodDays?: number
+  gracePeriodExpiresAt?: Date | string | null
+  suspendedAt?: Date | string | null
+  providerSuspended?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -936,12 +1644,22 @@ export type VPSInstanceUpdateWithoutUserInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   order?: Prisma.OrderUpdateOneWithoutVpsInstanceNestedInput
   inventory?: Prisma.ProviderInventoryUpdateOneWithoutVpsInstanceNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceUncheckedUpdateWithoutUserInput = {
@@ -954,10 +1672,20 @@ export type VPSInstanceUncheckedUpdateWithoutUserInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutVpsNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutVpsNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutVpsNestedInput
 }
 
 export type VPSInstanceUncheckedUpdateManyWithoutUserInput = {
@@ -970,12 +1698,66 @@ export type VPSInstanceUncheckedUpdateManyWithoutUserInput = {
   hostname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   operatingSystem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ram?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVPSStatusFieldUpdateOperationsInput | $Enums.VPSStatus
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenew?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoRenewConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRenewDisabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  gracePeriodDays?: Prisma.IntFieldUpdateOperationsInput | number
+  gracePeriodExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  providerSuspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type VPSInstanceCountOutputType
+ */
+
+export type VPSInstanceCountOutputType = {
+  consentAudits: number
+  renewalAttempts: number
+  notifications: number
+}
+
+export type VPSInstanceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  consentAudits?: boolean | VPSInstanceCountOutputTypeCountConsentAuditsArgs
+  renewalAttempts?: boolean | VPSInstanceCountOutputTypeCountRenewalAttemptsArgs
+  notifications?: boolean | VPSInstanceCountOutputTypeCountNotificationsArgs
+}
+
+/**
+ * VPSInstanceCountOutputType without action
+ */
+export type VPSInstanceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the VPSInstanceCountOutputType
+   */
+  select?: Prisma.VPSInstanceCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * VPSInstanceCountOutputType without action
+ */
+export type VPSInstanceCountOutputTypeCountConsentAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.VPSConsentAuditWhereInput
+}
+
+/**
+ * VPSInstanceCountOutputType without action
+ */
+export type VPSInstanceCountOutputTypeCountRenewalAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RenewalAttemptWhereInput
+}
+
+/**
+ * VPSInstanceCountOutputType without action
+ */
+export type VPSInstanceCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationLogWhereInput
+}
 
 
 export type VPSInstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -991,11 +1773,22 @@ export type VPSInstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   ram?: boolean
   status?: boolean
   expiresAt?: boolean
+  autoRenew?: boolean
+  autoRenewConsentAt?: boolean
+  autoRenewDisabledAt?: boolean
+  gracePeriodDays?: boolean
+  gracePeriodExpiresAt?: boolean
+  suspendedAt?: boolean
+  providerSuspended?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
   inventory?: boolean | Prisma.VPSInstance$inventoryArgs<ExtArgs>
+  consentAudits?: boolean | Prisma.VPSInstance$consentAuditsArgs<ExtArgs>
+  renewalAttempts?: boolean | Prisma.VPSInstance$renewalAttemptsArgs<ExtArgs>
+  notifications?: boolean | Prisma.VPSInstance$notificationsArgs<ExtArgs>
+  _count?: boolean | Prisma.VPSInstanceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["vPSInstance"]>
 
 export type VPSInstanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1011,6 +1804,13 @@ export type VPSInstanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   ram?: boolean
   status?: boolean
   expiresAt?: boolean
+  autoRenew?: boolean
+  autoRenewConsentAt?: boolean
+  autoRenewDisabledAt?: boolean
+  gracePeriodDays?: boolean
+  gracePeriodExpiresAt?: boolean
+  suspendedAt?: boolean
+  providerSuspended?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1031,6 +1831,13 @@ export type VPSInstanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   ram?: boolean
   status?: boolean
   expiresAt?: boolean
+  autoRenew?: boolean
+  autoRenewConsentAt?: boolean
+  autoRenewDisabledAt?: boolean
+  gracePeriodDays?: boolean
+  gracePeriodExpiresAt?: boolean
+  suspendedAt?: boolean
+  providerSuspended?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1051,15 +1858,26 @@ export type VPSInstanceSelectScalar = {
   ram?: boolean
   status?: boolean
   expiresAt?: boolean
+  autoRenew?: boolean
+  autoRenewConsentAt?: boolean
+  autoRenewDisabledAt?: boolean
+  gracePeriodDays?: boolean
+  gracePeriodExpiresAt?: boolean
+  suspendedAt?: boolean
+  providerSuspended?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type VPSInstanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "orderId" | "inventoryId" | "provider" | "providerVpsId" | "ipAddress" | "hostname" | "operatingSystem" | "ram" | "status" | "expiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["vPSInstance"]>
+export type VPSInstanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "orderId" | "inventoryId" | "provider" | "providerVpsId" | "ipAddress" | "hostname" | "operatingSystem" | "ram" | "status" | "expiresAt" | "autoRenew" | "autoRenewConsentAt" | "autoRenewDisabledAt" | "gracePeriodDays" | "gracePeriodExpiresAt" | "suspendedAt" | "providerSuspended" | "createdAt" | "updatedAt", ExtArgs["result"]["vPSInstance"]>
 export type VPSInstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.VPSInstance$orderArgs<ExtArgs>
   inventory?: boolean | Prisma.VPSInstance$inventoryArgs<ExtArgs>
+  consentAudits?: boolean | Prisma.VPSInstance$consentAuditsArgs<ExtArgs>
+  renewalAttempts?: boolean | Prisma.VPSInstance$renewalAttemptsArgs<ExtArgs>
+  notifications?: boolean | Prisma.VPSInstance$notificationsArgs<ExtArgs>
+  _count?: boolean | Prisma.VPSInstanceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VPSInstanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1078,6 +1896,9 @@ export type $VPSInstancePayload<ExtArgs extends runtime.Types.Extensions.Interna
     user: Prisma.$UserPayload<ExtArgs>
     order: Prisma.$OrderPayload<ExtArgs> | null
     inventory: Prisma.$ProviderInventoryPayload<ExtArgs> | null
+    consentAudits: Prisma.$VPSConsentAuditPayload<ExtArgs>[]
+    renewalAttempts: Prisma.$RenewalAttemptPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1090,8 +1911,15 @@ export type $VPSInstancePayload<ExtArgs extends runtime.Types.Extensions.Interna
     hostname: string | null
     operatingSystem: string | null
     ram: number | null
-    status: string
+    status: $Enums.VPSStatus
     expiresAt: Date | null
+    autoRenew: boolean
+    autoRenewConsentAt: Date | null
+    autoRenewDisabledAt: Date | null
+    gracePeriodDays: number
+    gracePeriodExpiresAt: Date | null
+    suspendedAt: Date | null
+    providerSuspended: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["vPSInstance"]>
@@ -1491,6 +2319,9 @@ export interface Prisma__VPSInstanceClient<T, Null = never, ExtArgs extends runt
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   order<T extends Prisma.VPSInstance$orderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSInstance$orderArgs<ExtArgs>>): Prisma.Prisma__OrderClient<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   inventory<T extends Prisma.VPSInstance$inventoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSInstance$inventoryArgs<ExtArgs>>): Prisma.Prisma__ProviderInventoryClient<runtime.Types.Result.GetResult<Prisma.$ProviderInventoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  consentAudits<T extends Prisma.VPSInstance$consentAuditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSInstance$consentAuditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VPSConsentAuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  renewalAttempts<T extends Prisma.VPSInstance$renewalAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSInstance$renewalAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RenewalAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.VPSInstance$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSInstance$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1530,8 +2361,15 @@ export interface VPSInstanceFieldRefs {
   readonly hostname: Prisma.FieldRef<"VPSInstance", 'String'>
   readonly operatingSystem: Prisma.FieldRef<"VPSInstance", 'String'>
   readonly ram: Prisma.FieldRef<"VPSInstance", 'Int'>
-  readonly status: Prisma.FieldRef<"VPSInstance", 'String'>
+  readonly status: Prisma.FieldRef<"VPSInstance", 'VPSStatus'>
   readonly expiresAt: Prisma.FieldRef<"VPSInstance", 'DateTime'>
+  readonly autoRenew: Prisma.FieldRef<"VPSInstance", 'Boolean'>
+  readonly autoRenewConsentAt: Prisma.FieldRef<"VPSInstance", 'DateTime'>
+  readonly autoRenewDisabledAt: Prisma.FieldRef<"VPSInstance", 'DateTime'>
+  readonly gracePeriodDays: Prisma.FieldRef<"VPSInstance", 'Int'>
+  readonly gracePeriodExpiresAt: Prisma.FieldRef<"VPSInstance", 'DateTime'>
+  readonly suspendedAt: Prisma.FieldRef<"VPSInstance", 'DateTime'>
+  readonly providerSuspended: Prisma.FieldRef<"VPSInstance", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"VPSInstance", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"VPSInstance", 'DateTime'>
 }
@@ -1970,6 +2808,78 @@ export type VPSInstance$inventoryArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.ProviderInventoryInclude<ExtArgs> | null
   where?: Prisma.ProviderInventoryWhereInput
+}
+
+/**
+ * VPSInstance.consentAudits
+ */
+export type VPSInstance$consentAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the VPSConsentAudit
+   */
+  select?: Prisma.VPSConsentAuditSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the VPSConsentAudit
+   */
+  omit?: Prisma.VPSConsentAuditOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VPSConsentAuditInclude<ExtArgs> | null
+  where?: Prisma.VPSConsentAuditWhereInput
+  orderBy?: Prisma.VPSConsentAuditOrderByWithRelationInput | Prisma.VPSConsentAuditOrderByWithRelationInput[]
+  cursor?: Prisma.VPSConsentAuditWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.VPSConsentAuditScalarFieldEnum | Prisma.VPSConsentAuditScalarFieldEnum[]
+}
+
+/**
+ * VPSInstance.renewalAttempts
+ */
+export type VPSInstance$renewalAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RenewalAttempt
+   */
+  select?: Prisma.RenewalAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RenewalAttempt
+   */
+  omit?: Prisma.RenewalAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RenewalAttemptInclude<ExtArgs> | null
+  where?: Prisma.RenewalAttemptWhereInput
+  orderBy?: Prisma.RenewalAttemptOrderByWithRelationInput | Prisma.RenewalAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.RenewalAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RenewalAttemptScalarFieldEnum | Prisma.RenewalAttemptScalarFieldEnum[]
+}
+
+/**
+ * VPSInstance.notifications
+ */
+export type VPSInstance$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NotificationLog
+   */
+  select?: Prisma.NotificationLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the NotificationLog
+   */
+  omit?: Prisma.NotificationLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationLogInclude<ExtArgs> | null
+  where?: Prisma.NotificationLogWhereInput
+  orderBy?: Prisma.NotificationLogOrderByWithRelationInput | Prisma.NotificationLogOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationLogScalarFieldEnum | Prisma.NotificationLogScalarFieldEnum[]
 }
 
 /**

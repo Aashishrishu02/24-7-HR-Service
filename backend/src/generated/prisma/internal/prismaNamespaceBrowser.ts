@@ -55,6 +55,8 @@ export const ModelName = {
   EmailVerificationOtp: 'EmailVerificationOtp',
   PasswordResetOtp: 'PasswordResetOtp',
   Admin: 'Admin',
+  Wallet: 'Wallet',
+  WalletTransaction: 'WalletTransaction',
   VPSPlan: 'VPSPlan',
   Order: 'Order',
   Payment: 'Payment',
@@ -64,8 +66,13 @@ export const ModelName = {
   ProviderInventory: 'ProviderInventory',
   VPSPlanProviderMapping: 'VPSPlanProviderMapping',
   VPSInstance: 'VPSInstance',
+  VPSConsentAudit: 'VPSConsentAudit',
+  SystemSetting: 'SystemSetting',
   ProvisioningJob: 'ProvisioningJob',
-  PriceHistory: 'PriceHistory'
+  PriceHistory: 'PriceHistory',
+  RenewalAttempt: 'RenewalAttempt',
+  NotificationLog: 'NotificationLog',
+  HostHeavenPlanMapping: 'HostHeavenPlanMapping'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -136,6 +143,35 @@ export const AdminScalarFieldEnum = {
 export type AdminScalarFieldEnum = (typeof AdminScalarFieldEnum)[keyof typeof AdminScalarFieldEnum]
 
 
+export const WalletScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  balance: 'balance',
+  currency: 'currency',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WalletScalarFieldEnum = (typeof WalletScalarFieldEnum)[keyof typeof WalletScalarFieldEnum]
+
+
+export const WalletTransactionScalarFieldEnum = {
+  id: 'id',
+  walletId: 'walletId',
+  type: 'type',
+  amount: 'amount',
+  currency: 'currency',
+  reference: 'reference',
+  idempotencyKey: 'idempotencyKey',
+  description: 'description',
+  metadata: 'metadata',
+  paymentId: 'paymentId',
+  createdAt: 'createdAt'
+} as const
+
+export type WalletTransactionScalarFieldEnum = (typeof WalletTransactionScalarFieldEnum)[keyof typeof WalletTransactionScalarFieldEnum]
+
+
 export const VPSPlanScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -177,7 +213,9 @@ export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof Or
 
 export const PaymentScalarFieldEnum = {
   id: 'id',
+  userId: 'userId',
   orderId: 'orderId',
+  purpose: 'purpose',
   provider: 'provider',
   razorpayOrderId: 'razorpayOrderId',
   razorpayPaymentId: 'razorpayPaymentId',
@@ -297,11 +335,40 @@ export const VPSInstanceScalarFieldEnum = {
   ram: 'ram',
   status: 'status',
   expiresAt: 'expiresAt',
+  autoRenew: 'autoRenew',
+  autoRenewConsentAt: 'autoRenewConsentAt',
+  autoRenewDisabledAt: 'autoRenewDisabledAt',
+  gracePeriodDays: 'gracePeriodDays',
+  gracePeriodExpiresAt: 'gracePeriodExpiresAt',
+  suspendedAt: 'suspendedAt',
+  providerSuspended: 'providerSuspended',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type VPSInstanceScalarFieldEnum = (typeof VPSInstanceScalarFieldEnum)[keyof typeof VPSInstanceScalarFieldEnum]
+
+
+export const VPSConsentAuditScalarFieldEnum = {
+  id: 'id',
+  vpsId: 'vpsId',
+  userId: 'userId',
+  action: 'action',
+  actionAt: 'actionAt'
+} as const
+
+export type VPSConsentAuditScalarFieldEnum = (typeof VPSConsentAuditScalarFieldEnum)[keyof typeof VPSConsentAuditScalarFieldEnum]
+
+
+export const SystemSettingScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  description: 'description',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SystemSettingScalarFieldEnum = (typeof SystemSettingScalarFieldEnum)[keyof typeof SystemSettingScalarFieldEnum]
 
 
 export const ProvisioningJobScalarFieldEnum = {
@@ -336,6 +403,72 @@ export const PriceHistoryScalarFieldEnum = {
 } as const
 
 export type PriceHistoryScalarFieldEnum = (typeof PriceHistoryScalarFieldEnum)[keyof typeof PriceHistoryScalarFieldEnum]
+
+
+export const RenewalAttemptScalarFieldEnum = {
+  id: 'id',
+  vpsId: 'vpsId',
+  userId: 'userId',
+  status: 'status',
+  renewalAmount: 'renewalAmount',
+  walletBalance: 'walletBalance',
+  previousExpiresAt: 'previousExpiresAt',
+  newExpiresAt: 'newExpiresAt',
+  paymentId: 'paymentId',
+  errorMessage: 'errorMessage',
+  idempotencyKey: 'idempotencyKey',
+  attemptedAt: 'attemptedAt'
+} as const
+
+export type RenewalAttemptScalarFieldEnum = (typeof RenewalAttemptScalarFieldEnum)[keyof typeof RenewalAttemptScalarFieldEnum]
+
+
+export const NotificationLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  vpsId: 'vpsId',
+  type: 'type',
+  channel: 'channel',
+  recipient: 'recipient',
+  subject: 'subject',
+  content: 'content',
+  metadata: 'metadata',
+  idempotencyKey: 'idempotencyKey',
+  sentAt: 'sentAt'
+} as const
+
+export type NotificationLogScalarFieldEnum = (typeof NotificationLogScalarFieldEnum)[keyof typeof NotificationLogScalarFieldEnum]
+
+
+export const HostHeavenPlanMappingScalarFieldEnum = {
+  id: 'id',
+  planId: 'planId',
+  externalConfigId: 'externalConfigId',
+  isCostVerified: 'isCostVerified',
+  costStatus: 'costStatus',
+  lastSyncedAt: 'lastSyncedAt',
+  pricingDetails: 'pricingDetails',
+  zoneId: 'zoneId',
+  zoneName: 'zoneName',
+  zoneIsoId: 'zoneIsoId',
+  isoName: 'isoName',
+  planType: 'planType',
+  cpuPricingId: 'cpuPricingId',
+  cpuName: 'cpuName',
+  ramPricingId: 'ramPricingId',
+  ramName: 'ramName',
+  diskPricingId: 'diskPricingId',
+  diskName: 'diskName',
+  bandwidthPricingId: 'bandwidthPricingId',
+  bandwidthName: 'bandwidthName',
+  providerCost: 'providerCost',
+  currency: 'currency',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HostHeavenPlanMappingScalarFieldEnum = (typeof HostHeavenPlanMappingScalarFieldEnum)[keyof typeof HostHeavenPlanMappingScalarFieldEnum]
 
 
 export const SortOrder = {

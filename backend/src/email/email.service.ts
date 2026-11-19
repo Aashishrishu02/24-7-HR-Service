@@ -46,4 +46,28 @@ export class EmailService {
 
     return data;
   }
+
+  async sendNotificationEmail(email: string, subject: string, html: string) {
+    if (process.env.NODE_ENV !== 'production') {
+      this.logger.log(
+        `[DEV EMAIL] Email: ${email} | Subject: ${subject}`,
+      );
+      return { success: true, mode: 'development' };
+    }
+
+    const { data, error } = await this.resend.emails.send({
+      from: '24/7 VPS <alerts@resend.dev>',
+      to: [email],
+      subject,
+      html,
+    });
+
+    if (error) {
+      this.logger.error(`Resend notification error for ${email}:`, error);
+      // Non-blocking for background notifications
+      return { success: false, error };
+    }
+
+    return data;
+  }
 }

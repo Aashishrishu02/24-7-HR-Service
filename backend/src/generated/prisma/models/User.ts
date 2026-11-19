@@ -218,6 +218,11 @@ export type UserWhereInput = {
   passwordOtps?: Prisma.PasswordResetOtpListRelationFilter
   vpsInstances?: Prisma.VPSInstanceListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
+  payments?: Prisma.PaymentListRelationFilter
+  consentAudits?: Prisma.VPSConsentAuditListRelationFilter
+  renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
+  notifications?: Prisma.NotificationLogListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -234,6 +239,11 @@ export type UserOrderByWithRelationInput = {
   passwordOtps?: Prisma.PasswordResetOtpOrderByRelationAggregateInput
   vpsInstances?: Prisma.VPSInstanceOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
+  wallet?: Prisma.WalletOrderByWithRelationInput
+  payments?: Prisma.PaymentOrderByRelationAggregateInput
+  consentAudits?: Prisma.VPSConsentAuditOrderByRelationAggregateInput
+  renewalAttempts?: Prisma.RenewalAttemptOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationLogOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -253,6 +263,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   passwordOtps?: Prisma.PasswordResetOtpListRelationFilter
   vpsInstances?: Prisma.VPSInstanceListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
+  payments?: Prisma.PaymentListRelationFilter
+  consentAudits?: Prisma.VPSConsentAuditListRelationFilter
+  renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
+  notifications?: Prisma.NotificationLogListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -299,6 +314,11 @@ export type UserCreateInput = {
   passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -315,6 +335,11 @@ export type UserUncheckedCreateInput = {
   passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -331,6 +356,11 @@ export type UserUpdateInput = {
   passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -347,6 +377,11 @@ export type UserUncheckedUpdateInput = {
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -478,6 +513,20 @@ export type UserUpdateOneRequiredWithoutPasswordOtpsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPasswordOtpsInput, Prisma.UserUpdateWithoutPasswordOtpsInput>, Prisma.UserUncheckedUpdateWithoutPasswordOtpsInput>
 }
 
+export type UserCreateNestedOneWithoutWalletInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWalletInput, Prisma.UserUncheckedCreateWithoutWalletInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWalletInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutWalletNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWalletInput, Prisma.UserUncheckedCreateWithoutWalletInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWalletInput
+  upsert?: Prisma.UserUpsertWithoutWalletInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWalletInput, Prisma.UserUpdateWithoutWalletInput>, Prisma.UserUncheckedUpdateWithoutWalletInput>
+}
+
 export type UserCreateNestedOneWithoutOrdersInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutOrdersInput, Prisma.UserUncheckedCreateWithoutOrdersInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrdersInput
@@ -490,6 +539,20 @@ export type UserUpdateOneRequiredWithoutOrdersNestedInput = {
   upsert?: Prisma.UserUpsertWithoutOrdersInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrdersInput, Prisma.UserUpdateWithoutOrdersInput>, Prisma.UserUncheckedUpdateWithoutOrdersInput>
+}
+
+export type UserCreateNestedOneWithoutPaymentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentsInput, Prisma.UserUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPaymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentsInput, Prisma.UserUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentsInput
+  upsert?: Prisma.UserUpsertWithoutPaymentsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPaymentsInput, Prisma.UserUpdateWithoutPaymentsInput>, Prisma.UserUncheckedUpdateWithoutPaymentsInput>
 }
 
 export type UserCreateNestedOneWithoutVpsInstancesInput = {
@@ -506,6 +569,48 @@ export type UserUpdateOneRequiredWithoutVpsInstancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutVpsInstancesInput, Prisma.UserUpdateWithoutVpsInstancesInput>, Prisma.UserUncheckedUpdateWithoutVpsInstancesInput>
 }
 
+export type UserCreateNestedOneWithoutConsentAuditsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConsentAuditsInput, Prisma.UserUncheckedCreateWithoutConsentAuditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConsentAuditsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutConsentAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutConsentAuditsInput, Prisma.UserUncheckedCreateWithoutConsentAuditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutConsentAuditsInput
+  upsert?: Prisma.UserUpsertWithoutConsentAuditsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutConsentAuditsInput, Prisma.UserUpdateWithoutConsentAuditsInput>, Prisma.UserUncheckedUpdateWithoutConsentAuditsInput>
+}
+
+export type UserCreateNestedOneWithoutRenewalAttemptsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRenewalAttemptsInput, Prisma.UserUncheckedCreateWithoutRenewalAttemptsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRenewalAttemptsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutRenewalAttemptsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRenewalAttemptsInput, Prisma.UserUncheckedCreateWithoutRenewalAttemptsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRenewalAttemptsInput
+  upsert?: Prisma.UserUpsertWithoutRenewalAttemptsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRenewalAttemptsInput, Prisma.UserUpdateWithoutRenewalAttemptsInput>, Prisma.UserUncheckedUpdateWithoutRenewalAttemptsInput>
+}
+
+export type UserCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type UserCreateWithoutEmailOtpsInput = {
   id?: string
   name?: string | null
@@ -519,6 +624,11 @@ export type UserCreateWithoutEmailOtpsInput = {
   passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEmailOtpsInput = {
@@ -534,6 +644,11 @@ export type UserUncheckedCreateWithoutEmailOtpsInput = {
   passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEmailOtpsInput = {
@@ -565,6 +680,11 @@ export type UserUpdateWithoutEmailOtpsInput = {
   passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmailOtpsInput = {
@@ -580,6 +700,11 @@ export type UserUncheckedUpdateWithoutEmailOtpsInput = {
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPasswordOtpsInput = {
@@ -595,6 +720,11 @@ export type UserCreateWithoutPasswordOtpsInput = {
   emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPasswordOtpsInput = {
@@ -610,6 +740,11 @@ export type UserUncheckedCreateWithoutPasswordOtpsInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPasswordOtpsInput = {
@@ -641,6 +776,11 @@ export type UserUpdateWithoutPasswordOtpsInput = {
   emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPasswordOtpsInput = {
@@ -656,6 +796,107 @@ export type UserUncheckedUpdateWithoutPasswordOtpsInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutWalletInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutWalletInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutWalletInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutWalletInput, Prisma.UserUncheckedCreateWithoutWalletInput>
+}
+
+export type UserUpsertWithoutWalletInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutWalletInput, Prisma.UserUncheckedUpdateWithoutWalletInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutWalletInput, Prisma.UserUncheckedCreateWithoutWalletInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutWalletInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutWalletInput, Prisma.UserUncheckedUpdateWithoutWalletInput>
+}
+
+export type UserUpdateWithoutWalletInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutWalletInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrdersInput = {
@@ -671,6 +912,11 @@ export type UserCreateWithoutOrdersInput = {
   emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrdersInput = {
@@ -686,6 +932,11 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrdersInput = {
@@ -717,6 +968,11 @@ export type UserUpdateWithoutOrdersInput = {
   emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -732,6 +988,107 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPaymentsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutPaymentsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutPaymentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentsInput, Prisma.UserUncheckedCreateWithoutPaymentsInput>
+}
+
+export type UserUpsertWithoutPaymentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPaymentsInput, Prisma.UserUncheckedUpdateWithoutPaymentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentsInput, Prisma.UserUncheckedCreateWithoutPaymentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPaymentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPaymentsInput, Prisma.UserUncheckedUpdateWithoutPaymentsInput>
+}
+
+export type UserUpdateWithoutPaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutVpsInstancesInput = {
@@ -747,6 +1104,11 @@ export type UserCreateWithoutVpsInstancesInput = {
   emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutVpsInstancesInput = {
@@ -762,6 +1124,11 @@ export type UserUncheckedCreateWithoutVpsInstancesInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutVpsInstancesInput = {
@@ -793,6 +1160,11 @@ export type UserUpdateWithoutVpsInstancesInput = {
   emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVpsInstancesInput = {
@@ -808,6 +1180,299 @@ export type UserUncheckedUpdateWithoutVpsInstancesInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutConsentAuditsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutConsentAuditsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutConsentAuditsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutConsentAuditsInput, Prisma.UserUncheckedCreateWithoutConsentAuditsInput>
+}
+
+export type UserUpsertWithoutConsentAuditsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutConsentAuditsInput, Prisma.UserUncheckedUpdateWithoutConsentAuditsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutConsentAuditsInput, Prisma.UserUncheckedCreateWithoutConsentAuditsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutConsentAuditsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutConsentAuditsInput, Prisma.UserUncheckedUpdateWithoutConsentAuditsInput>
+}
+
+export type UserUpdateWithoutConsentAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutConsentAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutRenewalAttemptsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutRenewalAttemptsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutRenewalAttemptsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRenewalAttemptsInput, Prisma.UserUncheckedCreateWithoutRenewalAttemptsInput>
+}
+
+export type UserUpsertWithoutRenewalAttemptsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRenewalAttemptsInput, Prisma.UserUncheckedUpdateWithoutRenewalAttemptsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRenewalAttemptsInput, Prisma.UserUncheckedCreateWithoutRenewalAttemptsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRenewalAttemptsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRenewalAttemptsInput, Prisma.UserUncheckedUpdateWithoutRenewalAttemptsInput>
+}
+
+export type UserUpdateWithoutRenewalAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRenewalAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutNotificationsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutNotificationsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+}
+
+export type UserUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -820,6 +1485,10 @@ export type UserCountOutputType = {
   passwordOtps: number
   vpsInstances: number
   orders: number
+  payments: number
+  consentAudits: number
+  renewalAttempts: number
+  notifications: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -827,6 +1496,10 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   passwordOtps?: boolean | UserCountOutputTypeCountPasswordOtpsArgs
   vpsInstances?: boolean | UserCountOutputTypeCountVpsInstancesArgs
   orders?: boolean | UserCountOutputTypeCountOrdersArgs
+  payments?: boolean | UserCountOutputTypeCountPaymentsArgs
+  consentAudits?: boolean | UserCountOutputTypeCountConsentAuditsArgs
+  renewalAttempts?: boolean | UserCountOutputTypeCountRenewalAttemptsArgs
+  notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
 }
 
 /**
@@ -867,6 +1540,34 @@ export type UserCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.OrderWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountConsentAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.VPSConsentAuditWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountRenewalAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RenewalAttemptWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationLogWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -882,6 +1583,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   passwordOtps?: boolean | Prisma.User$passwordOtpsArgs<ExtArgs>
   vpsInstances?: boolean | Prisma.User$vpsInstancesArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
+  wallet?: boolean | Prisma.User$walletArgs<ExtArgs>
+  payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
+  consentAudits?: boolean | Prisma.User$consentAuditsArgs<ExtArgs>
+  renewalAttempts?: boolean | Prisma.User$renewalAttemptsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -927,6 +1633,11 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   passwordOtps?: boolean | Prisma.User$passwordOtpsArgs<ExtArgs>
   vpsInstances?: boolean | Prisma.User$vpsInstancesArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
+  wallet?: boolean | Prisma.User$walletArgs<ExtArgs>
+  payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
+  consentAudits?: boolean | Prisma.User$consentAuditsArgs<ExtArgs>
+  renewalAttempts?: boolean | Prisma.User$renewalAttemptsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -939,6 +1650,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     passwordOtps: Prisma.$PasswordResetOtpPayload<ExtArgs>[]
     vpsInstances: Prisma.$VPSInstancePayload<ExtArgs>[]
     orders: Prisma.$OrderPayload<ExtArgs>[]
+    wallet: Prisma.$WalletPayload<ExtArgs> | null
+    payments: Prisma.$PaymentPayload<ExtArgs>[]
+    consentAudits: Prisma.$VPSConsentAuditPayload<ExtArgs>[]
+    renewalAttempts: Prisma.$RenewalAttemptPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1348,6 +2064,11 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   passwordOtps<T extends Prisma.User$passwordOtpsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordOtpsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetOtpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   vpsInstances<T extends Prisma.User$vpsInstancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$vpsInstancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VPSInstancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orders<T extends Prisma.User$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  wallet<T extends Prisma.User$walletArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$walletArgs<ExtArgs>>): Prisma.Prisma__WalletClient<runtime.Types.Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  payments<T extends Prisma.User$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  consentAudits<T extends Prisma.User$consentAuditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$consentAuditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VPSConsentAuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  renewalAttempts<T extends Prisma.User$renewalAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$renewalAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RenewalAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1872,6 +2593,121 @@ export type User$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
+}
+
+/**
+ * User.wallet
+ */
+export type User$walletArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Wallet
+   */
+  select?: Prisma.WalletSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Wallet
+   */
+  omit?: Prisma.WalletOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WalletInclude<ExtArgs> | null
+  where?: Prisma.WalletWhereInput
+}
+
+/**
+ * User.payments
+ */
+export type User$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payment
+   */
+  select?: Prisma.PaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payment
+   */
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentInclude<ExtArgs> | null
+  where?: Prisma.PaymentWhereInput
+  orderBy?: Prisma.PaymentOrderByWithRelationInput | Prisma.PaymentOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
+}
+
+/**
+ * User.consentAudits
+ */
+export type User$consentAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the VPSConsentAudit
+   */
+  select?: Prisma.VPSConsentAuditSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the VPSConsentAudit
+   */
+  omit?: Prisma.VPSConsentAuditOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VPSConsentAuditInclude<ExtArgs> | null
+  where?: Prisma.VPSConsentAuditWhereInput
+  orderBy?: Prisma.VPSConsentAuditOrderByWithRelationInput | Prisma.VPSConsentAuditOrderByWithRelationInput[]
+  cursor?: Prisma.VPSConsentAuditWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.VPSConsentAuditScalarFieldEnum | Prisma.VPSConsentAuditScalarFieldEnum[]
+}
+
+/**
+ * User.renewalAttempts
+ */
+export type User$renewalAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RenewalAttempt
+   */
+  select?: Prisma.RenewalAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RenewalAttempt
+   */
+  omit?: Prisma.RenewalAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RenewalAttemptInclude<ExtArgs> | null
+  where?: Prisma.RenewalAttemptWhereInput
+  orderBy?: Prisma.RenewalAttemptOrderByWithRelationInput | Prisma.RenewalAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.RenewalAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RenewalAttemptScalarFieldEnum | Prisma.RenewalAttemptScalarFieldEnum[]
+}
+
+/**
+ * User.notifications
+ */
+export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NotificationLog
+   */
+  select?: Prisma.NotificationLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the NotificationLog
+   */
+  omit?: Prisma.NotificationLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationLogInclude<ExtArgs> | null
+  where?: Prisma.NotificationLogWhereInput
+  orderBy?: Prisma.NotificationLogOrderByWithRelationInput | Prisma.NotificationLogOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationLogScalarFieldEnum | Prisma.NotificationLogScalarFieldEnum[]
 }
 
 /**

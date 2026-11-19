@@ -15,6 +15,9 @@ import { Request } from 'express';
 import { VpsService } from './vps.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { RenewalService } from '../renewal/renewal.service.js';
+import { UpdateAutoRenewDto } from '../renewal/dto/update-auto-renew.dto.js';
+import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -30,6 +33,8 @@ export class VpsController {
   constructor(
     private readonly vpsService: VpsService,
     private readonly prisma: PrismaService,
+    private readonly renewalService: RenewalService,
+    private readonly hostheavenService: HostHeavenService,
   ) {}
 
   // Get logged-in customer's VPS list
@@ -100,63 +105,6 @@ export class VpsController {
     };
   }
 
-  // Demo provisioning (DEMO mode only)
-  @Post('demo/provision')
-  async provisionDemoVps(@Req() req: AuthenticatedRequest) {
-    if ((process.env.VPS_MODE || 'DEMO').toUpperCase() !== 'DEMO') {
-      throw new ServiceUnavailableException(
-        'Demo provisioning is available only in DEMO mode',
-      );
-    }
-
-    let ipAddress: string | null = null;
-
-    for (let lastOctet = 20; lastOctet <= 254; lastOctet++) {
-      const candidate = `203.0.113.${lastOctet}`;
-
-      const existing = await this.prisma.vPSInstance.findUnique({
-        where: { ipAddress: candidate },
-      });
-
-      if (!existing) {
-        ipAddress = candidate;
-        break;
-      }
-    }
-
-    if (!ipAddress) {
-      throw new ServiceUnavailableException(
-        'No demo VPS IP addresses are available',
-      );
-    }
-
-    const ram = 4;
-    const operatingSystem = 'Ubuntu 22.04';
-
-    await this.vpsService.buy(ipAddress, ram);
-
-    const vps = await this.prisma.vPSInstance.create({
-      data: {
-        userId: req.user.sub,
-        provider: 'SMARTVPS',
-        ipAddress,
-        hostname: `demo-${ipAddress.replaceAll('.', '-')}`,
-        operatingSystem,
-        ram,
-        status: 'RUNNING',
-        expiresAt: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000,
-        ),
-      },
-    });
-
-    return {
-      message: 'Demo VPS provisioned successfully',
-      demo: true,
-      vps,
-    };
-  }
-
   // Get VPS status
   @Get(':id/status')
   async getStatus(
@@ -164,6 +112,9 @@ export class VpsController {
     @Req() req: AuthenticatedRequest,
   ) {
     const vps = await this.findOwnedVps(id, req.user.sub);
+    if (vps.provider === 'HOSTHEAVEN') {
+      return this.hostheavenService.getVmDetails(vps.providerVpsId || vps.id);
+    }
     return this.vpsService.getStatus(vps.ipAddress);
   }
 
@@ -174,7 +125,16 @@ export class VpsController {
     @Req() req: AuthenticatedRequest,
   ) {
     const vps = await this.findOwnedVps(id, req.user.sub);
-    const result = await this.vpsService.start(vps.ipAddress);
+    let result;
+    if (vps.provider === 'HOSTHEAVEN') {
+      result = await this.hostheavenService.controlVm(
+        req.user.sub,
+        vps.providerVpsId || vps.id,
+        'start',
+      );
+    } else {
+      result = await this.vpsService.start(vps.ipAddress);
+    }
 
     await this.prisma.vPSInstance.update({
       where: { id: vps.id },
@@ -191,7 +151,16 @@ export class VpsController {
     @Req() req: AuthenticatedRequest,
   ) {
     const vps = await this.findOwnedVps(id, req.user.sub);
-    const result = await this.vpsService.stop(vps.ipAddress);
+    let result;
+    if (vps.provider === 'HOSTHEAVEN') {
+      result = await this.hostheavenService.controlVm(
+        req.user.sub,
+        vps.providerVpsId || vps.id,
+        'stop',
+      );
+    } else {
+      result = await this.vpsService.stop(vps.ipAddress);
+    }
 
     await this.prisma.vPSInstance.update({
       where: { id: vps.id },
@@ -226,19 +195,37 @@ export class VpsController {
     return { message: 'OS change request submitted', result };
   }
 
-  // Renew VPS
+  // Update auto-renewal consent
+  @Post(':id/auto-renew')
+  async updateAutoRenew(
+    @Param('id') id: string,
+    @Body() dto: UpdateAutoRenewDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.renewalService.updateAutoRenewConsent(
+      req.user.sub,
+      id,
+      dto.enabled,
+      dto.consent,
+    );
+  }
+
+  // Get VPS renewal details
+  @Get(':id/renewal-details')
+  async getRenewalDetails(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.renewalService.getVpsRenewalDetails(req.user.sub, id);
+  }
+
+  // Renew VPS manually via wallet
   @Post(':id/renew')
   async renewVps(
     @Param('id') id: string,
     @Req() req: AuthenticatedRequest,
   ) {
-    const vps = await this.findOwnedVps(id, req.user.sub);
-    const result = await this.vpsService.renew(vps.ipAddress);
-
-    return {
-      message: 'VPS renewal request submitted',
-      result,
-    };
+    return this.renewalService.renewVpsManual(req.user.sub, id);
   }
 
   // Verify VPS ownership

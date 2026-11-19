@@ -266,7 +266,7 @@ export type OrderWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   plan?: Prisma.XOR<Prisma.VPSPlanScalarRelationFilter, Prisma.VPSPlanWhereInput>
-  payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null
+  payments?: Prisma.PaymentListRelationFilter
   vpsInstance?: Prisma.XOR<Prisma.VPSInstanceNullableScalarRelationFilter, Prisma.VPSInstanceWhereInput> | null
   provisioningJobs?: Prisma.ProvisioningJobListRelationFilter
 }
@@ -285,7 +285,7 @@ export type OrderOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   plan?: Prisma.VPSPlanOrderByWithRelationInput
-  payment?: Prisma.PaymentOrderByWithRelationInput
+  payments?: Prisma.PaymentOrderByRelationAggregateInput
   vpsInstance?: Prisma.VPSInstanceOrderByWithRelationInput
   provisioningJobs?: Prisma.ProvisioningJobOrderByRelationAggregateInput
 }
@@ -307,7 +307,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   plan?: Prisma.XOR<Prisma.VPSPlanScalarRelationFilter, Prisma.VPSPlanWhereInput>
-  payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null
+  payments?: Prisma.PaymentListRelationFilter
   vpsInstance?: Prisma.XOR<Prisma.VPSInstanceNullableScalarRelationFilter, Prisma.VPSInstanceWhereInput> | null
   provisioningJobs?: Prisma.ProvisioningJobListRelationFilter
 }, "id" | "orderNumber">
@@ -360,7 +360,7 @@ export type OrderCreateInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
   plan: Prisma.VPSPlanCreateNestedOneWithoutOrdersInput
-  payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceCreateNestedOneWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobCreateNestedManyWithoutOrderInput
 }
@@ -377,7 +377,7 @@ export type OrderUncheckedCreateInput = {
   status?: $Enums.OrderStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceUncheckedCreateNestedOneWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedCreateNestedManyWithoutOrderInput
 }
@@ -394,7 +394,7 @@ export type OrderUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   plan?: Prisma.VPSPlanUpdateOneRequiredWithoutOrdersNestedInput
-  payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUpdateOneWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUpdateManyWithoutOrderNestedInput
 }
@@ -411,7 +411,7 @@ export type OrderUncheckedUpdateInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUncheckedUpdateOneWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedUpdateManyWithoutOrderNestedInput
 }
@@ -516,14 +516,14 @@ export type OrderSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
 }
 
-export type OrderScalarRelationFilter = {
-  is?: Prisma.OrderWhereInput
-  isNot?: Prisma.OrderWhereInput
-}
-
 export type OrderNullableScalarRelationFilter = {
   is?: Prisma.OrderWhereInput | null
   isNot?: Prisma.OrderWhereInput | null
+}
+
+export type OrderScalarRelationFilter = {
+  is?: Prisma.OrderWhereInput
+  isNot?: Prisma.OrderWhereInput
 }
 
 export type OrderCreateNestedManyWithoutUserInput = {
@@ -614,18 +614,20 @@ export type EnumOrderStatusFieldUpdateOperationsInput = {
   set?: $Enums.OrderStatus
 }
 
-export type OrderCreateNestedOneWithoutPaymentInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutPaymentInput, Prisma.OrderUncheckedCreateWithoutPaymentInput>
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutPaymentInput
+export type OrderCreateNestedOneWithoutPaymentsInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutPaymentsInput, Prisma.OrderUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutPaymentsInput
   connect?: Prisma.OrderWhereUniqueInput
 }
 
-export type OrderUpdateOneRequiredWithoutPaymentNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutPaymentInput, Prisma.OrderUncheckedCreateWithoutPaymentInput>
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutPaymentInput
-  upsert?: Prisma.OrderUpsertWithoutPaymentInput
+export type OrderUpdateOneWithoutPaymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutPaymentsInput, Prisma.OrderUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutPaymentsInput
+  upsert?: Prisma.OrderUpsertWithoutPaymentsInput
+  disconnect?: Prisma.OrderWhereInput | boolean
+  delete?: Prisma.OrderWhereInput | boolean
   connect?: Prisma.OrderWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutPaymentInput, Prisma.OrderUpdateWithoutPaymentInput>, Prisma.OrderUncheckedUpdateWithoutPaymentInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutPaymentsInput, Prisma.OrderUpdateWithoutPaymentsInput>, Prisma.OrderUncheckedUpdateWithoutPaymentsInput>
 }
 
 export type OrderCreateNestedOneWithoutVpsInstanceInput = {
@@ -669,7 +671,7 @@ export type OrderCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   plan: Prisma.VPSPlanCreateNestedOneWithoutOrdersInput
-  payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceCreateNestedOneWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobCreateNestedManyWithoutOrderInput
 }
@@ -685,7 +687,7 @@ export type OrderUncheckedCreateWithoutUserInput = {
   status?: $Enums.OrderStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceUncheckedCreateNestedOneWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedCreateNestedManyWithoutOrderInput
 }
@@ -744,7 +746,7 @@ export type OrderCreateWithoutPlanInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
-  payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceCreateNestedOneWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobCreateNestedManyWithoutOrderInput
 }
@@ -760,7 +762,7 @@ export type OrderUncheckedCreateWithoutPlanInput = {
   status?: $Enums.OrderStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceUncheckedCreateNestedOneWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedCreateNestedManyWithoutOrderInput
 }
@@ -791,7 +793,7 @@ export type OrderUpdateManyWithWhereWithoutPlanInput = {
   data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutPlanInput>
 }
 
-export type OrderCreateWithoutPaymentInput = {
+export type OrderCreateWithoutPaymentsInput = {
   id?: string
   orderNumber: string
   planName: string
@@ -807,7 +809,7 @@ export type OrderCreateWithoutPaymentInput = {
   provisioningJobs?: Prisma.ProvisioningJobCreateNestedManyWithoutOrderInput
 }
 
-export type OrderUncheckedCreateWithoutPaymentInput = {
+export type OrderUncheckedCreateWithoutPaymentsInput = {
   id?: string
   orderNumber: string
   userId: string
@@ -823,23 +825,23 @@ export type OrderUncheckedCreateWithoutPaymentInput = {
   provisioningJobs?: Prisma.ProvisioningJobUncheckedCreateNestedManyWithoutOrderInput
 }
 
-export type OrderCreateOrConnectWithoutPaymentInput = {
+export type OrderCreateOrConnectWithoutPaymentsInput = {
   where: Prisma.OrderWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrderCreateWithoutPaymentInput, Prisma.OrderUncheckedCreateWithoutPaymentInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutPaymentsInput, Prisma.OrderUncheckedCreateWithoutPaymentsInput>
 }
 
-export type OrderUpsertWithoutPaymentInput = {
-  update: Prisma.XOR<Prisma.OrderUpdateWithoutPaymentInput, Prisma.OrderUncheckedUpdateWithoutPaymentInput>
-  create: Prisma.XOR<Prisma.OrderCreateWithoutPaymentInput, Prisma.OrderUncheckedCreateWithoutPaymentInput>
+export type OrderUpsertWithoutPaymentsInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutPaymentsInput, Prisma.OrderUncheckedUpdateWithoutPaymentsInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutPaymentsInput, Prisma.OrderUncheckedCreateWithoutPaymentsInput>
   where?: Prisma.OrderWhereInput
 }
 
-export type OrderUpdateToOneWithWhereWithoutPaymentInput = {
+export type OrderUpdateToOneWithWhereWithoutPaymentsInput = {
   where?: Prisma.OrderWhereInput
-  data: Prisma.XOR<Prisma.OrderUpdateWithoutPaymentInput, Prisma.OrderUncheckedUpdateWithoutPaymentInput>
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutPaymentsInput, Prisma.OrderUncheckedUpdateWithoutPaymentsInput>
 }
 
-export type OrderUpdateWithoutPaymentInput = {
+export type OrderUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderNumber?: Prisma.StringFieldUpdateOperationsInput | string
   planName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -855,7 +857,7 @@ export type OrderUpdateWithoutPaymentInput = {
   provisioningJobs?: Prisma.ProvisioningJobUpdateManyWithoutOrderNestedInput
 }
 
-export type OrderUncheckedUpdateWithoutPaymentInput = {
+export type OrderUncheckedUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderNumber?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -883,7 +885,7 @@ export type OrderCreateWithoutVpsInstanceInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
   plan: Prisma.VPSPlanCreateNestedOneWithoutOrdersInput
-  payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobCreateNestedManyWithoutOrderInput
 }
 
@@ -899,7 +901,7 @@ export type OrderUncheckedCreateWithoutVpsInstanceInput = {
   status?: $Enums.OrderStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -931,7 +933,7 @@ export type OrderUpdateWithoutVpsInstanceInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   plan?: Prisma.VPSPlanUpdateOneRequiredWithoutOrdersNestedInput
-  payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUpdateManyWithoutOrderNestedInput
 }
 
@@ -947,7 +949,7 @@ export type OrderUncheckedUpdateWithoutVpsInstanceInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -963,7 +965,7 @@ export type OrderCreateWithoutProvisioningJobsInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
   plan: Prisma.VPSPlanCreateNestedOneWithoutOrdersInput
-  payment?: Prisma.PaymentCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceCreateNestedOneWithoutOrderInput
 }
 
@@ -979,7 +981,7 @@ export type OrderUncheckedCreateWithoutProvisioningJobsInput = {
   status?: $Enums.OrderStatus
   createdAt?: Date | string
   updatedAt?: Date | string
-  payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
   vpsInstance?: Prisma.VPSInstanceUncheckedCreateNestedOneWithoutOrderInput
 }
 
@@ -1011,7 +1013,7 @@ export type OrderUpdateWithoutProvisioningJobsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   plan?: Prisma.VPSPlanUpdateOneRequiredWithoutOrdersNestedInput
-  payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUpdateOneWithoutOrderNestedInput
 }
 
@@ -1027,7 +1029,7 @@ export type OrderUncheckedUpdateWithoutProvisioningJobsInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUncheckedUpdateOneWithoutOrderNestedInput
 }
 
@@ -1055,7 +1057,7 @@ export type OrderUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   plan?: Prisma.VPSPlanUpdateOneRequiredWithoutOrdersNestedInput
-  payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUpdateOneWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUpdateManyWithoutOrderNestedInput
 }
@@ -1071,7 +1073,7 @@ export type OrderUncheckedUpdateWithoutUserInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUncheckedUpdateOneWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedUpdateManyWithoutOrderNestedInput
 }
@@ -1113,7 +1115,7 @@ export type OrderUpdateWithoutPlanInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
-  payment?: Prisma.PaymentUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUpdateOneWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUpdateManyWithoutOrderNestedInput
 }
@@ -1129,7 +1131,7 @@ export type OrderUncheckedUpdateWithoutPlanInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
   vpsInstance?: Prisma.VPSInstanceUncheckedUpdateOneWithoutOrderNestedInput
   provisioningJobs?: Prisma.ProvisioningJobUncheckedUpdateManyWithoutOrderNestedInput
 }
@@ -1153,10 +1155,12 @@ export type OrderUncheckedUpdateManyWithoutPlanInput = {
  */
 
 export type OrderCountOutputType = {
+  payments: number
   provisioningJobs: number
 }
 
 export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  payments?: boolean | OrderCountOutputTypeCountPaymentsArgs
   provisioningJobs?: boolean | OrderCountOutputTypeCountProvisioningJobsArgs
 }
 
@@ -1168,6 +1172,13 @@ export type OrderCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
    * Select specific fields to fetch from the OrderCountOutputType
    */
   select?: Prisma.OrderCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentWhereInput
 }
 
 /**
@@ -1192,7 +1203,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   plan?: boolean | Prisma.VPSPlanDefaultArgs<ExtArgs>
-  payment?: boolean | Prisma.Order$paymentArgs<ExtArgs>
+  payments?: boolean | Prisma.Order$paymentsArgs<ExtArgs>
   vpsInstance?: boolean | Prisma.Order$vpsInstanceArgs<ExtArgs>
   provisioningJobs?: boolean | Prisma.Order$provisioningJobsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
@@ -1248,7 +1259,7 @@ export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   plan?: boolean | Prisma.VPSPlanDefaultArgs<ExtArgs>
-  payment?: boolean | Prisma.Order$paymentArgs<ExtArgs>
+  payments?: boolean | Prisma.Order$paymentsArgs<ExtArgs>
   vpsInstance?: boolean | Prisma.Order$vpsInstanceArgs<ExtArgs>
   provisioningJobs?: boolean | Prisma.Order$provisioningJobsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
@@ -1267,7 +1278,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     plan: Prisma.$VPSPlanPayload<ExtArgs>
-    payment: Prisma.$PaymentPayload<ExtArgs> | null
+    payments: Prisma.$PaymentPayload<ExtArgs>[]
     vpsInstance: Prisma.$VPSInstancePayload<ExtArgs> | null
     provisioningJobs: Prisma.$ProvisioningJobPayload<ExtArgs>[]
   }
@@ -1679,7 +1690,7 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   plan<T extends Prisma.VPSPlanDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VPSPlanDefaultArgs<ExtArgs>>): Prisma.Prisma__VPSPlanClient<runtime.Types.Result.GetResult<Prisma.$VPSPlanPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  payment<T extends Prisma.Order$paymentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$paymentArgs<ExtArgs>>): Prisma.Prisma__PaymentClient<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  payments<T extends Prisma.Order$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   vpsInstance<T extends Prisma.Order$vpsInstanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$vpsInstanceArgs<ExtArgs>>): Prisma.Prisma__VPSInstanceClient<runtime.Types.Result.GetResult<Prisma.$VPSInstancePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   provisioningJobs<T extends Prisma.Order$provisioningJobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$provisioningJobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProvisioningJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -2123,9 +2134,9 @@ export type OrderDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
- * Order.payment
+ * Order.payments
  */
-export type Order$paymentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Order$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Payment
    */
@@ -2139,6 +2150,11 @@ export type Order$paymentArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.PaymentInclude<ExtArgs> | null
   where?: Prisma.PaymentWhereInput
+  orderBy?: Prisma.PaymentOrderByWithRelationInput | Prisma.PaymentOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
 }
 
 /**

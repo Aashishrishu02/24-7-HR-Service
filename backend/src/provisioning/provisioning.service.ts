@@ -7,12 +7,14 @@ import {
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { InventoryAllocatorService } from './inventory-allocator.service.js';
+import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
 
 @Injectable()
 export class ProvisioningService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly inventoryAllocator: InventoryAllocatorService,
+    private readonly hostheavenService: HostHeavenService,
   ) {}
 
   async provisionOrder(orderId: string) {
@@ -333,6 +335,8 @@ export class ProvisioningService {
                 ipAddress: true,
                 hostname: true,
                 status: true,
+                provider: true,
+                providerVpsId: true,
                 expiresAt: true,
               },
             },
@@ -417,12 +421,23 @@ export class ProvisioningService {
         'Review the failure reason and check inventory availability before any retry.';
     }
 
+    let hostheavenCheck: unknown = null;
+    if (job.provider?.code === 'HOSTHEAVEN' || job.order?.vpsInstance?.provider === 'HOSTHEAVEN') {
+      try {
+        const targetId = job.order?.vpsInstance?.providerVpsId || job.providerRequestId || job.orderId;
+        hostheavenCheck = await this.hostheavenService.getVmDetails(targetId);
+      } catch (err: any) {
+        hostheavenCheck = { error: err?.message || 'HostHeaven VM check query failed' };
+      }
+    }
+
     return {
       message: 'Reconciliation inspection completed',
       readOnly: true,
       assessment,
       recommendation,
       job,
+      hostheavenCheck,
       checks: {
         orderExists: Boolean(job.order),
         orderStatus: job.order.status,

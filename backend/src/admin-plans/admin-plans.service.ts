@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -102,6 +103,56 @@ export class AdminPlansService {
     return this.prisma.vPSPlan.update({
       where: { id },
       data: { isActive },
+    });
+  }
+
+  async delete(id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const plan = await tx.vPSPlan.findUnique({
+        where: { id },
+        select: { id: true, name: true },
+      });
+
+      if (!plan) {
+        throw new NotFoundException('VPS plan not found');
+      }
+
+      const [orderCount, priceHistoryCount] = await Promise.all([
+        tx.order.count({
+          where: { planId: id },
+        }),
+        tx.priceHistory.count({
+          where: { planId: id },
+        }),
+      ]);
+
+      if (orderCount > 0 || priceHistoryCount > 0) {
+        await tx.vPSPlan.update({
+          where: { id },
+          data: { isActive: false },
+        });
+
+        return {
+          success: true,
+          deleted: false,
+          deactivated: true,
+          message:
+            `Plan "${plan.name}" has existing records. It has been deactivated instead of permanently deleted.`,
+          orderCount,
+          priceHistoryCount,
+        };
+      }
+
+      await tx.vPSPlan.delete({
+        where: { id },
+      });
+
+      return {
+        success: true,
+        deleted: true,
+        deactivated: false,
+        message: `Plan "${plan.name}" permanently deleted.`,
+      };
     });
   }
 }
