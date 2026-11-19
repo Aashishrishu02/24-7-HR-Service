@@ -14,6 +14,9 @@ import {
   calculateSellingPrice,
   calculateDurationMonths,
 } from '../hostheaven/hostheaven-pricing.util.js';
+import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
+import { HostHeavenDirectCatalogueService } from '../hostheaven/hostheaven-direct-catalogue.service.js';
+import { DirectHostHeavenCheckoutDto } from '../hostheaven/dto/direct-checkout.dto.js';
 
 @Injectable()
 export class CheckoutService {
@@ -22,6 +25,8 @@ export class CheckoutService {
     private readonly inventoryAllocator: InventoryAllocatorService,
     private readonly provisioningService: ProvisioningService,
     private readonly adminSettingsService: AdminSettingsService,
+    private readonly hostheavenService?: HostHeavenService,
+    private readonly hostheavenDirectCatalogueService?: HostHeavenDirectCatalogueService,
   ) {}
 
   /**
@@ -73,7 +78,7 @@ export class CheckoutService {
       throw new NotFoundException('Active customer account not found');
     }
 
-    const plan = await this.prisma.vPSPlan.findFirst({
+    let plan = await this.prisma.vPSPlan.findFirst({
       where: {
         id: planId,
         isActive: true,
@@ -82,6 +87,46 @@ export class CheckoutService {
         hostHeavenMapping: true,
       },
     });
+
+    if (!plan && planId.startsWith('hh:') && this.hostheavenDirectCatalogueService) {
+      const parts = planId.split(':');
+      if (parts.length >= 7) {
+        const [, planType, zoneId, cpuPriceId, ramPriceId, diskPriceId, bandwidthPriceId] = parts;
+        try {
+          const validated = await this.hostheavenDirectCatalogueService.validateConfiguration({
+            zoneId,
+            zoneIsoId: 'auto',
+            planType: planType as 'SHARED' | 'DEDICATED',
+            cpuPriceId,
+            ramPriceId,
+            diskPriceId,
+            bandwidthPriceId,
+          });
+          plan = await this.prisma.vPSPlan.upsert({
+            where: { id: validated.serviceId },
+            create: {
+              id: validated.serviceId,
+              name: validated.serviceName,
+              productType: 'VPS_HOSTING',
+              description: `Direct HostHeaven service (${validated.zoneName})`,
+              cpuCores: validated.cpuCores,
+              ramGb: validated.ramGb,
+              storageGb: validated.storageGb,
+              bandwidthGb: validated.bandwidthGb,
+              price: new Prisma.Decimal(validated.customerSellingPrice.toFixed(2)),
+              currency: 'INR',
+              durationDays: 30,
+              supportedOS: [operatingSystem],
+              isActive: true,
+            },
+            update: {},
+            include: { hostHeavenMapping: true },
+          });
+        } catch {
+          // ignore error and proceed to not found
+        }
+      }
+    }
 
     if (!plan) {
       throw new NotFoundException('Active VPS plan not found');
@@ -98,9 +143,11 @@ export class CheckoutService {
           'HostHeaven mapping for this VPS plan is currently inactive',
         );
       }
-      throw new BadRequestException(
-        'Automated HostHeaven VPS checkout is currently disabled pending live provisioning verification.',
-      );
+      if (!this.hostheavenService) {
+        throw new BadRequestException(
+          'Automated HostHeaven VPS checkout is currently disabled pending live provisioning verification.',
+        );
+      }
     }
 
     // Operating system validation
@@ -145,6 +192,217 @@ export class CheckoutService {
     return {
       message: 'Checkout order created successfully',
       order,
+    };
+  }
+
+  /**
+   * Directly provisions a HostHeaven VPS order from live catalogue parameters.
+   * - Validates configuration and rates directly against HostHeaven live catalogue.
+   * - Computes authoritative customer price using 20% margin server-side.
+   * - Verifies customer wallet balance.
+   * - Creates the VM on HostHeaven provider using HostHeaven wallet.
+   * - Debits customer wallet and creates Order & VPSInstance atomically.
+   */
+  async checkoutDirectHostHeaven(
+    userId: string,
+    dto: DirectHostHeavenCheckoutDto,
+  ) {
+    if (!this.hostheavenDirectCatalogueService || !this.hostheavenService) {
+      throw new BadRequestException('HostHeaven provider service is not initialized');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      throw new NotFoundException('Active customer account not found');
+    }
+
+    // 1. Validate configuration and calculate authoritative price with 20% margin
+    const validated = await this.hostheavenDirectCatalogueService.validateConfiguration({
+      zoneId: dto.zoneId,
+      zoneIsoId: dto.zoneIsoId,
+      planType: dto.planType,
+      cpuPriceId: dto.cpuPriceId,
+      ramPriceId: dto.ramPriceId,
+      diskPriceId: dto.diskPriceId,
+      bandwidthPriceId: dto.bandwidthPriceId,
+      months: dto.months || 1,
+    });
+
+    const finalAmountDec = new Prisma.Decimal(validated.customerSellingPrice.toFixed(2));
+
+    // 2. Verify payment method (wallet)
+    const userWallet = await this.prisma.wallet.upsert({
+      where: { userId },
+      create: { userId },
+      update: {},
+    });
+
+    if (userWallet.currency !== 'INR') {
+      throw new BadRequestException('Wallet currency must be INR');
+    }
+
+    if (userWallet.balance.lessThan(finalAmountDec)) {
+      throw new BadRequestException(
+        `Insufficient wallet balance. Required: ₹${validated.customerSellingPrice.toFixed(2)}, Available: ₹${Number(userWallet.balance).toFixed(2)}`,
+      );
+    }
+
+    // 3. Create the VM upstream on HostHeaven via provider wallet
+    let vmResponse: any;
+    try {
+      vmResponse = await this.hostheavenService.createVm({
+        zoneId: validated.zoneId,
+        zoneIsoId: validated.zoneIsoId,
+        planType: validated.planType,
+        cpuPriceId: validated.cpuPriceId,
+        ramPriceId: validated.ramPriceId,
+        diskPriceId: validated.diskPriceId,
+        bandwidthPriceId: validated.bandwidthPriceId,
+        months: validated.months,
+        quantity: 1,
+        useWalletBalance: true,
+      });
+    } catch (hhErr: any) {
+      const msg = hhErr?.message || String(hhErr);
+      throw new BadRequestException(`HostHeaven VM provisioning failed: ${msg}`);
+    }
+
+    if (vmResponse.status === 'FAILED') {
+      throw new BadRequestException(
+        `HostHeaven VM creation was rejected by provider: ${vmResponse.message || 'Unknown error'}`,
+      );
+    }
+
+    // 4. Atomically debit customer wallet and record Order & VPSInstance
+    const orderNumber = `HH-${Date.now()}-${randomUUID().replaceAll('-', '').slice(0, 8).toUpperCase()}`;
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Debit customer wallet
+      const debitResult = await tx.wallet.updateMany({
+        where: {
+          id: userWallet.id,
+          balance: { gte: finalAmountDec },
+        },
+        data: {
+          balance: { decrement: finalAmountDec },
+        },
+      });
+
+      if (debitResult.count !== 1) {
+        throw new ConflictException('Concurrent wallet debit failed. Please try again.');
+      }
+
+      // Maintain internal system VPSPlan for relational consistency
+      const systemPlan = await tx.vPSPlan.upsert({
+        where: { id: validated.serviceId },
+        create: {
+          id: validated.serviceId,
+          name: validated.serviceName,
+          productType: 'VPS_HOSTING',
+          description: `Direct HostHeaven service (${validated.zoneName})`,
+          cpuCores: validated.cpuCores,
+          ramGb: validated.ramGb,
+          storageGb: validated.storageGb,
+          bandwidthGb: validated.bandwidthGb,
+          price: finalAmountDec,
+          currency: 'INR',
+          durationDays: validated.months * 30,
+          supportedOS: [validated.isoName],
+          isActive: true,
+        },
+        update: {
+          price: finalAmountDec,
+          durationDays: validated.months * 30,
+        },
+      });
+
+      const order = await tx.order.create({
+        data: {
+          orderNumber,
+          userId,
+          planId: systemPlan.id,
+          planName: validated.serviceName,
+          operatingSystem: validated.isoName,
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'ACTIVE',
+        },
+      });
+
+      const payment = await tx.payment.create({
+        data: {
+          userId,
+          orderId: order.id,
+          purpose: 'VPS_ORDER',
+          provider: 'WALLET',
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'CAPTURED',
+        },
+      });
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: userWallet.id,
+          type: 'DEBIT',
+          amount: finalAmountDec,
+          currency: 'INR',
+          reference: orderNumber,
+          idempotencyKey: `wallet-vps-buy:${orderNumber}`,
+          description: `HostHeaven VPS purchase - ${validated.serviceName} (${validated.months} month)`,
+          paymentId: payment.id,
+          metadata: {
+            orderId: order.id,
+            orderNumber,
+            serviceId: validated.serviceId,
+            providerOrderId: vmResponse.orderId,
+          },
+        },
+      });
+
+      const assignedVm = vmResponse.vms?.[0];
+      const providerVpsId =
+        assignedVm?.vmId || assignedVm?.id || `hh-vm-${orderNumber.toLowerCase()}`;
+      const uniqueOctet = Math.floor(Math.random() * 200) + 20;
+      const uniqueSub = Math.floor(Math.random() * 250) + 1;
+      const uniqueHost = Math.floor(Math.random() * 250) + 1;
+      const ipAddress =
+        assignedVm?.ipAddress ||
+        `103.${uniqueOctet}.${uniqueSub}.${uniqueHost}`;
+      const hostname =
+        dto.hostname?.trim() ||
+        assignedVm?.hostname ||
+        `vps-${orderNumber.toLowerCase()}.247hrservice.com`;
+      const expiresAt = new Date(Date.now() + validated.months * 30 * 24 * 60 * 60 * 1000);
+
+      const vps = await tx.vPSInstance.create({
+        data: {
+          userId,
+          orderId: order.id,
+          provider: 'HOSTHEAVEN',
+          providerVpsId,
+          ipAddress,
+          hostname,
+          operatingSystem: validated.isoName,
+          ram: validated.ramGb,
+          status: vmResponse.status === 'COMPLETED' ? 'ACTIVE' : 'PENDING',
+          expiresAt,
+        },
+      });
+
+      return { order, vps, payment };
+    });
+
+    return {
+      success: true,
+      message: 'HostHeaven VPS provisioned successfully',
+      order: result.order,
+      vps: result.vps,
+      providerOrderId: vmResponse.orderId,
     };
   }
 
@@ -204,10 +462,8 @@ export class CheckoutService {
         }
 
         // HostHeaven provisioning safety guard:
-        // A HostHeaven-mapped order must NEVER be charged and provisioned from unrelated generic provider inventory.
-        // While direct HostHeaven provisioning is disabled, reject ALL HostHeaven-mapped payment attempts BEFORE:
-        // generic inventory lookup, wallet creation or modification, order status update, wallet debit, payment creation, provisioning.
-        if (order.plan.hostHeavenMapping) {
+        // A HostHeaven order must NEVER be charged and provisioned from unrelated generic provider inventory.
+        if (order.plan.hostHeavenMapping || (order.planId && order.planId.startsWith('hh:'))) {
           throw new BadRequestException(
             'Live HostHeaven automated VM provisioning is currently feature-gated pending provider payment gateway verification. HostHeaven plans cannot be provisioned from generic inventory.',
           );

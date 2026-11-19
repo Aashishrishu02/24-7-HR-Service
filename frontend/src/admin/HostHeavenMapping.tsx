@@ -565,6 +565,24 @@ export default function HostHeavenMapping() {
         </div>
       </div>
 
+      {/* DIRECT LIVE CATALOGUE INFO BANNER */}
+      <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4 text-xs text-blue-200">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-cyan-400" />
+          <div className="space-y-1">
+            <p className="font-bold text-white text-sm">
+              Direct Live Catalogue Mode: Active
+            </p>
+            <p className="leading-relaxed text-slate-300">
+              HostHeaven services, zones, operating systems, and purchasable configurations are dynamically discovered and presented directly on the 24/7 customer website (<code className="rounded bg-black/30 px-1 py-0.5 text-cyan-300">GET /api/hostheaven/services</code> & <code className="rounded bg-black/30 px-1 py-0.5 text-cyan-300">GET /api/plans</code>).
+            </p>
+            <p className="leading-relaxed text-slate-400">
+              Manual VPSPlan creation and admin product publishing are no longer required. The authoritative 20% gross profit margin is applied automatically across all available configurations. Existing mapped plans below remain fully operational for legacy compatibility.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* SYNC STATUS BANNER */}
       {syncStatus && (
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-800 bg-[#0c1527] p-3.5 text-xs">

@@ -113,6 +113,27 @@ type VPSPlan = {
   isHostHeaven?: boolean;
   isActive?: boolean;
   sortOrder?: number;
+  providerConfig?: {
+    zoneId: string;
+    zoneIsoId: string;
+    planType: "SHARED" | "DEDICATED";
+    cpuPriceId: string;
+    ramPriceId: string;
+    diskPriceId: string;
+    bandwidthPriceId: string;
+  };
+  billingOptions?: Array<{
+    months: number;
+    durationDays: number;
+    customerPrice: number;
+    grossProfit?: number;
+    label: string;
+  }>;
+  operatingSystems?: Array<{
+    id: string;
+    name: string;
+    osType: string;
+  }>;
 };
 
 type WalletData = {
@@ -234,6 +255,8 @@ export default function Dashboard() {
   // Checkout modal state
   const [selectedPlan, setSelectedPlan] = useState<VPSPlan | null>(null);
   const [selectedOS, setSelectedOS] = useState("");
+  const [selectedMonths, setSelectedMonths] = useState<number>(1);
+  const [customHostname, setCustomHostname] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"WALLET" | "RAZORPAY">(
     "WALLET",
   );
@@ -682,6 +705,11 @@ export default function Dashboard() {
   const openCheckout = (plan: VPSPlan) => {
     setSelectedPlan(plan);
     setSelectedOS(plan.supportedOS?.[0] || "Ubuntu 22.04");
+    setSelectedMonths(1);
+    setCustomHostname("");
+    if (plan.providerConfig?.zoneId) {
+      setSelectedZoneId(plan.providerConfig.zoneId);
+    }
     setCheckoutError("");
     setPaymentMethod("WALLET");
     void fetchWallet();
@@ -766,7 +794,48 @@ export default function Dashboard() {
     setCheckoutError("");
 
     try {
-      // Step 1: Create checkout order
+      if (selectedPlan.isHostHeaven || selectedPlan.providerConfig) {
+        // Direct HostHeaven live provisioning
+        const config = selectedPlan.providerConfig;
+        const matchingIso = hhIsos.find(
+          (i) => i.isoName === selectedOS || i.id === selectedOS,
+        );
+
+        const res = await api.post("/hostheaven/checkout", {
+          zoneId: selectedZoneId || config?.zoneId,
+          zoneIsoId: matchingIso?.id || config?.zoneIsoId || "default-iso",
+          planType:
+            config?.planType ||
+            (selectedPlan.tier?.toLowerCase().includes("dedicated")
+              ? "DEDICATED"
+              : "SHARED"),
+          cpuPriceId: config?.cpuPriceId,
+          ramPriceId: config?.ramPriceId,
+          diskPriceId: config?.diskPriceId,
+          bandwidthPriceId: config?.bandwidthPriceId,
+          months: selectedMonths || 1,
+          operatingSystem: selectedOS,
+          hostname: customHostname.trim() || undefined,
+          paymentMethod: "WALLET",
+        });
+
+        setNotice(
+          res.data?.message ||
+            `HostHeaven VPS deployed successfully! Order #${res.data?.order?.orderNumber}`,
+        );
+        setSelectedPlan(null);
+        go("My VPS");
+
+        await Promise.all([
+          fetchWallet(),
+          fetchTransactions(),
+          fetchOrders(),
+          fetchVps(),
+        ]);
+        return;
+      }
+
+      // Non-HostHeaven order path
       const orderRes = await api.post("/checkout/orders", {
         planId: selectedPlan.id,
         operatingSystem: selectedOS,
@@ -822,8 +891,17 @@ export default function Dashboard() {
 
   const activeCount = vpsList.filter((v) => v.status === "RUNNING").length;
   const currentWalletBalance = Number(wallet?.balance ?? 0);
-  const selectedPlanPrice = Number(selectedPlan?.price ?? 0);
-  const hasSufficientBalance = currentWalletBalance >= selectedPlanPrice;
+  const currentCheckoutPrice = useMemo(() => {
+    if (!selectedPlan) return 0;
+    if (selectedPlan.billingOptions && selectedPlan.billingOptions.length > 0) {
+      const match = selectedPlan.billingOptions.find((o) => o.months === selectedMonths);
+      if (match) return Number(match.customerPrice);
+    }
+    const baseMonthly = Number(selectedPlan.price ?? 0);
+    return Math.round(baseMonthly * (selectedMonths || 1) * 100) / 100;
+  }, [selectedPlan, selectedMonths]);
+  const selectedPlanPrice = currentCheckoutPrice;
+  const hasSufficientBalance = currentWalletBalance >= currentCheckoutPrice;
 
   const visiblePlans = useMemo(() => {
     const isWindowsOS = (os: string) => /windows|win server/i.test(os);
@@ -1813,9 +1891,16 @@ export default function Dashboard() {
                       <h3 className="mt-1 text-xl font-bold text-white">
                         {selectedPlan.name}
                       </h3>
-                      <p className="mt-0.5 text-xs font-semibold text-cyan-300">
-                        {formatDecimal(selectedPlan.price, selectedPlan.currency || "INR")}/month
-                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-semibold text-cyan-300">
+                          {formatDecimal(selectedPlan.price, selectedPlan.currency || "INR")}/month
+                        </span>
+                        {selectedPlan.isHostHeaven && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-bold text-cyan-300">
+                            <Zap size={11} /> HostHeaven Direct Cloud
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <select
@@ -1825,6 +1910,9 @@ export default function Dashboard() {
                           if (p) {
                             setSelectedPlan(p);
                             setSelectedOS(p.supportedOS?.[0] || "Ubuntu 22.04");
+                            if (p.providerConfig?.zoneId) {
+                              setSelectedZoneId(p.providerConfig.zoneId);
+                            }
                           }
                         }}
                         className="rounded-lg border border-blue-700 bg-[#07122c] px-3 py-1.5 text-xs font-semibold text-cyan-200 outline-none focus:border-cyan-300"
@@ -1843,6 +1931,45 @@ export default function Dashboard() {
                     <span>{selectedPlan.ramGb ?? "—"} GB RAM</span>
                     <span>{selectedPlan.storageGb ?? "—"} GB SSD</span>
                     <span>{selectedPlan.bandwidthGb ?? "—"} GB BW</span>
+                  </div>
+                </div>
+
+                {/* Billing Duration Selector */}
+                <div>
+                  <label className="mb-2 block text-xs font-bold text-slate-300">
+                    Billing Duration
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                    {[
+                      { months: 1, label: "1 Month" },
+                      { months: 3, label: "3 Months" },
+                      { months: 6, label: "6 Months" },
+                      { months: 12, label: "12 Months" },
+                    ].map((opt) => {
+                      const optionPrice =
+                        selectedPlan.billingOptions?.find(
+                          (b) => b.months === opt.months,
+                        )?.customerPrice ??
+                        Math.round(Number(selectedPlan.price) * opt.months * 100) / 100;
+                      const isSelected = selectedMonths === opt.months;
+                      return (
+                        <button
+                          key={opt.months}
+                          type="button"
+                          onClick={() => setSelectedMonths(opt.months)}
+                          className={`rounded-xl border p-3 text-left transition ${
+                            isSelected
+                              ? "border-cyan-300 bg-cyan-300/10 text-white"
+                              : "border-blue-900 bg-[#07122c] text-slate-300 hover:border-blue-700"
+                          }`}
+                        >
+                          <p className="text-xs font-bold">{opt.label}</p>
+                          <p className="mt-1 text-[11px] font-semibold text-cyan-300">
+                            {formatDecimal(optionPrice)}
+                          </p>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1888,6 +2015,21 @@ export default function Dashboard() {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Hostname configuration */}
+                <div>
+                  <label className="mb-2 flex items-center justify-between text-xs font-bold text-slate-300">
+                    <span>Server Hostname</span>
+                    <span className="text-[10px] font-normal text-slate-500">Optional</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={customHostname}
+                    onChange={(e) => setCustomHostname(e.target.value)}
+                    placeholder="e.g. web01.myserver.com"
+                    className="w-full rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-cyan-300"
+                  />
                 </div>
 
                 {/* Payment Method Selector */}
@@ -1940,7 +2082,7 @@ export default function Dashboard() {
                           Sufficient balance available. Remaining after order:{" "}
                           <strong>
                             {formatDecimal(
-                              currentWalletBalance - selectedPlanPrice,
+                              currentWalletBalance - currentCheckoutPrice,
                             )}
                           </strong>
                         </span>
@@ -1951,7 +2093,7 @@ export default function Dashboard() {
                           <AlertCircle size={16} className="shrink-0" />
                           <span>
                             Insufficient balance. Need ₹
-                            {selectedPlanPrice - currentWalletBalance} more.
+                            {(currentCheckoutPrice - currentWalletBalance).toFixed(2)} more.
                           </span>
                         </div>
                         <button
@@ -1961,7 +2103,7 @@ export default function Dashboard() {
                               Math.max(
                                 100,
                                 Math.ceil(
-                                  (selectedPlanPrice - currentWalletBalance) /
+                                  (currentCheckoutPrice - currentWalletBalance) /
                                     100,
                                 ) * 100,
                               ),
@@ -1980,7 +2122,7 @@ export default function Dashboard() {
                 {/* Price Breakdown */}
                 <div className="rounded-2xl border border-blue-900 bg-[#101e43] p-5">
                   <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>Plan Price</span>
+                    <span>Monthly Base Rate</span>
                     <span>
                       {formatDecimal(
                         selectedPlan.price,
@@ -1989,16 +2131,19 @@ export default function Dashboard() {
                       /month
                     </span>
                   </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+                    <span>Billing Duration</span>
+                    <span className="font-semibold text-slate-200">
+                      {selectedMonths} Month{selectedMonths > 1 ? "s" : ""}
+                    </span>
+                  </div>
                   <div className="mt-3 flex items-center justify-between border-t border-blue-900/60 pt-3">
                     <span className="text-sm font-bold">Total Payable</span>
                     <span className="text-2xl font-black text-cyan-200">
                       {formatDecimal(
-                        selectedPlan.price,
+                        currentCheckoutPrice,
                         selectedPlan.currency || "INR",
                       )}
-                      <span className="ml-1 text-xs font-medium text-slate-400">
-                        /month
-                      </span>
                     </span>
                   </div>
                 </div>
@@ -2017,7 +2162,7 @@ export default function Dashboard() {
                     ) : (
                       <>
                         <Wallet size={17} /> Pay{" "}
-                        {formatDecimal(selectedPlan.price)} & Deploy Server
+                        {formatDecimal(currentCheckoutPrice)} & Deploy Server
                       </>
                     )}
                   </button>

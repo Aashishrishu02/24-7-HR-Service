@@ -13,6 +13,7 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { CheckoutService } from './checkout.service.js';
 import { CreateCheckoutOrderDto } from './dto/create-checkout-order.dto.js';
+import { DirectHostHeavenCheckoutDto } from '../hostheaven/dto/direct-checkout.dto.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -37,6 +38,14 @@ export class CheckoutController {
       dto.planId,
       dto.operatingSystem,
     );
+  }
+
+  @Post('hostheaven/checkout')
+  async directHostHeavenCheckout(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: DirectHostHeavenCheckoutDto,
+  ) {
+    return this.checkoutService.checkoutDirectHostHeaven(req.user.sub, dto);
   }
 
   @Post('orders/:orderId/pay-wallet')

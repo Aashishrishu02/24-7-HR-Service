@@ -11,9 +11,15 @@ import {
   UseGuards,
   NotFoundException,
   BadRequestException,
+  Inject,
+  forwardRef,
+  Optional,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { HostHeavenService } from './hostheaven.service.js';
+import { HostHeavenDirectCatalogueService } from './hostheaven-direct-catalogue.service.js';
+import { DirectHostHeavenCheckoutDto } from './dto/direct-checkout.dto.js';
+import { CheckoutService } from '../checkout/checkout.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { AdminAuthGuard } from '../admin-auth/admin-auth.guard.js';
@@ -31,7 +37,46 @@ export class HostHeavenController {
   constructor(
     private readonly hostheavenService: HostHeavenService,
     private readonly prisma: PrismaService,
+    private readonly directCatalogueService: HostHeavenDirectCatalogueService,
+    @Optional()
+    @Inject(forwardRef(() => CheckoutService))
+    private readonly checkoutService?: CheckoutService,
   ) {}
+
+  // ==========================================
+  // DIRECT LIVE CATALOGUE & CHECKOUT
+  // ==========================================
+
+  /**
+   * Dedicated customer-facing endpoint for direct live HostHeaven catalogue.
+   * - Dynamically exposes real available configurations, zones, ISOs.
+   * - Enforces 20% gross profit margin centrally (customerPrice = providerPrice / 0.80).
+   * - Never exposes raw provider rates, internal IDs, or credentials.
+   * - Gracefully falls back to cached data during temporary upstream outage.
+   */
+  @Get('hostheaven/services')
+  async getLiveServices(@Query('refresh') refresh?: string) {
+    return this.directCatalogueService.getLiveServices(refresh === 'true');
+  }
+
+  /**
+   * Direct customer checkout for live HostHeaven services.
+   * - Re-validates configuration and price server-side.
+   * - Verifies wallet balance.
+   * - Calls HostHeaven VM create API using provider wallet balance.
+   * - Debits customer wallet and generates Order and VPSInstance records.
+   */
+  @Post('hostheaven/checkout')
+  @UseGuards(JwtAuthGuard)
+  async directCheckout(
+    @Req() req: AuthenticatedUserRequest,
+    @Body() dto: DirectHostHeavenCheckoutDto,
+  ) {
+    if (!this.checkoutService) {
+      throw new BadRequestException('Checkout service is currently unavailable');
+    }
+    return this.checkoutService.checkoutDirectHostHeaven(req.user.sub, dto);
+  }
 
   // ==========================================
   // ADMIN ENDPOINTS
