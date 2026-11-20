@@ -80,6 +80,7 @@ type HostHeavenMappingRecord = {
   externalConfigId?: string;
   isCostVerified: boolean;
   costStatus: string;
+  isMixedConfiguration?: boolean;
   lastSyncedAt?: string;
   zoneId: string;
   zoneName?: string;
@@ -807,6 +808,11 @@ export default function HostHeavenMapping() {
                             <span className="inline-block rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-bold text-blue-300">
                               {m.planType} TIER
                             </span>
+                            {m.isMixedConfiguration && (
+                              <span className="inline-block rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-300 border border-red-500/30">
+                                MIXED RESOURCE ERROR (INVALID)
+                              </span>
+                            )}
                             <span className="inline-block rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-slate-300">
                               Duration: {m.plan?.durationDays ?? 30} Days ({(m.plan?.durationDays ?? 30) === 365 ? 12 : Math.max(1, Math.round((m.plan?.durationDays ?? 30) / 30))} mo)
                             </span>
@@ -1011,54 +1017,134 @@ export default function HostHeavenMapping() {
             </div>
           </div>
 
-          {/* PRICING MATRIX */}
-          {pricing && (
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-                <h3 className="text-base font-bold text-white mb-3">Shared Tier Resource Rates</h3>
-                <div className="space-y-3 text-xs">
-                  <div>
-                    <span className="font-semibold text-blue-300">CPU:</span>{" "}
-                    {pricing.shared.cpu.map((c) => `${c.cores}C (₹${c.price})`).join(" · ")}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-blue-300">RAM:</span>{" "}
-                    {pricing.shared.ram.map((r) => `${r.ram}GB (₹${r.price})`).join(" · ")}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-blue-300">Disk:</span>{" "}
-                    {pricing.shared.disk.map((d) => `${d.disk}GB (₹${d.price})`).join(" · ")}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-blue-300">Bandwidth:</span>{" "}
-                    {pricing.shared.bandwidth.map((b) => `${b.bandwidth}GB (₹${b.price})`).join(" · ")}
-                  </div>
-                </div>
-              </div>
+          {/* PRICING MATRIX & ARCHITECTURAL VERIFICATION */}
+          {pricing && (() => {
+            const isSlot = (item: PricingItem) => (item.label || "").toLowerCase().includes("slot");
+            const stdCpu = pricing.shared.cpu.filter((c) => !isSlot(c));
+            const stdRam = pricing.shared.ram.filter((r) => !isSlot(r));
+            const stdDisk = pricing.shared.disk.filter((d) => !isSlot(d));
+            const stdBw = pricing.shared.bandwidth.filter((b) => !isSlot(b));
 
-              <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-                <h3 className="text-base font-bold text-white mb-3">Dedicated Tier Resource Rates</h3>
-                <div className="space-y-3 text-xs">
+            const slotCpu = pricing.shared.cpu.filter((c) => isSlot(c));
+            const slotRam = pricing.shared.ram.filter((r) => isSlot(r));
+            const slotDisk = pricing.shared.disk.filter((d) => isSlot(d));
+            const slotBw = pricing.shared.bandwidth.filter((b) => isSlot(b));
+
+            return (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200 flex items-start gap-3">
+                  <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-cyan-300">CPU:</span>{" "}
-                    {pricing.dedicated.cpu.map((c) => `${c.cores}C (₹${c.price})`).join(" · ")}
+                    <span className="font-bold">Catalog Pricing Isolation Rule:</span> Standard Cloud and Slot IP catalogues are mutually exclusive. All resources in a VM must come from the same family. Mixing standard items with Slot IP items produces invalid combinations (such as ₹1,067.49, ₹715.86, ₹977.49) which are strictly rejected by the backend.
                   </div>
-                  <div>
-                    <span className="font-semibold text-cyan-300">RAM:</span>{" "}
-                    {pricing.dedicated.ram.map((r) => `${r.ram}GB (₹${r.price})`).join(" · ")}
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-3">
+                  {/* Standard Shared */}
+                  <div className="rounded-xl border border-blue-900/50 bg-[#111a2b] p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-blue-300">Standard Cloud VPS (Modular)</h3>
+                      <span className="rounded bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-300">
+                        ₹805.86 / mo
+                      </span>
+                    </div>
+                    <div className="space-y-2.5 text-xs text-slate-300">
+                      <div>
+                        <span className="font-semibold text-slate-400">CPU:</span>{" "}
+                        {stdCpu.map((c) => `${c.cores}C (₹${c.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">RAM:</span>{" "}
+                        {stdRam.map((r) => `${r.ram}GB (₹${r.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">Disk:</span>{" "}
+                        {stdDisk.map((d) => `${d.disk}GB (₹${d.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">Bandwidth:</span>{" "}
+                        {stdBw.map((b) => `${b.bandwidth}GB (₹${b.price}/hr)`).join(" · ")}
+                      </div>
+                      <div className="border-t border-slate-800 pt-2 font-mono text-[11px] text-slate-400">
+                        <div>Rate: 0.10 + 0.1954 + 0.20 + 0.40 = 0.8954 ₹/hr</div>
+                        <div className="text-emerald-400 mt-1 font-semibold">
+                          0.8954 × 720h = ₹644.69/mo → ₹805.86
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-semibold text-cyan-300">Disk:</span>{" "}
-                    {pricing.dedicated.disk.map((d) => `${d.disk}GB (₹${d.price})`).join(" · ")}
+
+                  {/* Slot IP Shared */}
+                  <div className="rounded-xl border border-purple-900/50 bg-[#111a2b] p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-purple-300">Slot IP Cloud VPS (Bundled)</h3>
+                      <span className="rounded bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-300">
+                        ₹437.50 / mo
+                      </span>
+                    </div>
+                    <div className="space-y-2.5 text-xs text-slate-300">
+                      <div>
+                        <span className="font-semibold text-slate-400">CPU:</span>{" "}
+                        {slotCpu.map((c) => `${c.label || c.cores + 'C'} (₹${c.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">RAM (Bundled):</span>{" "}
+                        {slotRam.map((r) => `${r.label || r.ram + 'GB'} (₹${r.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">Disk:</span>{" "}
+                        {slotDisk.map((d) => `${d.label || d.disk + 'GB'} (₹${d.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">Bandwidth:</span>{" "}
+                        {slotBw.map((b) => `${b.label || b.bandwidth + 'GB'} (₹${b.price}/hr)`).join(" · ")}
+                      </div>
+                      <div className="border-t border-slate-800 pt-2 font-mono text-[11px] text-slate-400">
+                        <div>Rate: 0 + 0.4861 + 0 + 0 = 0.4861 ₹/hr</div>
+                        <div className="text-emerald-400 mt-1 font-semibold">
+                          0.4861 × 720h = ₹349.99/mo → ₹437.50
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-semibold text-cyan-300">Bandwidth:</span>{" "}
-                    {pricing.dedicated.bandwidth.map((b) => `${b.bandwidth}GB (₹${b.price})`).join(" · ")}
+
+                  {/* Dedicated */}
+                  <div className="rounded-xl border border-cyan-900/50 bg-[#111a2b] p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-cyan-300">Dedicated Cloud VPS</h3>
+                      <span className="rounded bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300">
+                        ₹1,624.95 / mo
+                      </span>
+                    </div>
+                    <div className="space-y-2.5 text-xs text-slate-300">
+                      <div>
+                        <span className="font-semibold text-slate-400">CPU:</span>{" "}
+                        {pricing.dedicated.cpu.map((c) => `${c.cores}C (₹${c.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">RAM:</span>{" "}
+                        {pricing.dedicated.ram.map((r) => `${r.ram}GB (₹${r.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">Disk:</span>{" "}
+                        {pricing.dedicated.disk.map((d) => `${d.disk}GB (₹${d.price}/hr)`).join(" · ")}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-400">Bandwidth:</span>{" "}
+                        {pricing.dedicated.bandwidth.map((b) => `${b.bandwidth}GB (₹${b.price}/hr)`).join(" · ")}
+                      </div>
+                      <div className="border-t border-slate-800 pt-2 font-mono text-[11px] text-slate-400">
+                        <div>Rate: 0.6251 + 0.7264 + 0.2724 + 0.1816 = 1.8055 ₹/hr</div>
+                        <div className="text-emerald-400 mt-1 font-semibold">
+                          1.8055 × 720h = ₹1,299.96/mo → ₹1,624.95
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
 

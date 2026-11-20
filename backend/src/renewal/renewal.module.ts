@@ -17,7 +17,7 @@ import { RenewalAdminController } from './renewal-admin.controller.js';
     EmailModule,
     AdminAuthModule,
     forwardRef(() => VpsModule),
-    HostHeavenModule,
+    forwardRef(() => HostHeavenModule),
   ],
   controllers: [RenewalAdminController],
   providers: [

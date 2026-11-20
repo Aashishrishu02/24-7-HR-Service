@@ -28,6 +28,43 @@ export const VERIFIED_HOSTHEAVEN_DURATIONS: Readonly<Record<number, number>> = O
 export type HostHeavenPricingSource = 'AUTHORITATIVE_MONTHLY' | 'CALCULATED_HOURLY';
 export type HostHeavenBillingUnit = 'INR_PER_MONTH' | 'INR_PER_HOUR';
 
+/**
+ * Checks whether a pricing catalogue item belongs to the Slot IP resource family.
+ * Slot IP resources are bundled entries (e.g. "Slot IP CPU", "Slot IP 1 GB", "Slot IP 20 GB", "Slot IP 2 TB")
+ * and must NEVER be mixed with standard cloud resources.
+ */
+export function isSlotIpItem(
+  item: { label?: string; name?: string } | null | undefined,
+): boolean {
+  if (!item) return false;
+  const label = ((item.label || item.name || '') + '').toLowerCase();
+  return label.includes('slot ip') || label.includes('slot');
+}
+
+/**
+ * Validates that resource selections are not mixed between Standard and Slot IP.
+ * Throws BadRequestException if any mixing is detected.
+ */
+export function assertNotMixedPricing(
+  cpu: { label?: string; name?: string } | null | undefined,
+  ram: { label?: string; name?: string } | null | undefined,
+  disk: { label?: string; name?: string } | null | undefined,
+  bw: { label?: string; name?: string } | null | undefined,
+): void {
+  const isCpuSlot = isSlotIpItem(cpu);
+  const isRamSlot = isSlotIpItem(ram);
+  const isDiskSlot = isSlotIpItem(disk);
+  const isBwSlot = isSlotIpItem(bw);
+
+  if (isCpuSlot || isRamSlot || isDiskSlot || isBwSlot) {
+    if (!(isCpuSlot && isRamSlot && isDiskSlot && isBwSlot)) {
+      throw new BadRequestException(
+        'Invalid pricing combination: Standard and Slot IP resources cannot be mixed. All selected resources must be either standard or Slot IP.',
+      );
+    }
+  }
+}
+
 export interface HostHeavenResourceRates {
   cpu: number;
   ram: number;

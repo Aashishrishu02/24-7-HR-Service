@@ -12,7 +12,7 @@ import { HostHeavenModule } from '../hostheaven/hostheaven.module.js';
     PrismaModule,
     AuthModule,
     forwardRef(() => RenewalModule),
-    HostHeavenModule,
+    forwardRef(() => HostHeavenModule),
   ],
   controllers: [
     VpsController,

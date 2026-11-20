@@ -10,7 +10,7 @@ import { CheckoutService } from './checkout.service.js';
   imports: [
     AuthModule,
     ProvisioningModule,
-    RenewalModule,
+    forwardRef(() => RenewalModule),
     forwardRef(() => HostHeavenModule),
   ],
   controllers: [CheckoutController],

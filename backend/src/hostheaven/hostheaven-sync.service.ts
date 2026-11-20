@@ -15,6 +15,8 @@ import {
   calculatePricingBreakdown,
   calculateDurationMonths,
   HostHeavenPricingBreakdown,
+  isSlotIpItem,
+  assertNotMixedPricing,
 } from './hostheaven-pricing.util.js';
 import { Prisma } from '../generated/prisma/client.js';
 import {
@@ -223,13 +225,13 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
       // 4. Mark mappings in inactive zones as inactive
       for (const inactZone of inactiveZones) {
         await this.prisma.hostHeavenPlanMapping.updateMany({
-          where: { zoneId: inactZone.id, isActive: true },
+          where: { zoneId: String(inactZone.id), isActive: true },
           data: { isActive: false },
         });
 
         // Also de-activate corresponding VPSPlans
         const inactMappings = await this.prisma.hostHeavenPlanMapping.findMany({
-          where: { zoneId: inactZone.id },
+          where: { zoneId: String(inactZone.id) },
           select: { planId: true },
         });
 
@@ -256,20 +258,48 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
         const supportedOSList = zoneIsos.map((i) => i.isoName).filter(Boolean);
         const fallbackOSList = supportedOSList.length > 0 ? supportedOSList : ['Ubuntu 22.04 LTS', 'Debian 12'];
 
-        // Synchronize SHARED tier configurations
-        const sharedConfigs = this.matchConfigurations(
+        // 1. Synchronize STANDARD SHARED tier configurations (Strictly Standard items)
+        const standardCpu = pricing.shared.cpu.filter((c) => !isSlotIpItem(c));
+        const standardRam = pricing.shared.ram.filter((r) => !isSlotIpItem(r));
+        const standardDisk = pricing.shared.disk.filter((d) => !isSlotIpItem(d));
+        const standardBw = pricing.shared.bandwidth.filter((b) => !isSlotIpItem(b));
+
+        const standardConfigs = this.matchConfigurations(
           'SHARED',
           zone,
           primaryIso,
           fallbackOSList,
-          pricing.shared.cpu,
-          pricing.shared.ram,
-          pricing.shared.disk,
-          pricing.shared.bandwidth,
+          standardCpu,
+          standardRam,
+          standardDisk,
+          standardBw,
           margin,
+          false,
         );
 
-        // Synchronize DEDICATED tier configurations
+        // 2. Synchronize SLOT IP SHARED tier configurations (Strictly Slot IP items)
+        const slotIpCpu = pricing.shared.cpu.filter((c) => isSlotIpItem(c));
+        const slotIpRam = pricing.shared.ram.filter((r) => isSlotIpItem(r));
+        const slotIpDisk = pricing.shared.disk.filter((d) => isSlotIpItem(d));
+        const slotIpBw = pricing.shared.bandwidth.filter((b) => isSlotIpItem(b));
+
+        const slotIpConfigs =
+          slotIpCpu.length > 0 && slotIpRam.length > 0 && slotIpDisk.length > 0 && slotIpBw.length > 0
+            ? this.matchConfigurations(
+                'SHARED',
+                zone,
+                primaryIso,
+                fallbackOSList,
+                slotIpCpu,
+                slotIpRam,
+                slotIpDisk,
+                slotIpBw,
+                margin,
+                true,
+              )
+            : [];
+
+        // 3. Synchronize DEDICATED tier configurations
         const dedicatedConfigs = this.matchConfigurations(
           'DEDICATED',
           zone,
@@ -280,9 +310,10 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
           pricing.dedicated.disk,
           pricing.dedicated.bandwidth,
           margin,
+          false,
         );
 
-        const allZoneConfigs = [...sharedConfigs, ...dedicatedConfigs];
+        const allZoneConfigs = [...standardConfigs, ...slotIpConfigs, ...dedicatedConfigs];
         totalConfigsFound += allZoneConfigs.length;
 
         for (const cfg of allZoneConfigs) {
@@ -290,6 +321,35 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
           if (res === 'CREATED') newConfigsCreated++;
           if (res === 'UPDATED') existingConfigsUpdated++;
         }
+      }
+
+      // 5.5 Deactivate any previously synced mixed configurations in the database
+      try {
+        const existingMappings = await this.prisma.hostHeavenPlanMapping.findMany({
+          where: { isActive: true },
+        });
+        for (const m of existingMappings) {
+          const isMixed =
+            isSlotIpItem({ name: m.cpuName ?? undefined, label: m.cpuPricingId }) !==
+              isSlotIpItem({ name: m.ramName ?? undefined, label: m.ramPricingId }) ||
+            isSlotIpItem({ name: m.ramName ?? undefined, label: m.ramPricingId }) !==
+              isSlotIpItem({ name: m.diskName ?? undefined, label: m.diskPricingId }) ||
+            isSlotIpItem({ name: m.diskName ?? undefined, label: m.diskPricingId }) !==
+              isSlotIpItem({ name: m.bandwidthName ?? undefined, label: m.bandwidthPricingId });
+
+          if (isMixed) {
+            await this.prisma.hostHeavenPlanMapping.update({
+              where: { id: m.id },
+              data: { isActive: false, isCostVerified: false },
+            });
+            await this.prisma.vPSPlan.update({
+              where: { id: m.planId },
+              data: { isActive: false },
+            });
+          }
+        }
+      } catch (err) {
+        this.logger.warn(`Could not run mixed configuration cleanup: ${err}`);
       }
 
       // 6. Gather counts for summary stats
@@ -354,6 +414,7 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
     diskOptions: HostHeavenPricingItem[],
     bwOptions: HostHeavenPricingItem[],
     marginPercent: number = 20,
+    isSlotIp: boolean = false,
   ) {
     const configs: Array<{
       externalConfigId: string;
@@ -402,6 +463,9 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
           diskOptions.find((d: any) => ((d.diskGb ?? d.disk) || 0) >= targetDisk) || diskOptions[0];
         const storageGb = (selectedDisk as any).diskGb ?? selectedDisk.disk ?? 20;
         const bwGb = (defaultBw as any).bandwidthGb ?? defaultBw.bandwidth ?? 1000;
+
+        // Strictly assert standard and slot IP resources are never mixed
+        assertNotMixedPricing(cpu, ram, selectedDisk, defaultBw);
 
         // Strict rate validation: rates must be finite, valid non-negative numbers
         const hasValidCpu = typeof cpu.price === 'number' && Number.isFinite(cpu.price) && cpu.price >= 0;
@@ -455,10 +519,16 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
           isVerified = false;
         }
 
-        const tierName = planType === 'DEDICATED' ? 'Dedicated Cloud VPS' : 'Cloud VPS';
+        const tierName = isSlotIp
+          ? 'Slot IP Cloud VPS'
+          : planType === 'DEDICATED'
+          ? 'Dedicated Cloud VPS'
+          : 'Standard Cloud VPS';
         const planName = `${tierName} ${cores} vCPU - ${ramGb} GB RAM (${zone.name || 'India'})`;
 
-        const externalConfigId = `hh:${planType}:${zone.id}:${cpu.id}:${ram.id}:${selectedDisk.id}:${defaultBw.id}`;
+        const externalConfigId = isSlotIp
+          ? `hh:SLOT_IP:${zone.id}:${cpu.id}:${ram.id}:${selectedDisk.id}:${defaultBw.id}`
+          : `hh:${planType}:${zone.id}:${cpu.id}:${ram.id}:${selectedDisk.id}:${defaultBw.id}`;
 
         configs.push({
           externalConfigId,

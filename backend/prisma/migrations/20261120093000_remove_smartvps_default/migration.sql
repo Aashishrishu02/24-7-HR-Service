@@ -1,0 +1,2 @@
+ALTER TABLE "VPSInstance"
+ALTER COLUMN "provider" DROP DEFAULT;

@@ -11,6 +11,8 @@ import {
   markupToProfitMargin,
   HOURS_PER_MONTH,
   VERIFIED_HOSTHEAVEN_DURATIONS,
+  isSlotIpItem,
+  assertNotMixedPricing,
 } from './hostheaven-pricing.util.js';
 
 describe('HostHeaven Pricing Utility — Final Billing Accuracy Correction', () => {
@@ -377,6 +379,77 @@ describe('HostHeaven Pricing Utility — Final Billing Accuracy Correction', () 
       expect(() => profitMarginToMarkup(-5)).toThrow('Profit margin must be between 0% and 99.9%');
       expect(() => profitMarginToMarkup(100)).toThrow('Profit margin must be between 0% and 99.9%');
       expect(() => markupToProfitMargin(-1)).toThrow('Markup must be non-negative');
+    });
+  });
+
+  describe('Slot IP Isolation & assertNotMixedPricing', () => {
+    it('accurately identifies Slot IP items by name or label', () => {
+      expect(isSlotIpItem({ label: 'Slot IP CPU' })).toBe(true);
+      expect(isSlotIpItem({ name: 'Slot IP 1 GB' })).toBe(true);
+      expect(isSlotIpItem({ label: 'Slot IP 20 GB' })).toBe(true);
+      expect(isSlotIpItem({ name: 'Slot IP 2 TB' })).toBe(true);
+      expect(isSlotIpItem({ label: 'slot ip ram' })).toBe(true);
+      expect(isSlotIpItem({ label: '2 Core' })).toBe(false);
+      expect(isSlotIpItem({ label: '4 GB' })).toBe(false);
+      expect(isSlotIpItem({ name: '20 GB NVME' })).toBe(false);
+      expect(isSlotIpItem({ label: '2 TB' })).toBe(false);
+      expect(isSlotIpItem(null)).toBe(false);
+      expect(isSlotIpItem(undefined)).toBe(false);
+    });
+
+    it('passes validation when all selected resources are Pure Standard', () => {
+      expect(() =>
+        assertNotMixedPricing(
+          { label: '2 Core' },
+          { label: '4 GB' },
+          { label: '20 GB NVME' },
+          { label: '2 TB' },
+        ),
+      ).not.toThrow();
+    });
+
+    it('passes validation when all selected resources are Pure Slot IP', () => {
+      expect(() =>
+        assertNotMixedPricing(
+          { label: 'Slot IP CPU' },
+          { label: 'Slot IP 1 GB' },
+          { label: 'Slot IP 20 GB' },
+          { label: 'Slot IP 2 TB' },
+        ),
+      ).not.toThrow();
+    });
+
+    it('strictly throws BadRequestException when mixing Standard CPU with Slot IP RAM (the ₹1,067.49 culprit)', () => {
+      expect(() =>
+        assertNotMixedPricing(
+          { label: '2 Core' },
+          { label: 'Slot IP 1 GB' },
+          { label: '20 GB NVME' },
+          { label: '2 TB' },
+        ),
+      ).toThrow(BadRequestException);
+    });
+
+    it('strictly throws BadRequestException when mixing Slot IP CPU with Standard RAM (the ₹715.86 culprit)', () => {
+      expect(() =>
+        assertNotMixedPricing(
+          { label: 'Slot IP CPU' },
+          { label: '4 GB' },
+          { label: '20 GB NVME' },
+          { label: '2 TB' },
+        ),
+      ).toThrow(BadRequestException);
+    });
+
+    it('strictly throws BadRequestException when mixing Slot IP RAM with Standard Disk & Bandwidth (the ₹977.49 culprit)', () => {
+      expect(() =>
+        assertNotMixedPricing(
+          { label: 'Slot IP CPU' },
+          { label: 'Slot IP 1 GB' },
+          { label: '20 GB NVME' },
+          { label: '2 TB' },
+        ),
+      ).toThrow(BadRequestException);
     });
   });
 });

@@ -141,7 +141,7 @@ export default function Providers() {
     }
   };
 
-  const loadHostHeavenCatalogue = async () => {
+  const loadHostHeavenCatalogue = useCallback(async () => {
     setCatalogueLoading(true);
     setCatalogueError("");
 
@@ -159,7 +159,7 @@ export default function Providers() {
     } finally {
       setCatalogueLoading(false);
     }
-  };
+  }, []);
 
   const loadProviders = useCallback(async () => {
     setLoading(true);
@@ -167,7 +167,41 @@ export default function Providers() {
 
     try {
       const response = await adminApi.get("/admin/providers");
-      setProviders(response.data.providers || []);
+      const loadedProviders: Provider[] = response.data.providers || [];
+      setProviders(loadedProviders);
+
+      // Restore the persisted HostHeaven test result after navigation or refresh.
+      const hostHeavenProvider = loadedProviders.find(
+        (provider) => provider.code.toUpperCase() === "HOSTHEAVEN",
+      );
+
+      if (hostHeavenProvider) {
+        // Automatically reload catalogue whenever Providers page is opened.
+        void loadHostHeavenCatalogue();
+
+        try {
+          const statusResponse = await adminApi.get(
+            `/admin/providers/${hostHeavenProvider.id}/connection-status`,
+          );
+          const saved = statusResponse.data;
+
+          if (saved && saved.testedAt) {
+            setTestResults((prev) => ({
+              ...prev,
+              [hostHeavenProvider.id]: {
+                success: Boolean(saved.success),
+                connected: Boolean(saved.connected),
+                message: saved.message || "Connection status restored",
+                balance: saved.wallet?.balance,
+                currency: saved.wallet?.currency || "INR",
+                testedAt: new Date(saved.testedAt).toLocaleString(),
+              },
+            }));
+          }
+        } catch {
+          // Keep the page usable if saved status cannot be loaded.
+        }
+      }
     } catch (err: any) {
       setError(
         err.response?.data?.message || "Unable to load providers.",
@@ -175,7 +209,7 @@ export default function Providers() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadHostHeavenCatalogue]);
 
   useEffect(() => {
     loadProviders();

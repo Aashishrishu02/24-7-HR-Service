@@ -469,7 +469,7 @@ model VPSInstance {
 
   inventoryId String? @unique
 
-  provider      String  @default("SMARTVPS")
+  provider      String
   providerVpsId String? @unique
 
   ipAddress       String    @unique

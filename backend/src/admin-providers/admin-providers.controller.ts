@@ -41,6 +41,11 @@ export class AdminProvidersController {
     );
   }
 
+  @Get(':id/connection-status')
+  getConnectionStatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminProvidersService.getConnectionStatus(id);
+  }
+
   @Post(':id/test-connection')
   testConnection(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminProvidersService.testConnection(id);

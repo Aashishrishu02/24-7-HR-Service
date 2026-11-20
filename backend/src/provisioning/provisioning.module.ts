@@ -1,5 +1,4 @@
-
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 
 import { AdminAuthModule } from '../admin-auth/admin-auth.module.js';
 import { HostHeavenModule } from '../hostheaven/hostheaven.module.js';
@@ -9,7 +8,10 @@ import { ProvisioningService } from './provisioning.service.js';
 import { ProvisioningController } from './provisioning.controller.js';
 
 @Module({
-  imports: [AdminAuthModule, HostHeavenModule],
+  imports: [
+    AdminAuthModule,
+    forwardRef(() => HostHeavenModule),
+  ],
   controllers: [ProvisioningController],
   providers: [
     InventoryAllocatorService,

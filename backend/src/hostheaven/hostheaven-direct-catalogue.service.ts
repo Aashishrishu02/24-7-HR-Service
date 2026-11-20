@@ -11,6 +11,8 @@ import {
   calculatePricingBreakdown,
   calculateDurationMonths,
   HOURS_PER_MONTH,
+  isSlotIpItem,
+  assertNotMixedPricing,
 } from './hostheaven-pricing.util.js';
 import {
   HostHeavenZone,
@@ -258,21 +260,50 @@ export class HostHeavenDirectCatalogueService {
         supportedOS.push('Ubuntu 22.04 LTS', 'Debian 12');
       }
 
-      // 1. Shared Cloud VPS tier
-      const sharedServices = this.buildTierServices(
+      // 1. Standard Shared Cloud VPS tier (Pure Standard resources ONLY - never mixed with Slot IP)
+      const standardCpu = pricing.shared.cpu.filter((c) => !isSlotIpItem(c));
+      const standardRam = pricing.shared.ram.filter((r) => !isSlotIpItem(r));
+      const standardDisk = pricing.shared.disk.filter((d) => !isSlotIpItem(d));
+      const standardBw = pricing.shared.bandwidth.filter((b) => !isSlotIpItem(b));
+
+      const standardServices = this.buildTierServices(
         'SHARED',
         zone,
         primaryIso?.id || 'default-iso',
         operatingSystems,
         supportedOS,
-        pricing.shared.cpu,
-        pricing.shared.ram,
-        pricing.shared.disk,
-        pricing.shared.bandwidth,
+        standardCpu,
+        standardRam,
+        standardDisk,
+        standardBw,
         marginPercent,
+        false,
       );
 
-      // 2. Dedicated Cloud VPS tier
+      // 2. Slot IP Bundled Cloud VPS tier (Pure Slot IP resources ONLY - never mixed with Standard)
+      const slotIpCpu = pricing.shared.cpu.filter((c) => isSlotIpItem(c));
+      const slotIpRam = pricing.shared.ram.filter((r) => isSlotIpItem(r));
+      const slotIpDisk = pricing.shared.disk.filter((d) => isSlotIpItem(d));
+      const slotIpBw = pricing.shared.bandwidth.filter((b) => isSlotIpItem(b));
+
+      const slotIpServices =
+        slotIpCpu.length > 0 && slotIpRam.length > 0 && slotIpDisk.length > 0 && slotIpBw.length > 0
+          ? this.buildTierServices(
+              'SHARED',
+              zone,
+              primaryIso?.id || 'default-iso',
+              operatingSystems,
+              supportedOS,
+              slotIpCpu,
+              slotIpRam,
+              slotIpDisk,
+              slotIpBw,
+              marginPercent,
+              true,
+            )
+          : [];
+
+      // 3. Dedicated Cloud VPS tier
       const dedicatedServices = this.buildTierServices(
         'DEDICATED',
         zone,
@@ -284,9 +315,10 @@ export class HostHeavenDirectCatalogueService {
         pricing.dedicated.disk,
         pricing.dedicated.bandwidth,
         marginPercent,
+        false,
       );
 
-      services.push(...sharedServices, ...dedicatedServices);
+      services.push(...standardServices, ...slotIpServices, ...dedicatedServices);
     }
 
     return services;
@@ -306,6 +338,7 @@ export class HostHeavenDirectCatalogueService {
     diskOptions: HostHeavenPricingItem[],
     bwOptions: HostHeavenPricingItem[],
     marginPercent: number,
+    isSlotIp: boolean = false,
   ): DirectHostHeavenService[] {
     const result: DirectHostHeavenService[] = [];
 
@@ -335,6 +368,9 @@ export class HostHeavenDirectCatalogueService {
         const selectedDisk =
           diskOptions.find((d: any) => ((d.diskGb ?? d.disk) || 0) >= targetDisk) || diskOptions[0];
         const storageGb = (selectedDisk as any).diskGb ?? selectedDisk.disk ?? 20;
+
+        // Strictly verify that resources are not mixed
+        assertNotMixedPricing(cpu, ram, selectedDisk, defaultBw);
 
         // Validate that rates are valid finite numbers >= 0
         const isRateValid =
@@ -368,11 +404,20 @@ export class HostHeavenDirectCatalogueService {
           continue; // Must have non-zero provider cost
         }
 
-        const id = `hh:${tier}:${zone.id}:${cpu.id}:${ram.id}:${selectedDisk.id}:${defaultBw.id}`;
-        const tierLabel = tier === 'DEDICATED' ? 'Dedicated Cloud VPS' : 'Cloud VPS';
+        const id = isSlotIp
+          ? `hh:SLOT_IP:${zone.id}:${cpu.id}:${ram.id}:${selectedDisk.id}:${defaultBw.id}`
+          : `hh:${tier}:${zone.id}:${cpu.id}:${ram.id}:${selectedDisk.id}:${defaultBw.id}`;
+        const tierLabel = isSlotIp
+          ? 'Slot IP Cloud VPS'
+          : tier === 'DEDICATED'
+          ? 'Dedicated Cloud VPS'
+          : 'Standard Cloud VPS';
         const name = `${tierLabel} ${cores} vCPU - ${ramGb} GB RAM`;
         const hasWindows = operatingSystems.some((o) => o.osType === 'WINDOWS');
         const category = hasWindows ? 'Windows VPS' : 'Cloud VPS';
+        const description = isSlotIp
+          ? `Slot IP high performance cloud VPS located in ${zone.name || 'India'} with dedicated slot IPv4 address.`
+          : `High performance ${tier.toLowerCase()} cloud VPS located in ${zone.name || 'India'} with 99.9% uptime SLA.`;
 
         // Multi-month options: 1, 3, 6, 12 months
         const durations = [
@@ -506,16 +551,19 @@ export class HostHeavenDirectCatalogueService {
       throw new BadRequestException(`Invalid HostHeaven tier '${planType}'`);
     }
 
-    const cpuItem = tierPricing.cpu.find((c) => c.id === cpuPriceId);
-    const ramItem = tierPricing.ram.find((r) => r.id === ramPriceId);
-    const diskItem = tierPricing.disk.find((d) => d.id === diskPriceId);
-    const bwItem = tierPricing.bandwidth.find((b) => b.id === bandwidthPriceId);
+    const cpuItem = tierPricing.cpu.find((c) => String(c.id) === String(cpuPriceId));
+    const ramItem = tierPricing.ram.find((r) => String(r.id) === String(ramPriceId));
+    const diskItem = tierPricing.disk.find((d) => String(d.id) === String(diskPriceId));
+    const bwItem = tierPricing.bandwidth.find((b) => String(b.id) === String(bandwidthPriceId));
 
     if (!cpuItem || !ramItem || !diskItem || !bwItem) {
       throw new BadRequestException(
         'Selected resource configuration is not currently available in the HostHeaven pricing catalogue',
       );
     }
+
+    // STRICT ISOLATION GUARD: Standard and Slot IP resources must NEVER be mixed!
+    assertNotMixedPricing(cpuItem, ramItem, diskItem, bwItem);
 
     // 4. Calculate Authoritative Monthly Provider Cost
     const breakdown = calculatePricingBreakdown(
@@ -543,8 +591,9 @@ export class HostHeavenDirectCatalogueService {
     const storageGb = (diskItem as any).diskGb ?? diskItem.disk ?? 20;
     const bandwidthGb = (bwItem as any).bandwidthGb ?? bwItem.bandwidth ?? 1000;
 
-    const serviceId = `hh:${planType}:${zoneId}:${cpuPriceId}:${ramPriceId}:${diskPriceId}:${bandwidthPriceId}`;
-    const serviceName = `${planType === 'DEDICATED' ? 'Dedicated Cloud VPS' : 'Cloud VPS'} ${cores} vCPU - ${ramGb} GB RAM`;
+    const isSlotIp = isSlotIpItem(cpuItem);
+    const serviceId = `hh:${isSlotIp ? 'SLOT_IP' : planType}:${zoneId}:${cpuPriceId}:${ramPriceId}:${diskPriceId}:${bandwidthPriceId}`;
+    const serviceName = `${isSlotIp ? 'Slot IP Cloud VPS' : planType === 'DEDICATED' ? 'Dedicated Cloud VPS' : 'Standard Cloud VPS'} ${cores} vCPU - ${ramGb} GB RAM`;
 
     return {
       serviceId,

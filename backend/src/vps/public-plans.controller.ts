@@ -1,7 +1,7 @@
-import { Controller, Get, Optional } from '@nestjs/common';
+import { Controller, Get, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AdminSettingsService } from '../renewal/admin-settings.service.js';
-import { calculateSellingPrice } from '../hostheaven/hostheaven-pricing.util.js';
+import { calculateSellingPrice, isSlotIpItem } from '../hostheaven/hostheaven-pricing.util.js';
 import { HostHeavenDirectCatalogueService } from '../hostheaven/hostheaven-direct-catalogue.service.js';
 
 @Controller('plans')
@@ -9,8 +9,8 @@ export class PublicPlansController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly adminSettingsService: AdminSettingsService,
-    @Optional()
-    private readonly directCatalogueService?: HostHeavenDirectCatalogueService,
+    @Inject(forwardRef(() => HostHeavenDirectCatalogueService))
+    private readonly directCatalogueService: HostHeavenDirectCatalogueService,
   ) { }
 
   /**
@@ -44,26 +44,40 @@ export class PublicPlansController {
               isCostVerified: true,
               costStatus: true,
               isActive: true,
+              cpuPricingId: true,
+              cpuName: true,
+              ramPricingId: true,
+              ramName: true,
+              diskPricingId: true,
+              diskName: true,
+              bandwidthPricingId: true,
+              bandwidthName: true,
             },
           },
         },
       }),
       this.adminSettingsService.getSettings(),
-      this.directCatalogueService
-        ? this.directCatalogueService.getLiveServices().catch((err) => {
-            return null;
-          })
-        : Promise.resolve(null),
+      this.directCatalogueService.getLiveServices(),
     ]);
 
     const margin = settings.hostHeavenProfitMarginPercent ?? 20;
 
-    // Filter out plans whose HostHeaven mapping is inactive or not yet verified by admin
-    const visiblePlans = plans.filter(
-      (plan) =>
-        !plan.hostHeavenMapping ||
-        (plan.hostHeavenMapping.isActive && plan.hostHeavenMapping.isCostVerified),
-    );
+    // Filter out plans whose HostHeaven mapping is inactive, unverified, or mixes standard and Slot IP resources
+    const visiblePlans = plans.filter((plan) => {
+      if (!plan.hostHeavenMapping) return true;
+      if (!plan.hostHeavenMapping.isActive || !plan.hostHeavenMapping.isCostVerified) return false;
+
+      const m = plan.hostHeavenMapping;
+      const isMixed =
+        isSlotIpItem({ name: m.cpuName ?? undefined, label: m.cpuPricingId }) !==
+          isSlotIpItem({ name: m.ramName ?? undefined, label: m.ramPricingId }) ||
+        isSlotIpItem({ name: m.ramName ?? undefined, label: m.ramPricingId }) !==
+          isSlotIpItem({ name: m.diskName ?? undefined, label: m.diskPricingId }) ||
+        isSlotIpItem({ name: m.diskName ?? undefined, label: m.diskPricingId }) !==
+          isSlotIpItem({ name: m.bandwidthName ?? undefined, label: m.bandwidthPricingId });
+
+      return !isMixed;
+    });
 
     const sanitizedPlans = visiblePlans.map((plan) => {
       let finalPrice = Number(plan.price);
@@ -138,7 +152,11 @@ export class PublicPlansController {
         billingInterval: svc.billingInterval,
         supportedOS: svc.supportedOS,
         location: svc.location,
-        tier: svc.tier === 'DEDICATED' ? 'Dedicated Cloud VPS' : 'Cloud VPS',
+        tier: svc.id.includes('SLOT_IP')
+          ? 'Slot IP Cloud VPS'
+          : svc.tier === 'DEDICATED'
+          ? 'Dedicated Cloud VPS'
+          : 'Standard Cloud VPS',
         isActive: true,
         sortOrder: 10 + idx,
         isHostHeaven: true,

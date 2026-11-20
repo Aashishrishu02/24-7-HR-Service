@@ -34,10 +34,22 @@ describe('HostHeavenDirectCatalogueService — Direct Automatic Catalogue & 20% 
   // Pricing rates: 0.1, 0.1954, 0.2, 0.4 -> hourly 0.8954 -> 720h month = 644.688 -> ₹644.69
   const mockPricing = {
     shared: {
-      cpu: [{ id: 'cpu-1c', label: '1 vCPU', cores: 1, price: 0.1 }],
-      ram: [{ id: 'ram-1g', label: '1 GB RAM', ram: 1, price: 0.1954 }],
-      disk: [{ id: 'disk-20g', label: '20 GB SSD', diskGb: 20, price: 0.2 }],
-      bandwidth: [{ id: 'bw-1t', label: '1 TB BW', bandwidthGb: 1000, price: 0.4 }],
+      cpu: [
+        { id: 'cpu-1c', label: '1 vCPU', cores: 1, price: 0.1 },
+        { id: 'cpu-slot', label: 'Slot IP CPU', cores: 2, price: 0.0 },
+      ],
+      ram: [
+        { id: 'ram-1g', label: '1 GB RAM', ram: 1, price: 0.1954 },
+        { id: 'ram-slot-1g', label: 'Slot IP 1 GB', ram: 1, price: 0.4861 },
+      ],
+      disk: [
+        { id: 'disk-20g', label: '20 GB SSD', diskGb: 20, price: 0.2 },
+        { id: 'disk-slot-20g', label: 'Slot IP 20 GB', diskGb: 20, price: 0.0 },
+      ],
+      bandwidth: [
+        { id: 'bw-1t', label: '1 TB BW', bandwidthGb: 1000, price: 0.4 },
+        { id: 'bw-slot-2t', label: 'Slot IP 2 TB', bandwidthGb: 2000, price: 0.0 },
+      ],
     },
     dedicated: {
       cpu: [{ id: 'cpu-2c-ded', label: '2 Dedicated vCPU', cores: 2, price: 0.25 }],
@@ -202,6 +214,76 @@ describe('HostHeavenDirectCatalogueService — Direct Automatic Catalogue & 20% 
           bandwidthPriceId: 'bw-1t',
         }),
       ).rejects.toThrow(/not currently available in the HostHeaven pricing catalogue/);
+    });
+
+    it('strictly rejects mixed Standard and Slot IP pricing selections at checkout', async () => {
+      // Mixed: Standard CPU (cpu-1c) + Slot IP RAM (ram-slot-1g) -> the ₹1,067.49 culprit
+      await expect(
+        service.validateConfiguration({
+          zoneId: 'zone-in-delhi',
+          zoneIsoId: 'iso-u22',
+          planType: 'SHARED',
+          cpuPriceId: 'cpu-1c',
+          ramPriceId: 'ram-slot-1g',
+          diskPriceId: 'disk-20g',
+          bandwidthPriceId: 'bw-1t',
+          months: 1,
+        }),
+      ).rejects.toThrow(/Invalid pricing combination: Standard and Slot IP resources cannot be mixed/);
+
+      // Mixed: Slot IP CPU (cpu-slot) + Standard RAM (ram-1g) -> the ₹715.86 culprit
+      await expect(
+        service.validateConfiguration({
+          zoneId: 'zone-in-delhi',
+          zoneIsoId: 'iso-u22',
+          planType: 'SHARED',
+          cpuPriceId: 'cpu-slot',
+          ramPriceId: 'ram-1g',
+          diskPriceId: 'disk-20g',
+          bandwidthPriceId: 'bw-1t',
+          months: 1,
+        }),
+      ).rejects.toThrow(/Invalid pricing combination: Standard and Slot IP resources cannot be mixed/);
+
+      // Mixed: Slot IP RAM (ram-slot-1g) + Standard Disk & Bandwidth -> the ₹977.49 culprit
+      await expect(
+        service.validateConfiguration({
+          zoneId: 'zone-in-delhi',
+          zoneIsoId: 'iso-u22',
+          planType: 'SHARED',
+          cpuPriceId: 'cpu-slot',
+          ramPriceId: 'ram-slot-1g',
+          diskPriceId: 'disk-20g',
+          bandwidthPriceId: 'bw-1t',
+          months: 1,
+        }),
+      ).rejects.toThrow(/Invalid pricing combination: Standard and Slot IP resources cannot be mixed/);
+    });
+  });
+
+  describe('4. Strict Isolation of Standard vs Slot IP & Prevention of Fabricated Prices', () => {
+    it('generates Pure Standard (₹805.86) and Pure Slot IP (₹437.49) separately', async () => {
+      const response = await service.getLiveServices();
+
+      const standardSvc = response.services.find((s) => s.id.startsWith('hh:SHARED:'));
+      expect(standardSvc).toBeDefined();
+      expect(standardSvc!.name).toContain('Standard Cloud VPS');
+      expect(standardSvc!.monthlyPrice).toBe(805.86);
+
+      const slotIpSvc = response.services.find((s) => s.id.startsWith('hh:SLOT_IP:'));
+      expect(slotIpSvc).toBeDefined();
+      expect(slotIpSvc!.name).toContain('Slot IP Cloud VPS');
+      expect(slotIpSvc!.monthlyPrice).toBe(437.49);
+    });
+
+    it('guarantees fabricated mixed prices (₹1,067.49, ₹715.86, ₹977.49) NEVER exist in services', async () => {
+      const response = await service.getLiveServices();
+      const allPrices = response.services.map((s) => s.monthlyPrice);
+
+      // The 3 screenshot mixed fabricated prices must NOT be anywhere in the catalogue
+      expect(allPrices).not.toContain(1067.49);
+      expect(allPrices).not.toContain(715.86);
+      expect(allPrices).not.toContain(977.49);
     });
   });
 });

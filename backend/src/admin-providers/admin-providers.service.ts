@@ -66,16 +66,53 @@ export class AdminProvidersService {
     });
   }
 
+  async getConnectionStatus(id: string) {
+    const provider = await this.findOne(id);
+
+    if (provider.code !== 'HOSTHEAVEN') {
+      return null;
+    }
+
+    const setting = await this.prisma.systemSetting.findUnique({
+      where: { key: `PROVIDER_CONNECTION_STATUS_${provider.id}` },
+      select: { value: true },
+    });
+
+    if (!setting) return null;
+
+    try {
+      return JSON.parse(setting.value);
+    } catch {
+      return null;
+    }
+  }
+
   async testConnection(id: string) {
     const provider = await this.findOne(id);
 
     if (provider.code === 'HOSTHEAVEN') {
       const result = await this.hostheavenService.testConnection();
+      const testedAt = new Date().toISOString();
+      const savedResult = { ...result, testedAt };
+
+      await this.prisma.systemSetting.upsert({
+        where: { key: `PROVIDER_CONNECTION_STATUS_${provider.id}` },
+        create: {
+          key: `PROVIDER_CONNECTION_STATUS_${provider.id}`,
+          value: JSON.stringify(savedResult),
+          description: 'Last HostHeaven connection test result',
+        },
+        update: {
+          value: JSON.stringify(savedResult),
+          description: 'Last HostHeaven connection test result',
+        },
+      });
+
       return {
         providerId: provider.id,
         providerName: provider.name,
         providerCode: provider.code,
-        ...result,
+        ...savedResult,
       };
     }
 

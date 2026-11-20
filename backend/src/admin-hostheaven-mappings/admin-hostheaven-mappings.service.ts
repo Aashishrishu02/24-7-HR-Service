@@ -13,6 +13,8 @@ import {
   calculateProviderCost,
   calculatePricingBreakdown,
   calculateDurationMonths,
+  assertNotMixedPricing,
+  isSlotIpItem,
 } from '../hostheaven/hostheaven-pricing.util.js';
 import { CreateHostHeavenMappingDto } from './dto/create-hostheaven-mapping.dto.js';
 import { UpdateHostHeavenMappingDto } from './dto/update-hostheaven-mapping.dto.js';
@@ -82,6 +84,14 @@ export class AdminHostHeavenMappingsService {
       const durationDays = m.plan?.durationDays ?? 30;
       const durationMonths = calculateDurationMonths(durationDays);
 
+      const isMixed =
+        isSlotIpItem({ name: m.cpuName ?? undefined, label: m.cpuPricingId }) !==
+          isSlotIpItem({ name: m.ramName ?? undefined, label: m.ramPricingId }) ||
+        isSlotIpItem({ name: m.ramName ?? undefined, label: m.ramPricingId }) !==
+          isSlotIpItem({ name: m.diskName ?? undefined, label: m.diskPricingId }) ||
+        isSlotIpItem({ name: m.diskName ?? undefined, label: m.diskPricingId }) !==
+          isSlotIpItem({ name: m.bandwidthName ?? undefined, label: m.bandwidthPricingId });
+
       return {
         ...m,
         profitMarginPercent: margin,
@@ -89,6 +99,7 @@ export class AdminHostHeavenMappingsService {
         grossProfit,
         billingDurationDays: durationDays,
         billingDurationMonths: durationMonths,
+        isMixedConfiguration: isMixed,
       };
     });
 
@@ -119,6 +130,14 @@ export class AdminHostHeavenMappingsService {
     const durationDays = mapping.plan?.durationDays ?? 30;
     const durationMonths = calculateDurationMonths(durationDays);
 
+    const isMixed =
+      isSlotIpItem({ name: mapping.cpuName ?? undefined, label: mapping.cpuPricingId }) !==
+        isSlotIpItem({ name: mapping.ramName ?? undefined, label: mapping.ramPricingId }) ||
+      isSlotIpItem({ name: mapping.ramName ?? undefined, label: mapping.ramPricingId }) !==
+        isSlotIpItem({ name: mapping.diskName ?? undefined, label: mapping.diskPricingId }) ||
+      isSlotIpItem({ name: mapping.diskName ?? undefined, label: mapping.diskPricingId }) !==
+        isSlotIpItem({ name: mapping.bandwidthName ?? undefined, label: mapping.bandwidthPricingId });
+
     return {
       ...mapping,
       profitMarginPercent: margin,
@@ -126,6 +145,7 @@ export class AdminHostHeavenMappingsService {
       grossProfit,
       billingDurationDays: durationDays,
       billingDurationMonths: durationMonths,
+      isMixedConfiguration: isMixed,
     };
   }
 
@@ -198,6 +218,14 @@ export class AdminHostHeavenMappingsService {
       );
     }
 
+    // Ensure standard and Slot IP resources are not mixed
+    assertNotMixedPricing(
+      { name: dto.cpuName, label: dto.cpuPricingId },
+      { name: dto.ramName, label: dto.ramPricingId },
+      { name: dto.diskName, label: dto.diskPricingId },
+      { name: dto.bandwidthName, label: dto.bandwidthPricingId },
+    );
+
     // Determine provider cost
     let providerCost = dto.providerCost;
     if (providerCost === undefined || providerCost <= 0) {
@@ -264,6 +292,25 @@ export class AdminHostHeavenMappingsService {
 
     let providerCost = Number(mapping.providerCost);
     let shouldRecalculatePrice = false;
+
+    // Ensure updated resources do not mix standard and Slot IP
+    const checkCpu = {
+      name: dto.cpuName !== undefined ? dto.cpuName : mapping.cpuName ?? undefined,
+      label: dto.cpuPricingId !== undefined ? dto.cpuPricingId : mapping.cpuPricingId ?? undefined,
+    };
+    const checkRam = {
+      name: dto.ramName !== undefined ? dto.ramName : mapping.ramName ?? undefined,
+      label: dto.ramPricingId !== undefined ? dto.ramPricingId : mapping.ramPricingId ?? undefined,
+    };
+    const checkDisk = {
+      name: dto.diskName !== undefined ? dto.diskName : mapping.diskName ?? undefined,
+      label: dto.diskPricingId !== undefined ? dto.diskPricingId : mapping.diskPricingId ?? undefined,
+    };
+    const checkBw = {
+      name: dto.bandwidthName !== undefined ? dto.bandwidthName : mapping.bandwidthName ?? undefined,
+      label: dto.bandwidthPricingId !== undefined ? dto.bandwidthPricingId : mapping.bandwidthPricingId ?? undefined,
+    };
+    assertNotMixedPricing(checkCpu, checkRam, checkDisk, checkBw);
 
     if (dto.providerCost !== undefined && dto.providerCost > 0) {
       providerCost = dto.providerCost;
