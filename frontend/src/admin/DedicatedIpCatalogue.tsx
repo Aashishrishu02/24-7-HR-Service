@@ -65,6 +65,7 @@ export default function DedicatedIpCatalogue() {
   const [error, setError] = useState("");
   const [catalogueError, setCatalogueError] = useState("");
   const [syncError, setSyncError] = useState("");
+  const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -200,6 +201,64 @@ export default function DedicatedIpCatalogue() {
       );
     } finally {
       setAvailabilitySaving(false);
+    }
+  };
+
+  const handleSyncCatalogue = async () => {
+    if (
+      syncing ||
+      !provider ||
+      !syncStatus ||
+      syncStatus.migrationRequired !== false ||
+      syncStatus.isSyncInProgress
+    ) {
+      return;
+    }
+
+    setSyncing(true);
+    setSyncError("");
+    setMessage("");
+
+    try {
+      const response = await adminApi.post(
+        `/admin/providers/${provider.id}/sync-catalogue`,
+      );
+
+      if (response.data?.success !== true) {
+        throw new Error(
+          response.data?.message || "Dedicated IP catalogue sync failed.",
+        );
+      }
+
+      const [catalogueResult, statusResult] = await Promise.all([
+        adminApi.get(`/admin/providers/${provider.id}/catalogue`),
+        adminApi.get(`/admin/providers/${provider.id}/sync-status`),
+      ]);
+
+      setPlans(
+        Array.isArray(catalogueResult.data?.plans)
+          ? catalogueResult.data.plans
+          : [],
+      );
+      setSyncStatus(statusResult.data);
+      setMessage("Dedicated IP catalogue synchronized successfully.");
+    } catch (err: any) {
+      setSyncError(
+        err.response?.data?.message ||
+          err.message ||
+          "Dedicated IP catalogue synchronization failed.",
+      );
+
+      try {
+        const statusResult = await adminApi.get(
+          `/admin/providers/${provider.id}/sync-status`,
+        );
+        setSyncStatus(statusResult.data);
+      } catch {
+        // Keep the existing sync status if refresh fails.
+      }
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -363,19 +422,33 @@ export default function DedicatedIpCatalogue() {
             )}
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-amber-400">
-                {syncStatus?.migrationRequired
-                  ? "Migration pending: Dedicated IP database tables are not available. Sync remains locked."
-                  : "Sync is locked until the Dedicated IP database migration is safely applied."}
+              <p className="text-xs text-slate-400">
+                {syncStatus?.migrationRequired === true
+                  ? "Migration pending: Dedicated IP database tables are unavailable. Sync remains locked."
+                  : !syncStatus
+                    ? "Sync is locked because migration status could not be verified."
+                    : "Fetches Nexa plans and pools and updates the local catalogue. No purchases or wallet deductions are made."}
               </p>
               <button
                 type="button"
-                disabled
-                title="Disabled until the Dedicated IP database migration is applied."
-                className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-400 opacity-60"
+                disabled={
+                  loading ||
+                  !provider ||
+                  !syncStatus ||
+                  syncStatus.migrationRequired !== false ||
+                  syncStatus.isSyncInProgress ||
+                  syncing
+                }
+                onClick={handleSyncCatalogue}
+                title={
+                  syncStatus?.migrationRequired === true
+                    ? "Unavailable until the Dedicated IP database migration is applied."
+                    : "Synchronize the Nexa Dedicated IP catalogue."
+                }
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 disabled:opacity-60"
               >
                 <RefreshCw size={15} />
-                Sync Now — Migration Pending
+                {syncing || syncStatus?.isSyncInProgress ? "Syncing..." : "Sync Now"}
               </button>
             </div>
           </section>

@@ -284,6 +284,9 @@ export class DedicatedIpSyncService {
           syncedPlanCount: plans.length,
           syncedPoolCount,
         };
+      }, {
+        maxWait: 15_000,
+        timeout: 60_000,
       });
 
       this.logger.log(
