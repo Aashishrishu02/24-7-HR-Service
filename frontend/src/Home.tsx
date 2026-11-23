@@ -48,10 +48,10 @@ export default function Home() {
   const services = [
     {
       icon: Network,
-      title: "Linux IP VPS",
-      desc: "Explore Linux IP VPS services for your projects and applications.",
-      link: "/buy-linux-ip",
-      label: "Buy Linux IP",
+      title: "Dedicated IP",
+      desc: "Explore dedicated IP services for your projects and applications.",
+      link: "/dedicated-ip",
+      label: "Dedicated IP",
     },
     {
       icon: Server,
@@ -93,7 +93,7 @@ export default function Home() {
             <a href="/" className="transition hover:text-blue-600">
               Home
             </a>
-            <a href="/buy-linux-ip" className="transition hover:text-blue-600">
+            <a href="/dedicated-ip" className="transition hover:text-blue-600">
               Buy IP
             </a>
             <a href="/buy-vps" className="transition hover:text-blue-600">
@@ -142,8 +142,8 @@ export default function Home() {
               <a onClick={closeMenu} href="/" className="rounded-lg px-4 py-3 hover:bg-slate-100">
                 Home
               </a>
-              <a onClick={closeMenu} href="/buy-linux-ip" className="rounded-lg px-4 py-3 hover:bg-slate-100">
-                Buy Linux IP
+              <a onClick={closeMenu} href="/dedicated-ip" className="rounded-lg px-4 py-3 hover:bg-slate-100">
+                Dedicated IP
               </a>
               <a onClick={closeMenu} href="/buy-vps" className="rounded-lg px-4 py-3 hover:bg-slate-100">
                 Buy VPS
@@ -208,10 +208,10 @@ export default function Home() {
             </a>
 
             <a
-              href="/buy-linux-ip"
+              href="/dedicated-ip"
               className="inline-flex items-center gap-2 rounded-full border border-blue-400/40 bg-blue-500/10 px-7 py-4 text-sm font-bold text-blue-300 transition hover:bg-blue-500/20"
             >
-              <Globe size={18} /> Buy Linux IP
+              <Globe size={18} /> Dedicated IP
             </a>
 
             <a
@@ -404,10 +404,10 @@ export default function Home() {
 
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <a
-              href="/buy-linux-ip"
+              href="/dedicated-ip"
               className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-7 py-3.5 text-sm font-bold transition hover:bg-blue-500"
             >
-              Buy Linux IP <ArrowRight size={17} />
+              Dedicated IP <ArrowRight size={17} />
             </a>
             <a
               href="/buy-vps"

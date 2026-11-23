@@ -81,6 +81,11 @@ export default function Providers() {
   const [success, setSuccess] = useState("");
   const [testingId, setTestingId] = useState<string | null>(null);
 
+  const [nexaBalance, setNexaBalance] = useState<
+    Record<string, { balance?: any; currency?: string; message?: string; fetchedAt?: string }>
+  >({});
+  const [balanceLoadingId, setBalanceLoadingId] = useState<string | null>(null);
+
   const [testResults, setTestResults] = useState<
     Record<
       string,
@@ -141,6 +146,66 @@ export default function Providers() {
     }
   };
 
+  const handleRefreshNexaBalance = async (provider: Provider) => {
+    setBalanceLoadingId(provider.id);
+
+    setNexaBalance((prev) => ({
+      ...prev,
+      [provider.id]: { message: "" },
+    }));
+
+    try {
+      const response = await adminApi.get(
+        `/admin/providers/${provider.id}/balance`,
+      );
+
+      const data = response.data;
+      const wallet = data.balance;
+      const account = wallet?.account ?? data.account;
+
+      const walletAmount =
+        account?.wallet_balance ??
+        (typeof wallet === "number" || typeof wallet === "string"
+          ? wallet
+          : wallet?.balance ??
+            wallet?.amount ??
+            wallet?.wallet_balance ??
+            wallet?.available_balance ??
+            wallet?.availableBalance);
+
+      const walletCurrency =
+        account?.currency ??
+        wallet?.currency ??
+        data.currency ??
+        provider.currency ??
+        "INR";
+
+      setNexaBalance((prev) => ({
+        ...prev,
+        [provider.id]: {
+          balance: walletAmount,
+          currency: walletCurrency,
+          message:
+            walletAmount === undefined || walletAmount === null
+              ? "Balance amount was not found in the provider response."
+              : undefined,
+          fetchedAt: new Date().toLocaleTimeString(),
+        },
+      }));
+    } catch (err: any) {
+      setNexaBalance((prev) => ({
+        ...prev,
+        [provider.id]: {
+          message:
+            err.response?.data?.message || "Unable to fetch Nexa wallet balance.",
+          fetchedAt: new Date().toLocaleTimeString(),
+        },
+      }));
+    } finally {
+      setBalanceLoadingId(null);
+    }
+  };
+
   const loadHostHeavenCatalogue = useCallback(async () => {
     setCatalogueLoading(true);
     setCatalogueError("");
@@ -176,7 +241,6 @@ export default function Providers() {
       );
 
       if (hostHeavenProvider) {
-        // Automatically reload catalogue whenever Providers page is opened.
         void loadHostHeavenCatalogue();
 
         try {
@@ -202,6 +266,36 @@ export default function Providers() {
           // Keep the page usable if saved status cannot be loaded.
         }
       }
+
+      const nexaProvider = loadedProviders.find(
+        (provider) => provider.code.toUpperCase() === "NEXAVPS",
+      );
+
+      if (nexaProvider) {
+
+        try {
+          const statusResponse = await adminApi.get(
+            `/admin/providers/${nexaProvider.id}/connection-status`,
+          );
+          const saved = statusResponse.data;
+
+          if (saved && saved.testedAt) {
+            setTestResults((prev) => ({
+              ...prev,
+              [nexaProvider.id]: {
+                success: Boolean(saved.success),
+                connected: Boolean(saved.connected),
+                message: saved.message || "Connection status restored",
+                balance: saved.wallet?.balance,
+                currency: saved.wallet?.currency || nexaProvider.currency || "INR",
+                testedAt: new Date(saved.testedAt).toLocaleString(),
+              },
+            }));
+          }
+        } catch {
+          // Keep the page usable if saved status cannot be loaded.
+        }
+      }
     } catch (err: any) {
       setError(
         err.response?.data?.message || "Unable to load providers.",
@@ -212,8 +306,52 @@ export default function Providers() {
   }, [loadHostHeavenCatalogue]);
 
   useEffect(() => {
-    loadProviders();
+    void loadProviders();
   }, [loadProviders]);
+
+  // Re-check Nexa connectivity every five minutes while this page is open.
+  useEffect(() => {
+    const nexaProviders = providers.filter(
+      (provider) => provider.code.toUpperCase() === "NEXAVPS",
+    );
+
+    if (nexaProviders.length === 0) return;
+
+    const interval = window.setInterval(() => {
+      nexaProviders.forEach(async (provider) => {
+        try {
+          const response = await adminApi.post(
+            `/admin/providers/${provider.id}/test-connection`,
+          );
+          const data = response.data || {};
+
+          setTestResults((prev) => ({
+            ...prev,
+            [provider.id]: {
+              success: Boolean(data.success),
+              connected: Boolean(data.connected),
+              message: data.message || (data.connected ? "Connection active" : "Connection failed"),
+              balance: data.wallet?.balance,
+              currency: data.wallet?.currency || provider.currency || "INR",
+              testedAt: new Date().toLocaleString(),
+            },
+          }));
+        } catch (err: any) {
+          setTestResults((prev) => ({
+            ...prev,
+            [provider.id]: {
+              success: false,
+              connected: false,
+              message: err.response?.data?.message || "Automatic Nexa health check failed",
+              testedAt: new Date().toLocaleString(),
+            },
+          }));
+        }
+      });
+    }, 5 * 60 * 1000);
+
+    return () => window.clearInterval(interval);
+  }, [providers]);
 
   const toggleStatus = async (provider: Provider) => {
     const action = provider.isActive ? "deactivate" : "activate";
@@ -458,12 +596,13 @@ export default function Providers() {
                                 Connected & Verified
                               </span>
 
-                              {test.balance !== undefined && (
-                                <p className="mt-1.5 font-mono text-xs text-emerald-300">
-                                  Provider Wallet: {test.currency}{" "}
-                                  {Number(test.balance).toLocaleString("en-IN")}
-                                </p>
-                              )}
+                              {test.balance !== undefined &&
+                                provider.code.toUpperCase() !== "NEXAVPS" && (
+                                  <p className="mt-1.5 font-mono text-xs text-emerald-300">
+                                    Provider Wallet: {test.currency}{" "}
+                                    {Number(test.balance).toLocaleString("en-IN")}
+                                  </p>
+                                )}
 
                               {test.testedAt && (
                                 <p className="mt-0.5 text-[10px] text-slate-500">
@@ -490,6 +629,52 @@ export default function Providers() {
                             Untested in current session
                           </span>
                         )}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        {provider.code.toUpperCase() === "NEXAVPS" && (() => {
+                          const wallet = nexaBalance[provider.id];
+                          const walletValue = wallet?.balance;
+
+                          return (
+                            <div className="space-y-2">
+                              {wallet && wallet.message ? (
+                                <p className="text-xs text-red-300">{wallet.message}</p>
+                              ) : wallet && wallet.balance !== undefined ? (
+                                <div>
+                                  <p className="font-mono text-sm font-semibold text-emerald-300">
+                                    <Wallet size={14} className="mr-1 inline" />
+                                    {wallet.currency}{" "}
+                                    {walletValue !== undefined
+                                      ? Number(walletValue).toLocaleString("en-IN")
+                                      : "Balance data received"}
+                                  </p>
+                                  {wallet.fetchedAt && (
+                                    <p className="text-[10px] text-slate-500">
+                                      Wallet checked at {wallet.fetchedAt}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-slate-500">
+                                  Wallet balance not fetched
+                                </p>
+                              )}
+
+                              <button
+                                onClick={() => handleRefreshNexaBalance(provider)}
+                                disabled={balanceLoadingId === provider.id}
+                                className="flex items-center gap-1.5 rounded-lg border border-emerald-800/60 bg-emerald-950/30 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-900/40 disabled:opacity-50"
+                              >
+                                <RefreshCw
+                                  size={13}
+                                  className={balanceLoadingId === provider.id ? "animate-spin" : ""}
+                                />
+                                {balanceLoadingId === provider.id ? "Fetching..." : "Refresh Wallet"}
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       <td className="px-5 py-4">

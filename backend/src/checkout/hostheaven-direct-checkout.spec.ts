@@ -11,6 +11,7 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
   let mockAdminSettingsService: any;
   let mockHostHeavenService: any;
   let mockDirectCatalogueService: any;
+  let mockWalletBalance: Prisma.Decimal;
 
   const validValidatedConfig = {
     serviceId: 'hh:SHARED:zone-delhi:cpu-1:ram-1:disk-1:bw-1',
@@ -37,6 +38,7 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
   };
 
   beforeEach(() => {
+    mockWalletBalance = new Prisma.Decimal('1000.00');
     mockPrisma = {
       user: {
         findUnique: vi.fn().mockResolvedValue({ id: 'user-123', isActive: true }),
@@ -46,7 +48,7 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
           id: 'wallet-123',
           userId: 'user-123',
           currency: 'INR',
-          balance: new Prisma.Decimal('1000.00'),
+          balance: mockWalletBalance,
         }),
       },
       order: {
@@ -65,10 +67,24 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
       walletTransaction: {
         create: vi.fn(),
       },
+      provisioningJob: {
+        update: vi.fn().mockResolvedValue({ id: 'job-123' }),
+      },
       $transaction: vi.fn().mockImplementation(async (callback) => {
         const tx = {
           wallet: {
-            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+            updateMany: vi.fn().mockImplementation(async ({ where, data }) => {
+              const amount = data.balance.decrement;
+              if (mockWalletBalance.lessThan(amount)) {
+                return { count: 0 };
+              }
+              mockWalletBalance = mockWalletBalance.minus(amount);
+              return { count: 1 };
+            }),
+            update: vi.fn().mockImplementation(async ({ data }) => {
+              mockWalletBalance = mockWalletBalance.plus(data.balance.increment);
+              return { balance: mockWalletBalance, currency: 'INR' };
+            }),
           },
           walletTransaction: {
             create: vi.fn().mockResolvedValue({ id: 'wt-123' }),
@@ -84,6 +100,12 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
             create: vi.fn().mockResolvedValue({
               id: 'order-hh-123',
               orderNumber: 'HH-12345678-ABCD',
+              status: 'PROVISIONING',
+              amount: new Prisma.Decimal('805.86'),
+            }),
+            update: vi.fn().mockResolvedValue({
+              id: 'order-hh-123',
+              orderNumber: 'HH-12345678-ABCD',
               status: 'ACTIVE',
               amount: new Prisma.Decimal('805.86'),
             }),
@@ -92,7 +114,17 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
             create: vi.fn().mockResolvedValue({
               id: 'pay-123',
               status: 'CAPTURED',
+              amount: new Prisma.Decimal('805.86'),
             }),
+            update: vi.fn().mockResolvedValue({ id: 'pay-123', status: 'REFUNDED' }),
+          },
+          provisioningJob: {
+            create: vi.fn().mockResolvedValue({
+              id: 'job-123',
+              status: 'PROVISIONING',
+              providerRequestId: null,
+            }),
+            update: vi.fn().mockResolvedValue({ id: 'job-123' }),
           },
           vPSInstance: {
             create: vi.fn().mockResolvedValue({
@@ -158,6 +190,7 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('HostHeaven VPS provisioned successfully');
+      expect(result.status).toBe('ACTIVE');
       expect(result.order.status).toBe('ACTIVE');
       expect(result.vps.provider).toBe('HOSTHEAVEN');
 
@@ -178,11 +211,12 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
 
     it('rejects checkout if customer wallet balance is insufficient', async () => {
       // Wallet has only ₹500, but ₹805.86 is required
+      mockWalletBalance = new Prisma.Decimal('500.00');
       mockPrisma.wallet.upsert.mockResolvedValueOnce({
         id: 'wallet-123',
         userId: 'user-123',
         currency: 'INR',
-        balance: new Prisma.Decimal('500.00'),
+        balance: mockWalletBalance,
       });
 
       await expect(
@@ -203,27 +237,52 @@ describe('CheckoutService — Direct HostHeaven Checkout & Provisioning', () => 
       expect(mockHostHeavenService.createVm).not.toHaveBeenCalled();
     });
 
-    it('rejects checkout and does not debit wallet if provider VM creation fails', async () => {
+    it('keeps the order pending when provider outcome is uncertain', async () => {
       mockHostHeavenService.createVm.mockRejectedValueOnce(
-        new Error('Upstream provider out of stock in this zone'),
+        new Error('Provider request timed out'),
       );
 
-      await expect(
-        service.checkoutDirectHostHeaven('user-123', {
-          zoneId: 'zone-delhi',
-          zoneIsoId: 'iso-u22',
-          planType: 'SHARED',
-          cpuPriceId: 'cpu-1',
-          ramPriceId: 'ram-1',
-          diskPriceId: 'disk-1',
-          bandwidthPriceId: 'bw-1',
-          months: 1,
-          operatingSystem: 'Ubuntu 22.04 LTS',
-        }),
-      ).rejects.toThrow(/HostHeaven VM provisioning failed/);
+      const result = await service.checkoutDirectHostHeaven('user-123', {
+        zoneId: 'zone-delhi',
+        zoneIsoId: 'iso-u22',
+        planType: 'SHARED',
+        cpuPriceId: 'cpu-1',
+        ramPriceId: 'ram-1',
+        diskPriceId: 'disk-1',
+        bandwidthPriceId: 'bw-1',
+        months: 1,
+        operatingSystem: 'Ubuntu 22.04 LTS',
+      });
 
-      // Database transaction should not have executed
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      expect(result.success).toBe(true);
+      expect(result.status).toBe('PROVISIONING');
+      expect(result.message).toContain('No refund has been issued');
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('refunds the wallet only when HostHeaven explicitly returns FAILED', async () => {
+      mockHostHeavenService.createVm.mockResolvedValueOnce({
+        status: 'FAILED',
+        orderId: 'hh-failed-123',
+        message: 'Provider rejected the request',
+      });
+
+      const result = await service.checkoutDirectHostHeaven('user-123', {
+        zoneId: 'zone-delhi',
+        zoneIsoId: 'iso-u22',
+        planType: 'SHARED',
+        cpuPriceId: 'cpu-1',
+        ramPriceId: 'ram-1',
+        diskPriceId: 'disk-1',
+        bandwidthPriceId: 'bw-1',
+        months: 1,
+        operatingSystem: 'Ubuntu 22.04 LTS',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.status).toBe('FAILED');
+      expect(result.message).toContain('wallet has been refunded');
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(2);
     });
   });
 });

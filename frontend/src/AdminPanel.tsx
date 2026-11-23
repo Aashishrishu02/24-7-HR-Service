@@ -12,6 +12,7 @@ import PlanProviderMapping from "./admin/PlanProviderMapping";
 import Provisioning from "./admin/Provisioning";
 import RenewalLifecycle from "./admin/RenewalLifecycle";
 import HostHeavenMapping from "./admin/HostHeavenMapping";
+import DedicatedIpCatalogue from "./admin/DedicatedIpCatalogue";
 
 type Stats = {
   totalCustomers: number;
@@ -206,12 +207,12 @@ export default function AdminPanel() {
   }, [token]);
 
   useEffect(() => {
-    if (token && page === "Customers") loadCustomers();
-  }, [token, page, search, currentPage]);
+    if (token) loadCustomers();
+  }, [token, search, currentPage]);
 
   useEffect(() => {
-    if (token && page === "VPS Management") loadVps();
-  }, [token, page, vpsSearch, vpsStatus, vpsProvider, vpsPage]);
+    if (token) loadVps();
+  }, [token, vpsSearch, vpsStatus, vpsProvider, vpsPage]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -311,6 +312,7 @@ export default function AdminPanel() {
     ["Customers", Users],
     ["VPS Management", Server],
     ["Providers", Network],
+    ["Dedicated IP Catalogue", Package],
     ["HostHeaven Mappings", Cloud],
     ["Plan Provider Mapping", Network],
     ["Provisioning", Activity],
@@ -692,12 +694,13 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {page === "Plans" && <AdminPlans />}
-          {page === "Providers" && <Providers />}
-          {page === "HostHeaven Mappings" && <HostHeavenMapping />}
-          {page === "Plan Provider Mapping" && <PlanProviderMapping />}
-          {page === "Provisioning" && <Provisioning />}
-          {page === "Auto-Renewal & Lifecycle" && <RenewalLifecycle />}
+          <div style={{ display: page === "Plans" ? "block" : "none" }}><AdminPlans /></div>
+          <div style={{ display: page === "Providers" ? "block" : "none" }}><Providers /></div>
+          <div style={{ display: page === "Dedicated IP Catalogue" ? "block" : "none" }}><DedicatedIpCatalogue /></div>
+          <div style={{ display: page === "HostHeaven Mappings" ? "block" : "none" }}><HostHeavenMapping /></div>
+          <div style={{ display: page === "Plan Provider Mapping" ? "block" : "none" }}><PlanProviderMapping /></div>
+          <div style={{ display: page === "Provisioning" ? "block" : "none" }}><Provisioning /></div>
+          <div style={{ display: page === "Auto-Renewal & Lifecycle" ? "block" : "none" }}><RenewalLifecycle /></div>
         </section>
       </main>
 

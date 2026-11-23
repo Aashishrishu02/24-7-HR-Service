@@ -46,6 +46,26 @@ export class AdminProvidersController {
     return this.adminProvidersService.getConnectionStatus(id);
   }
 
+  @Get(':id/catalogue')
+  getCatalogue(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminProvidersService.getCatalogue(id);
+  }
+
+  @Get(':id/sync-status')
+  getDedicatedIpSyncStatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminProvidersService.getDedicatedIpSyncStatus(id);
+  }
+
+  @Post(':id/sync-catalogue')
+  syncDedicatedIpCatalogue(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminProvidersService.syncDedicatedIpCatalogue(id);
+  }
+
+  @Get(':id/balance')
+  getBalance(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminProvidersService.getBalance(id);
+  }
+
   @Post(':id/test-connection')
   testConnection(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminProvidersService.testConnection(id);

@@ -8,11 +8,21 @@ describe('PublicPlansController — Monthly Pricing Display & Privacy Verificati
   let controller: PublicPlansController;
   let mockPrisma: any;
   let mockSettings: any;
+  let mockDirectCatalogue: any;
+  let mockNexaVpsService: any;
 
   beforeEach(() => {
     mockPrisma = {
       vPSPlan: {
         findMany: vi.fn(),
+      },
+      dedicatedIpPlan: {
+        findMany: vi.fn(),
+      },
+      provider: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'provider-nexa',
+        }),
       },
     };
 
@@ -20,13 +30,48 @@ describe('PublicPlansController — Monthly Pricing Display & Privacy Verificati
       getSettings: vi.fn().mockResolvedValue({
         hostHeavenProfitMarginPercent: 20,
         hostHeavenMarkupPercent: 25,
+        nexaVpsProfitMarginPercent: 20,
+        dedicatedIpEnabled: true,
       }),
+    };
+
+    mockDirectCatalogue = {
+      getLiveServices: vi.fn().mockResolvedValue([]),
+    };
+
+    mockNexaVpsService = {
+      getPlans: vi.fn().mockResolvedValue({ success: false, plans: [] }),
     };
 
     controller = new PublicPlansController(
       mockPrisma as unknown as PrismaService,
       mockSettings as unknown as AdminSettingsService,
+      mockDirectCatalogue,
+      mockNexaVpsService,
     );
+  });
+
+  describe('Dedicated IP public availability status', () => {
+    it('returns enabled when admin enables Dedicated IP', async () => {
+      mockSettings.getSettings.mockResolvedValue({ dedicatedIpEnabled: true });
+      await expect(controller.getDedicatedIpStatus()).resolves.toEqual({
+        enabled: true,
+      });
+    });
+
+    it('returns disabled when setting is false or unavailable', async () => {
+      mockSettings.getSettings.mockResolvedValue({});
+      await expect(controller.getDedicatedIpStatus()).resolves.toEqual({
+        enabled: false,
+      });
+    });
+
+    it('fails closed when settings cannot be loaded', async () => {
+      mockSettings.getSettings.mockRejectedValue(new Error('Settings unavailable'));
+      await expect(controller.getDedicatedIpStatus()).resolves.toEqual({
+        enabled: false,
+      });
+    });
   });
 
   describe('Business Requirement: 20% Gross Profit Margin on Monthly Provider Cost', () => {
@@ -372,4 +417,230 @@ describe('PublicPlansController — Monthly Pricing Display & Privacy Verificati
       expect(result.plans[0].id).toBe('plan-active-verified');
     });
   });
+
+
+  describe('Dedicated IP Catalogue — Database Pricing & Privacy', () => {
+    const samplePlan = {
+      externalPlanId: 'nexa-plan-101',
+      planName: 'Dedicated IP India',
+      categoryName: 'Residential',
+      tier: 'PREMIUM',
+      tierLabel: 'Premium',
+      controlMode: 'STATIC',
+      countryName: 'India',
+      location: 'Mumbai',
+      duration: '30 Days',
+      speed: '1 Gbps',
+      supportedProtocols: ['HTTP', 'SOCKS5'],
+      currency: 'INR',
+      apiPrice: new Prisma.Decimal('800.00'),
+      inStock: true,
+    };
+
+    it('hides the Dedicated IP catalogue when admin disables it', async () => {
+      mockSettings.getSettings.mockResolvedValue({
+        dedicatedIpEnabled: false,
+        nexaVpsProfitMarginPercent: 20,
+      });
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result).toEqual({ plans: [], total: 0 });
+      expect(mockPrisma.dedicatedIpPlan.findMany).not.toHaveBeenCalled();
+    });
+
+    it('keeps the catalogue hidden when the availability setting is missing', async () => {
+      mockSettings.getSettings.mockResolvedValue({
+        nexaVpsProfitMarginPercent: 20,
+      });
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result).toEqual({ plans: [], total: 0 });
+      expect(mockPrisma.dedicatedIpPlan.findMany).not.toHaveBeenCalled();
+    });
+
+    it('fetches only active, in-stock plans for the Nexa provider and applies configured margin', async () => {
+      mockPrisma.dedicatedIpPlan.findMany.mockResolvedValue([samplePlan]);
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(mockPrisma.provider.findUnique).toHaveBeenCalledWith({
+        where: { code: 'NEXAVPS' },
+        select: { id: true },
+      });
+
+      expect(mockPrisma.dedicatedIpPlan.findMany).toHaveBeenCalledWith({
+        where: {
+          providerId: 'provider-nexa',
+          isActive: true,
+          inStock: true,
+        },
+        orderBy: { planName: 'asc' },
+        select: expect.objectContaining({
+          externalPlanId: true,
+          apiPrice: true,
+          inStock: true,
+        }),
+      });
+
+      expect(result.total).toBe(1);
+      expect(result.plans[0]).toMatchObject({
+        id: 'nexa-plan-101',
+        name: 'Dedicated IP India',
+        category: 'Residential',
+        tier: 'Premium',
+        country: 'India',
+        location: 'Mumbai',
+        supportedProtocols: ['HTTP', 'SOCKS5'],
+        currency: 'INR',
+        price: 1000,
+        inStock: true,
+      });
+    });
+
+    it('uses the admin-configured margin instead of a hardcoded margin', async () => {
+      mockSettings.getSettings.mockResolvedValue({
+        nexaVpsProfitMarginPercent: 25,
+        dedicatedIpEnabled: true,
+      });
+      mockPrisma.dedicatedIpPlan.findMany.mockResolvedValue([samplePlan]);
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      // ₹800 / (1 - 25%) = ₹1,066.67
+      expect(result.plans[0].price).toBe(1066.67);
+    });
+
+    it('excludes plans with zero, negative, or invalid provider cost', async () => {
+      mockPrisma.dedicatedIpPlan.findMany.mockResolvedValue([
+        samplePlan,
+        { ...samplePlan, externalPlanId: 'zero', apiPrice: new Prisma.Decimal('0') },
+        { ...samplePlan, externalPlanId: 'negative', apiPrice: new Prisma.Decimal('-10') },
+        { ...samplePlan, externalPlanId: 'invalid', apiPrice: null },
+      ]);
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result.total).toBe(1);
+      expect(result.plans[0].id).toBe('nexa-plan-101');
+    });
+
+    it('never exposes provider costs, database IDs, or internal fields', async () => {
+      mockPrisma.dedicatedIpPlan.findMany.mockResolvedValue([samplePlan]);
+
+      const result = await controller.findNexaDedicatedIpPlans();
+      const plan = result.plans[0] as any;
+
+      expect(plan.price).toBe(1000);
+      expect(plan.apiPrice).toBeUndefined();
+      expect(plan.regularPrice).toBeUndefined();
+      expect(plan.providerId).toBeUndefined();
+      expect(plan.pools).toBeUndefined();
+      expect(plan.externalPlanId).toBeUndefined();
+      expect(plan.id).toBe('nexa-plan-101');
+    });
+
+    it('uses live Nexa plans when the database catalogue is empty', async () => {
+      mockPrisma.dedicatedIpPlan.findMany.mockResolvedValue([]);
+      mockNexaVpsService.getPlans.mockResolvedValue({
+        success: true,
+        plans: [
+          {
+            planId: 'live-plan-1',
+            planName: 'Live Dedicated IP',
+            categoryName: 'Residential',
+            tierLabel: 'Premium',
+            countryName: 'India',
+            location: 'Mumbai',
+            apiPrice: 800,
+            currency: 'INR',
+            supportedProtocols: ['HTTP', 'SOCKS5'],
+            inStock: true,
+          },
+          {
+            planId: 'out-of-stock',
+            planName: 'Unavailable IP',
+            apiPrice: 500,
+            inStock: false,
+          },
+        ],
+      });
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result.total).toBe(1);
+      expect(result.plans[0]).toMatchObject({
+        id: 'live-plan-1',
+        name: 'Live Dedicated IP',
+        price: 1000,
+        inStock: true,
+      });
+      expect(result.plans[0]).not.toHaveProperty('apiPrice');
+      expect(result.plans[0]).not.toHaveProperty('planId');
+    });
+
+    it('uses live Nexa plans when the Dedicated IP database table is unavailable', async () => {
+      mockPrisma.dedicatedIpPlan.findMany.mockRejectedValue(
+        new Error('Dedicated IP table does not exist'),
+      );
+      mockNexaVpsService.getPlans.mockResolvedValue({
+        success: true,
+        plans: [{
+          planId: 'live-plan-db-error',
+          planName: 'Live Fallback IP',
+          apiPrice: 800,
+          inStock: true,
+        }],
+      });
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result.total).toBe(1);
+      expect(result.plans[0].price).toBe(1000);
+    });
+
+    it('does not call Nexa when admin disables Dedicated IP', async () => {
+      mockSettings.getSettings.mockResolvedValue({
+        dedicatedIpEnabled: false,
+        nexaVpsProfitMarginPercent: 20,
+      });
+
+      await controller.findNexaDedicatedIpPlans();
+
+      expect(mockNexaVpsService.getPlans).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty catalogue when live Nexa API fails', async () => {
+      mockPrisma.dedicatedIpPlan.findMany.mockResolvedValue([]);
+      mockNexaVpsService.getPlans.mockResolvedValue({
+        success: false,
+        plans: [],
+      });
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result).toEqual({ plans: [], total: 0 });
+    });
+
+    it('returns an empty catalogue when the Nexa provider does not exist', async () => {
+      mockPrisma.provider.findUnique.mockResolvedValue(null);
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result).toEqual({ plans: [], total: 0 });
+      expect(mockPrisma.dedicatedIpPlan.findMany).not.toHaveBeenCalled();
+    });
+
+    it('returns a safe empty catalogue when the database query fails', async () => {
+      mockPrisma.dedicatedIpPlan.findMany.mockRejectedValue(
+        new Error('Internal database details'),
+      );
+
+      const result = await controller.findNexaDedicatedIpPlans();
+
+      expect(result).toEqual({ plans: [], total: 0 });
+    });
+  });
+
 });

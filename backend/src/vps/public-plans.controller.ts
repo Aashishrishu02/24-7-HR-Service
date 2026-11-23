@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { AdminSettingsService } from '../renewal/admin-settings.service.js';
 import { calculateSellingPrice, isSlotIpItem } from '../hostheaven/hostheaven-pricing.util.js';
 import { HostHeavenDirectCatalogueService } from '../hostheaven/hostheaven-direct-catalogue.service.js';
+import { NexaVpsService } from '../nexavps/nexavps.service.js';
 
 @Controller('plans')
 export class PublicPlansController {
@@ -11,7 +12,183 @@ export class PublicPlansController {
     private readonly adminSettingsService: AdminSettingsService,
     @Inject(forwardRef(() => HostHeavenDirectCatalogueService))
     private readonly directCatalogueService: HostHeavenDirectCatalogueService,
+    private readonly nexaVpsService: NexaVpsService,
   ) { }
+
+  /**
+   * Public, read-only Nexa Dedicated IP catalogue.
+   * Reads only successfully synced, active and in-stock database plans.
+   * Only customer-facing prices and safe plan details are returned.
+   */
+  @Get('dedicated-ip-status')
+  async getDedicatedIpStatus() {
+    try {
+      const settings = await this.adminSettingsService.getSettings();
+      return { enabled: settings.dedicatedIpEnabled === true };
+    } catch {
+      return { enabled: false };
+    }
+  }
+
+  @Get('nexa-dedicated-ips')
+  async findNexaDedicatedIpPlans() {
+    try {
+      const settings = await this.adminSettingsService.getSettings();
+
+      // Availability is a global customer-facing kill switch.
+      if (settings.dedicatedIpEnabled !== true) {
+        return { plans: [], total: 0 };
+      }
+
+      const configuredMargin = Number(settings.nexaVpsProfitMarginPercent ?? 20);
+      const margin =
+        Number.isFinite(configuredMargin) &&
+        configuredMargin >= 0 &&
+        configuredMargin <= 80
+          ? configuredMargin
+          : 20;
+
+      const toCustomerPlan = (plan: {
+        id: unknown;
+        name: unknown;
+        category?: unknown;
+        tier?: unknown;
+        controlMode?: unknown;
+        country?: unknown;
+        location?: unknown;
+        duration?: unknown;
+        speed?: unknown;
+        supportedProtocols?: unknown;
+        currency?: unknown;
+        apiPrice?: unknown;
+        inStock?: unknown;
+      }) => {
+        const planId = String(plan.id ?? '').trim();
+        const providerCost = Number(plan.apiPrice);
+
+        if (
+          !planId ||
+          plan.inStock !== true ||
+          !Number.isFinite(providerCost) ||
+          providerCost <= 0
+        ) {
+          return null;
+        }
+
+        const sellingPrice =
+          Math.round(
+            (providerCost / (1 - margin / 100) + Number.EPSILON) * 100,
+          ) / 100;
+
+        return {
+          id: planId,
+          name: String(plan.name || 'Dedicated IP'),
+          category: typeof plan.category === 'string' ? plan.category : 'Dedicated IP',
+          tier: typeof plan.tier === 'string' ? plan.tier : null,
+          controlMode: typeof plan.controlMode === 'string' ? plan.controlMode : null,
+          country: typeof plan.country === 'string' ? plan.country : null,
+          location: typeof plan.location === 'string' ? plan.location : null,
+          duration: typeof plan.duration === 'string' ? plan.duration : null,
+          speed: typeof plan.speed === 'string' ? plan.speed : null,
+          supportedProtocols: Array.isArray(plan.supportedProtocols)
+            ? plan.supportedProtocols.filter((item): item is string => typeof item === 'string')
+            : [],
+          currency: typeof plan.currency === 'string' ? plan.currency : 'INR',
+          price: sellingPrice,
+          inStock: true,
+        };
+      };
+
+      // Prefer the verified database catalogue whenever it is available.
+      try {
+        const provider = await this.prisma.provider.findUnique({
+          where: { code: 'NEXAVPS' },
+          select: { id: true },
+        });
+
+        if (provider) {
+          const storedPlans = await this.prisma.dedicatedIpPlan.findMany({
+            where: {
+              providerId: provider.id,
+              isActive: true,
+              inStock: true,
+            },
+            orderBy: { planName: 'asc' },
+            select: {
+              externalPlanId: true,
+              planName: true,
+              categoryName: true,
+              tier: true,
+              tierLabel: true,
+              controlMode: true,
+              countryName: true,
+              location: true,
+              duration: true,
+              speed: true,
+              supportedProtocols: true,
+              currency: true,
+              apiPrice: true,
+              inStock: true,
+            },
+          });
+
+          const databasePlans = storedPlans
+            .map((plan) => toCustomerPlan({
+              id: plan.externalPlanId,
+              name: plan.planName,
+              category: plan.categoryName,
+              tier: plan.tierLabel ?? plan.tier,
+              controlMode: plan.controlMode,
+              country: plan.countryName,
+              location: plan.location,
+              duration: plan.duration,
+              speed: plan.speed,
+              supportedProtocols: plan.supportedProtocols,
+              currency: plan.currency,
+              apiPrice: plan.apiPrice,
+              inStock: plan.inStock,
+            }))
+            .filter((plan): plan is NonNullable<typeof plan> => plan !== null);
+
+          if (databasePlans.length > 0) {
+            return { plans: databasePlans, total: databasePlans.length };
+          }
+        }
+      } catch {
+        // A pending Dedicated IP migration must not prevent the read-only live fallback.
+      }
+
+      // Temporary read-only fallback until the Dedicated IP database migration is safely applied.
+      const liveResponse = await this.nexaVpsService.getPlans();
+
+      if (!liveResponse.success || !Array.isArray(liveResponse.plans)) {
+        return { plans: [], total: 0 };
+      }
+
+      const livePlans = liveResponse.plans
+        .map((plan) => toCustomerPlan({
+          id: plan.planId,
+          name: plan.planName,
+          category: plan.categoryName,
+          tier: plan.tierLabel ?? plan.tier,
+          controlMode: plan.controlMode,
+          country: plan.countryName,
+          location: plan.location,
+          duration: plan.duration,
+          speed: plan.speed,
+          supportedProtocols: plan.supportedProtocols,
+          currency: plan.currency,
+          apiPrice: plan.apiPrice,
+          inStock: plan.inStock,
+        }))
+        .filter((plan): plan is NonNullable<typeof plan> => plan !== null);
+
+      return { plans: livePlans, total: livePlans.length };
+    } catch {
+      // Do not expose provider errors, API credentials, or internal configuration publicly.
+      return { plans: [], total: 0 };
+    }
+  }
 
   /**
    * Public customer catalogue: returns active VPS plans only with server-calculated monthly selling prices in INR.

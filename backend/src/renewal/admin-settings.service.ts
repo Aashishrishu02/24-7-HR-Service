@@ -13,6 +13,8 @@ export interface RenewalSettings {
   renewalPricingModel: string;
   hostHeavenMarkupPercent: number;
   hostHeavenProfitMarginPercent: number;
+  nexaVpsProfitMarginPercent: number;
+  dedicatedIpEnabled: boolean;
 }
 
 @Injectable()
@@ -29,6 +31,8 @@ export class AdminSettingsService {
     RENEWAL_PRICING_MODEL: 'PLAN_SELLING_PRICE',
     HOSTHEAVEN_PROFIT_MARGIN_PERCENT: '20',
     HOSTHEAVEN_MARKUP_PERCENT: '25',
+    NEXAVPS_PROFIT_MARGIN_PERCENT: '20',
+    DEDICATED_IP_ENABLED: 'false',
   };
 
   constructor(private readonly prisma: PrismaService) {}
@@ -104,6 +108,19 @@ export class AdminSettingsService {
       }
     }
 
+    const dedicatedIpEnabled =
+      (settingsMap.get('DEDICATED_IP_ENABLED') ??
+        this.defaults.DEDICATED_IP_ENABLED) === 'true';
+
+    const rawNexaMargin = Number(
+      settingsMap.get('NEXAVPS_PROFIT_MARGIN_PERCENT') ??
+        this.defaults.NEXAVPS_PROFIT_MARGIN_PERCENT,
+    );
+    const nexaVpsProfitMarginPercent =
+      Number.isFinite(rawNexaMargin) && rawNexaMargin >= 0 && rawNexaMargin <= 80
+        ? rawNexaMargin
+        : 20;
+
     // Equivalent markup for legacy callers: M = (P / (100 - P)) * 100
     const hostHeavenMarkupPercent =
       hostHeavenProfitMarginPercent < 100
@@ -128,6 +145,8 @@ export class AdminSettingsService {
       renewalPricingModel,
       hostHeavenMarkupPercent,
       hostHeavenProfitMarginPercent,
+      nexaVpsProfitMarginPercent,
+      dedicatedIpEnabled,
     };
   }
 
@@ -229,6 +248,23 @@ export class AdminSettingsService {
         key: 'HOSTHEAVEN_PROFIT_MARGIN_PERCENT',
         value: equivalentMargin.toString(),
         description: 'Gross profit margin on HostHeaven provider cost (default 20%)',
+      });
+    }
+
+    if (dto.dedicatedIpEnabled !== undefined) {
+      updates.push({
+        key: 'DEDICATED_IP_ENABLED',
+        value: dto.dedicatedIpEnabled.toString(),
+        description: 'Controls whether Dedicated IP catalogue is visible to customers',
+      });
+    }
+
+    if (dto.nexaVpsProfitMarginPercent !== undefined) {
+      const margin = Math.min(80, Math.max(0, dto.nexaVpsProfitMarginPercent));
+      updates.push({
+        key: 'NEXAVPS_PROFIT_MARGIN_PERCENT',
+        value: margin.toString(),
+        description: 'Gross profit margin on Nexa VPS provider cost (default 20%)',
       });
     }
 

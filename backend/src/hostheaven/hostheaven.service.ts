@@ -291,17 +291,26 @@ export class HostHeavenService {
    * Retrieves available zones: GET /api/users/zones
    */
   async getZones(): Promise<HostHeavenZone[]> {
-    return this.request<HostHeavenZone[]>('/api/users/zones');
+    const zones = await this.request<Array<Omit<HostHeavenZone, 'id'> & { id: string | number }>>(
+      '/api/users/zones',
+    );
+    return zones.map((zone) => ({
+      ...zone,
+      id: String(zone.id),
+    }));
   }
 
   /**
    * Retrieves operating system ISO templates for a zone: GET /api/users/zones/{zoneId}/isos
    */
-  async getZoneIsos(zoneId: string): Promise<HostHeavenIso[]> {
-    if (!zoneId?.trim()) {
+  async getZoneIsos(zoneId: string | number): Promise<HostHeavenIso[]> {
+    const normalizedZoneId = String(zoneId ?? '').trim();
+    if (!normalizedZoneId) {
       throw new BadRequestException('zoneId is required');
     }
-    return this.request<HostHeavenIso[]>(`/api/users/zones/${encodeURIComponent(zoneId)}/isos`);
+    return this.request<HostHeavenIso[]>(
+      `/api/users/zones/${encodeURIComponent(normalizedZoneId)}/isos`,
+    );
   }
 
   /**

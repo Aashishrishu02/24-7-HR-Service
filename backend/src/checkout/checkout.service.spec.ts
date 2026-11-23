@@ -367,24 +367,12 @@ describe('CheckoutService', () => {
 
     const result = await service.reconcileOrder('ord-confirmed-failed');
 
-    expect(result.status).toBe('REFUNDED');
-    expect(result.message).toContain('confirmed no VPS was created. Order refunded in full');
-    expect((result as any).balance?.toString()).toBe('2000');
-    expect(mockPrisma.payment.update).toHaveBeenCalledWith({
-      where: { id: 'pay-failed' },
-      data: { status: 'REFUNDED' },
-    });
-    expect(mockPrisma.order.update).toHaveBeenCalledWith({
-      where: { id: 'ord-confirmed-failed' },
-      data: { status: 'FAILED' },
-    });
-    expect(mockPrisma.walletTransaction.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        type: 'REFUND',
-        amount: mockOrder.payments[0].amount,
-        reference: mockOrder.orderNumber,
-      }),
-    });
+    expect(result.status).toBe('REQUIRES_MANUAL_REVIEW');
+    expect(result.message).toContain('No refund has been issued');
+    expect(mockPrisma.payment.update).not.toHaveBeenCalled();
+    expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    expect(mockPrisma.wallet.update).not.toHaveBeenCalled();
+    expect(mockPrisma.walletTransaction.create).not.toHaveBeenCalled();
   });
 
   it('should handle duplicate refund requests idempotently without double-crediting', async () => {
@@ -416,10 +404,11 @@ describe('CheckoutService', () => {
 
     const result = await service.reconcileOrder('ord-already-refunded');
 
-    expect(result.status).toBe('REFUNDED');
-    expect(result.message).toBe('Order has already been refunded');
-    // Ensure wallet balance was NOT incremented again!
+    expect(result.status).toBe('REQUIRES_MANUAL_REVIEW');
+    expect(result.message).toContain('No refund has been issued');
+    // Reconciliation must not credit the wallet without provider verification.
     expect(mockPrisma.wallet.update).not.toHaveBeenCalled();
+    expect(mockPrisma.walletTransaction.create).not.toHaveBeenCalled();
   });
 
   it('should get customer orders list', async () => {

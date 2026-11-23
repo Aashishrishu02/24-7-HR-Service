@@ -85,7 +85,7 @@ describe('HostHeavenDirectCatalogueService — Direct Automatic Catalogue & 20% 
       expect(response).toBeDefined();
       expect(response.services.length).toBeGreaterThan(0);
       expect(response.total).toBe(response.services.length);
-      expect(response.marginPercent).toBe(20);
+      expect((response as any).marginPercent).toBeUndefined();
       expect(response.currency).toBe('INR');
       expect(response.isStale).toBe(false);
 
@@ -115,6 +115,9 @@ describe('HostHeavenDirectCatalogueService — Direct Automatic Catalogue & 20% 
       for (const svc of response.services) {
         expect((svc as any).providerCost).toBeUndefined();
         expect((svc as any).totalHourlyRate).toBeUndefined();
+        expect((svc as any).billingOptions.every((option: any) =>
+          option.providerCost === undefined && option.grossProfit === undefined
+        )).toBe(true);
         expect((svc as any).apiKey).toBeUndefined();
         expect((svc as any).apiSecret).toBeUndefined();
         expect((svc as any).apiUrl).toBeUndefined();

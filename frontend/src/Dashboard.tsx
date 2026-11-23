@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import api from "./api";
 import logo from "./assets/247-logo.png";
+import BuyLinuxIP from "./BuyLinuxIP";
 
 type UserProfile = {
   id: string;
@@ -193,6 +194,7 @@ type Page =
   | "Home"
   | "Windows VPS"
   | "Linux VPS"
+  | "Dedicated IP"
   | "My VPS"
   | "Wallet"
   | "Orders"
@@ -203,6 +205,7 @@ const navItems: { label: Page; short: string }[] = [
   { label: "Home", short: "Home" },
   { label: "Windows VPS", short: "Windows VPS" },
   { label: "Linux VPS", short: "Linux VPS" },
+  { label: "Dedicated IP", short: "Dedicated IP" },
   { label: "My VPS", short: "My Servers" },
   { label: "Wallet", short: "Wallet" },
   { label: "Orders", short: "Orders" },
@@ -227,6 +230,7 @@ const determineInitialPage = (): Page => {
   if (path.includes("checkout")) return "Checkout";
   if (path.includes("server") || path.includes("my-vps")) return "My VPS";
   if (path.includes("windows")) return "Windows VPS";
+  if (path.includes("dedicated-ip")) return "Dedicated IP";
   if (path.includes("linux")) return "Linux VPS";
   if (path.includes("support")) return "Support";
   return "Home";
@@ -234,6 +238,8 @@ const determineInitialPage = (): Page => {
 
 export default function Dashboard() {
   const [page, setPage] = useState<Page>(determineInitialPage());
+  const [dedicatedIpEnabled, setDedicatedIpEnabled] = useState(false);
+  const [dedicatedIpStatusLoaded, setDedicatedIpStatusLoaded] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [vpsList, setVpsList] = useState<VPSInstance[]>([]);
@@ -649,6 +655,41 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
+    api.get("/plans/dedicated-ip-status")
+      .then((response) => {
+        if (!cancelled) {
+          setDedicatedIpEnabled(response.data?.enabled === true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setDedicatedIpEnabled(false);
+      })
+      .finally(() => {
+        if (!cancelled) setDedicatedIpStatusLoaded(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (
+      dedicatedIpStatusLoaded &&
+      !dedicatedIpEnabled &&
+      page === "Dedicated IP"
+    ) {
+      setPage("Home");
+      setMobileMenu(false);
+      if (window.location.pathname === "/dedicated-ip") {
+        window.history.replaceState(null, "", "/dashboard");
+      }
+    }
+  }, [dedicatedIpStatusLoaded, dedicatedIpEnabled, page]);
+
+  useEffect(() => {
     const handlePopState = () => {
       setPage(determineInitialPage());
     };
@@ -678,6 +719,7 @@ export default function Dashboard() {
       Home: "/dashboard",
       "Windows VPS": "/windows-vps",
       "Linux VPS": "/linux-vps",
+      "Dedicated IP": "/dedicated-ip",
       "My VPS": "/my-vps",
       Wallet: "/wallet",
       Orders: "/orders",
@@ -962,7 +1004,7 @@ export default function Dashboard() {
             <Monitor size={18} />
             <span className="text-xs font-semibold uppercase tracking-wider">
               {plan.productType === "LINUX_IP_VPS"
-                ? "Linux IP VPS"
+                ? "Dedicated IP"
                 : "VPS Hosting"}
             </span>
           </div>
@@ -1064,7 +1106,7 @@ export default function Dashboard() {
           </button>
 
           <nav className="hidden items-center gap-1 lg:flex">
-            {navItems.map((item) => (
+            {navItems.filter((item) => item.label !== "Dedicated IP" || dedicatedIpEnabled).map((item) => (
               <button
                 key={item.label}
                 onClick={() => go(item.label)}
@@ -1119,7 +1161,7 @@ export default function Dashboard() {
 
         {mobileMenu && (
           <nav className="grid grid-cols-2 gap-2 border-t border-blue-900/50 px-4 py-3 sm:grid-cols-3 lg:hidden">
-            {navItems.map((item) => (
+            {navItems.filter((item) => item.label !== "Dedicated IP" || dedicatedIpEnabled).map((item) => (
               <button
                 key={item.label}
                 onClick={() => go(item.label)}
@@ -1329,6 +1371,9 @@ export default function Dashboard() {
             </section>
           </>
         )}
+
+        {/* Dedicated IP Catalogue */}
+        {page === "Dedicated IP" && <BuyLinuxIP embedded />}
 
         {/* My Servers */}
         {page === "My VPS" && (

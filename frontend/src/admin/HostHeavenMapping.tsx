@@ -9,7 +9,6 @@ import {
   Cloud,
   Power,
   Trash2,
-  DollarSign,
   Layers,
   ArrowRight,
   Clock,
@@ -131,16 +130,16 @@ type FormState = {
   planType: "SHARED" | "DEDICATED";
   cpuPricingId: string;
   cpuName: string;
-  cpuPrice: number;
+  cpuPrice: number | "";
   ramPricingId: string;
   ramName: string;
-  ramPrice: number;
+  ramPrice: number | "";
   diskPricingId: string;
   diskName: string;
-  diskPrice: number;
+  diskPrice: number | "";
   bandwidthPricingId: string;
   bandwidthName: string;
-  bandwidthPrice: number;
+  bandwidthPrice: number | "";
   customProviderCost: string;
   isActive: boolean;
 };
@@ -154,16 +153,16 @@ const initialForm: FormState = {
   planType: "SHARED",
   cpuPricingId: "",
   cpuName: "",
-  cpuPrice: 0,
+  cpuPrice: "",
   ramPricingId: "",
   ramName: "",
-  ramPrice: 0,
+  ramPrice: "",
   diskPricingId: "",
   diskName: "",
-  diskPrice: 0,
+  diskPrice: "",
   bandwidthPricingId: "",
   bandwidthName: "",
-  bandwidthPrice: 0,
+  bandwidthPrice: "",
   customProviderCost: "",
   isActive: true,
 };
@@ -219,7 +218,7 @@ export default function HostHeavenMapping() {
         adminApi.get("/admin/hostheaven/catalogue").catch(() => ({
           data: { zones: [], pricing: null },
         })),
-        adminApi.get("/admin/renewal/settings").catch(() => ({
+        adminApi.get("/admin/vps/renewal/settings").catch(() => ({
           data: { hostHeavenProfitMarginPercent: 20 },
         })),
         adminApi.get("/admin/hostheaven/mappings/sync/status").catch(() => ({
@@ -529,7 +528,7 @@ export default function HostHeavenMapping() {
             HostHeaven Dynamic Catalogue & Pricing
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Automatically synchronizes HostHeaven zones, OS, and resource pricing catalogues with enforced 20% gross profit margin.
+            Automatically synchronizes HostHeaven zones, OS, and resource pricing catalogues using the current admin-configured gross profit margin.
           </p>
         </div>
 
@@ -578,7 +577,7 @@ export default function HostHeavenMapping() {
               HostHeaven services, zones, operating systems, and purchasable configurations are dynamically discovered and presented directly on the 24/7 customer website (<code className="rounded bg-black/30 px-1 py-0.5 text-cyan-300">GET /api/hostheaven/services</code> & <code className="rounded bg-black/30 px-1 py-0.5 text-cyan-300">GET /api/plans</code>).
             </p>
             <p className="leading-relaxed text-slate-400">
-              Manual VPSPlan creation and admin product publishing are no longer required. The authoritative 20% gross profit margin is applied automatically across all available configurations. Existing mapped plans below remain fully operational for legacy compatibility.
+              Manual VPSPlan creation and admin product publishing are no longer required. The current admin-configured gross profit margin is applied automatically across all available configurations. Existing mapped plans below remain fully operational for legacy compatibility.
             </p>
           </div>
         </div>
@@ -643,22 +642,6 @@ export default function HostHeavenMapping() {
         </div>
       )}
 
-      {/* PRICING POLICY CARD */}
-      <div className="rounded-xl border border-blue-900/40 bg-[#07132a] p-4 text-xs text-slate-300">
-        <div className="flex items-start gap-3">
-          <DollarSign size={18} className="shrink-0 text-cyan-400 mt-0.5" />
-          <div className="space-y-1">
-            <p className="font-semibold text-cyan-300">
-              Enforced 20% Actual Gross Profit Margin Policy (Configurable: {profitMargin}%)
-            </p>
-            <p className="text-slate-400 leading-relaxed">
-              Formula: <code className="text-cyan-200 font-mono">Customer Selling Price = Provider Cost / (1 - {profitMargin / 100})</code>
-              . At 20% margin: Provider Cost ₹1,000 → Customer Price ₹1,250 (Gross Profit: ₹250).
-              Plans in <span className="text-amber-300 font-semibold">ESTIMATED</span> status are auto-discovered from HostHeaven API and remain hidden until provider cost is confirmed by admin.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {error && (
         <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
@@ -788,7 +771,7 @@ export default function HostHeavenMapping() {
                       <th className="px-4 py-3">VPS Plan Specs</th>
                       <th className="px-4 py-3">Zone & OS</th>
                       <th className="px-4 py-3">Monthly HostHeaven Provider Cost</th>
-                      <th className="px-4 py-3">Customer Selling Price (20% Margin)</th>
+                      <th className="px-4 py-3">Customer Selling Price ({profitMargin}% Margin)</th>
                       <th className="px-4 py-3">Resource Rate Breakdown</th>
                       <th className="px-4 py-3">Publishing Status</th>
                       <th className="px-4 py-3">Actions</th>
@@ -877,7 +860,7 @@ export default function HostHeavenMapping() {
                             Gross Profit: ₹{Number(m.grossProfit).toFixed(2)} ({profitMargin}%)
                           </p>
                           <p className="text-[10px] text-slate-500 font-mono">
-                            ₹{Number(m.providerCost).toFixed(2)} / 0.80 = ₹{Number(m.calculatedSellingPrice).toFixed(2)}
+                            ₹{Number(m.providerCost).toFixed(2)} / (1 - {profitMargin / 100}) = ₹{Number(m.calculatedSellingPrice).toFixed(2)}
                           </p>
                         </td>
 
@@ -1302,13 +1285,13 @@ export default function HostHeavenMapping() {
                       ...form,
                       planType: e.target.value as "SHARED" | "DEDICATED",
                       cpuPricingId: "",
-                      cpuPrice: 0,
+                      cpuPrice: "",
                       ramPricingId: "",
-                      ramPrice: 0,
+                      ramPrice: "",
                       diskPricingId: "",
-                      diskPrice: 0,
+                      diskPrice: "",
                       bandwidthPricingId: "",
-                      bandwidthPrice: 0,
+                      bandwidthPrice: "",
                     })
                   }
                 >

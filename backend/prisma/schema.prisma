@@ -345,7 +345,103 @@ model Provider {
   mappings   VPSPlanProviderMapping[]
   jobs       ProvisioningJob[]
 
+  dedicatedIpPlans     DedicatedIpPlan[]
+  dedicatedIpSyncState DedicatedIpSyncState?
+
   @@index([isActive, priority])
+}
+
+
+// ==========================================
+// DEDICATED IP CATALOGUE
+// ==========================================
+
+model DedicatedIpPlan {
+  id String @id @default(uuid())
+
+  providerId String
+  externalPlanId String
+  planName String
+
+  categoryId String?
+  categoryName String?
+  tier String?
+  tierLabel String?
+  controlMode String?
+  protocol String?
+  supportedProtocols String[] @default([])
+
+  countryCode String?
+  countryName String?
+  location String?
+  duration String?
+  speed String?
+  minQuantity Int?
+
+  regularPrice Decimal? @db.Decimal(10, 2)
+  apiPrice Decimal? @db.Decimal(10, 2)
+  currency String @default("INR")
+
+  inStock Boolean @default(false)
+  stock Int?
+  defaultSubnet String?
+  poolsCount Int @default(0)
+
+  isActive Boolean @default(true)
+  lastSyncedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  pools DedicatedIpPool[]
+
+  @@unique([providerId, externalPlanId])
+  @@index([providerId, isActive, inStock])
+}
+
+model DedicatedIpPool {
+  id String @id @default(uuid())
+
+  planId String
+  externalPoolId String
+  poolName String?
+  subnet String?
+  location String?
+
+  regularPrice Decimal? @db.Decimal(10, 2)
+  apiPrice Decimal? @db.Decimal(10, 2)
+  currency String @default("INR")
+
+  inStock Boolean @default(false)
+  stock Int?
+  isDefault Boolean @default(false)
+
+  lastSyncedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan DedicatedIpPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, externalPoolId])
+  @@index([planId, inStock])
+}
+
+model DedicatedIpSyncState {
+  id String @id @default(uuid())
+
+  providerId String @unique
+  status String @default("NEVER_SYNCED")
+  lastAttemptAt DateTime?
+  lastSuccessAt DateTime?
+  lastError String?
+  syncedPlanCount Int @default(0)
+  syncedPoolCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Restrict)
 }
 
 model ProviderCredential {

@@ -6,6 +6,7 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { AuthModule } from '../auth/auth.module.js';
 import { RenewalModule } from '../renewal/renewal.module.js';
 import { HostHeavenModule } from '../hostheaven/hostheaven.module.js';
+import { NexaVpsModule } from '../nexavps/nexavps.module.js';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HostHeavenModule } from '../hostheaven/hostheaven.module.js';
     AuthModule,
     forwardRef(() => RenewalModule),
     forwardRef(() => HostHeavenModule),
+    NexaVpsModule,
   ],
   controllers: [
     VpsController,

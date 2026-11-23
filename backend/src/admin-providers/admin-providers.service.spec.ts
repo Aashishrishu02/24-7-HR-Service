@@ -7,6 +7,7 @@ describe('AdminProvidersService (Backend-Only Integration Architecture)', () => 
   let mockPrisma: any;
   let mockHostHeaven: any;
   let mockVpsService: any;
+  let mockNexaVpsService: any;
 
   beforeEach(() => {
     mockPrisma = {
@@ -14,6 +15,9 @@ describe('AdminProvidersService (Backend-Only Integration Architecture)', () => 
         findMany: vi.fn(),
         findUnique: vi.fn(),
         update: vi.fn(),
+      },
+      systemSetting: {
+        upsert: vi.fn().mockResolvedValue({}),
       },
     };
 
@@ -25,10 +29,16 @@ describe('AdminProvidersService (Backend-Only Integration Architecture)', () => 
       getIpStock: vi.fn(),
     };
 
+    mockNexaVpsService = {
+      testConnection: vi.fn(),
+      getBalance: vi.fn(),
+    };
+
     service = new AdminProvidersService(
       mockPrisma,
       mockHostHeaven as any,
       mockVpsService as any,
+      mockNexaVpsService as any,
     );
   });
 
@@ -130,4 +140,33 @@ describe('AdminProvidersService (Backend-Only Integration Architecture)', () => 
     expect((service as any).encrypt).toBeUndefined();
     expect((service as any).encryptCredentials).toBeUndefined();
   });
+
+  it('returns the Nexa wallet balance from the provider service', async () => {
+    mockPrisma.provider.findUnique.mockResolvedValue({
+      id: 'p-nexa',
+      name: 'Nexa VPS',
+      code: 'NEXAVPS',
+      baseUrl: 'https://nexahostvps.com/api/v1/dedicated-ips',
+      currency: 'INR',
+    });
+
+    mockNexaVpsService.getBalance.mockResolvedValue({
+      success: true,
+      balance: { balance: 1250, currency: 'INR' },
+    });
+
+    const result = await service.getBalance('p-nexa');
+
+    expect(mockNexaVpsService.getBalance).toHaveBeenCalledWith(
+      'https://nexahostvps.com/api/v1/dedicated-ips',
+    );
+    expect(result).toMatchObject({
+      providerId: 'p-nexa',
+      providerCode: 'NEXAVPS',
+      currency: 'INR',
+      success: true,
+      balance: { balance: 1250, currency: 'INR' },
+    });
+  });
+
 });

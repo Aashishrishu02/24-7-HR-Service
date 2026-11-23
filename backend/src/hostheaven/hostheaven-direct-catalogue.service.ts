@@ -72,10 +72,21 @@ export interface DirectHostHeavenService {
   isActive: true;
 }
 
+export type PublicDirectBillingOption = Omit<
+  DirectBillingOption,
+  'providerCost' | 'grossProfit'
+>;
+
+export type PublicDirectHostHeavenService = Omit<
+  DirectHostHeavenService,
+  'billingOptions'
+> & {
+  billingOptions: PublicDirectBillingOption[];
+};
+
 export interface DirectCatalogueResponse {
-  services: DirectHostHeavenService[];
+  services: PublicDirectHostHeavenService[];
   total: number;
-  marginPercent: number;
   currency: 'INR';
   lastSyncedAt: string;
   isStale: boolean;
@@ -126,7 +137,7 @@ export class HostHeavenDirectCatalogueService {
   ) {}
 
   /**
-   * Returns live HostHeaven VPS services with 20% gross margin applied.
+   * Returns live HostHeaven VPS services with the current admin-configured gross margin applied.
    * Uses in-memory cache with automatic TTL refresh and graceful fallback on upstream outage.
    */
   async getLiveServices(forceRefresh = false): Promise<DirectCatalogueResponse> {
@@ -154,14 +165,23 @@ export class HostHeavenDirectCatalogueService {
     const currentMargin = settings.hostHeavenProfitMarginPercent ?? 20;
 
     // Recalculate selling price if margin setting changed since cache creation
-    const services = (this.cachedServices || []).map((svc) =>
+    const recalculatedServices = (this.cachedServices || []).map((svc) =>
       this.recalculateServiceMargin(svc, currentMargin),
+    );
+
+    // Keep provider costs and profit calculations internal; expose only customer prices.
+    const services: PublicDirectHostHeavenService[] = recalculatedServices.map(
+      ({ billingOptions, ...service }) => ({
+        ...service,
+        billingOptions: billingOptions.map(
+          ({ providerCost, grossProfit, ...option }) => option,
+        ),
+      }),
     );
 
     return {
       services,
       total: services.length,
-      marginPercent: currentMargin,
       currency: 'INR',
       lastSyncedAt: new Date(this.lastCacheTime).toISOString(),
       isStale: this.isCacheStale,
@@ -183,6 +203,22 @@ export class HostHeavenDirectCatalogueService {
 
       // 1. Fetch live zones
       const zones = await this.hostheavenService.getZones();
+
+      this.logger.log(
+        `Direct catalogue received ${Array.isArray(zones) ? zones.length : 'invalid'} zones`,
+      );
+      if (Array.isArray(zones)) {
+        this.logger.log(
+          `Direct catalogue zone statuses: ${JSON.stringify(
+            zones.map((z) => ({
+              id: z.id,
+              status: z.status,
+              isAvailable: z.isAvailable,
+            })),
+          )}`,
+        );
+      }
+
       if (!Array.isArray(zones) || zones.length === 0) {
         throw new Error('HostHeaven API returned an empty zones list');
       }

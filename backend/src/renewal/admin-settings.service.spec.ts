@@ -27,6 +27,52 @@ describe('AdminSettingsService', () => {
     expect(settings.suspensionPolicy).toBe('AUTO_SUSPEND_ON_EXPIRY');
     expect(settings.terminationPolicy).toBe('AUTO_TERMINATE_AFTER_GRACE');
     expect(settings.renewalPricingModel).toBe('PLAN_SELLING_PRICE');
+    expect(settings.nexaVpsProfitMarginPercent).toBe(20);
+    expect(settings.dedicatedIpEnabled).toBe(false);
+  });
+
+
+  it('saves Nexa profit margin independently from HostHeaven margin', async () => {
+    mockPrisma.systemSetting.upsert.mockResolvedValue({});
+    mockPrisma.systemSetting.findMany.mockResolvedValue([
+      { key: 'NEXAVPS_PROFIT_MARGIN_PERCENT', value: '35.5' },
+      { key: 'HOSTHEAVEN_PROFIT_MARGIN_PERCENT', value: '20' },
+    ]);
+
+    const updated = await service.updateSettings({
+      nexaVpsProfitMarginPercent: 35.5,
+    });
+
+    expect(mockPrisma.systemSetting.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { key: 'NEXAVPS_PROFIT_MARGIN_PERCENT' },
+        create: expect.objectContaining({ value: '35.5' }),
+      }),
+    );
+    expect(updated.nexaVpsProfitMarginPercent).toBe(35.5);
+    expect(updated.hostHeavenProfitMarginPercent).toBe(20);
+  });
+
+
+  it('saves Dedicated IP availability independently', async () => {
+    mockPrisma.systemSetting.upsert.mockResolvedValue({});
+    mockPrisma.systemSetting.findMany.mockResolvedValue([
+      { key: 'DEDICATED_IP_ENABLED', value: 'true' },
+      { key: 'NEXAVPS_PROFIT_MARGIN_PERCENT', value: '35' },
+    ]);
+
+    const updated = await service.updateSettings({
+      dedicatedIpEnabled: true,
+    });
+
+    expect(mockPrisma.systemSetting.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { key: 'DEDICATED_IP_ENABLED' },
+        create: expect.objectContaining({ value: 'true' }),
+      }),
+    );
+    expect(updated.dedicatedIpEnabled).toBe(true);
+    expect(updated.nexaVpsProfitMarginPercent).toBe(35);
   });
 
   it('updates and persists settings into SystemSetting table', async () => {

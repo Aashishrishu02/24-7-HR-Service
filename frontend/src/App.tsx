@@ -36,11 +36,13 @@ function App() {
     pathname === "/my-vps" ||
     pathname === "/windows-vps" ||
     pathname === "/linux-vps" ||
+    pathname === "/dedicated-ip" ||
     pathname === "/support" ||
     pathname === "/checkout"
   ) {
     return <Dashboard />;
   }
+
 
   if (pathname === "/login" || pathname === "/register") {
     return <AuthApp />;

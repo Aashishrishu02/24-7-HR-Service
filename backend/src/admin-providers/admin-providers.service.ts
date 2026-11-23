@@ -5,6 +5,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
 import { VpsService } from '../vps/vps.service.js';
+import { NexaVpsService } from '../nexavps/nexavps.service.js';
+import { DedicatedIpSyncService } from '../nexavps/dedicated-ip-sync.service.js';
 
 @Injectable()
 export class AdminProvidersService {
@@ -12,6 +14,8 @@ export class AdminProvidersService {
     private readonly prisma: PrismaService,
     private readonly hostheavenService: HostHeavenService,
     private readonly vpsService: VpsService,
+    private readonly nexaVpsService: NexaVpsService,
+    private readonly dedicatedIpSyncService: DedicatedIpSyncService,
   ) {}
 
   private readonly providerSelect = {
@@ -69,7 +73,7 @@ export class AdminProvidersService {
   async getConnectionStatus(id: string) {
     const provider = await this.findOne(id);
 
-    if (provider.code !== 'HOSTHEAVEN') {
+    if (!['HOSTHEAVEN', 'NEXAVPS'].includes(provider.code)) {
       return null;
     }
 
@@ -85,6 +89,52 @@ export class AdminProvidersService {
     } catch {
       return null;
     }
+  }
+
+  async getCatalogue(id: string) {
+    const provider = await this.findOne(id);
+
+    if (provider.code !== 'NEXAVPS') {
+      throw new NotFoundException('Nexa VPS provider not found');
+    }
+
+    return {
+      providerId: provider.id,
+      providerName: provider.name,
+      providerCode: provider.code,
+      ...(await this.nexaVpsService.getPlans(provider.baseUrl || undefined)),
+      fetchedAt: new Date().toISOString(),
+    };
+  }
+
+  async getDedicatedIpSyncStatus(id: string) {
+    await this.findOne(id);
+    return this.dedicatedIpSyncService.getSyncStatus(id);
+  }
+
+  async syncDedicatedIpCatalogue(id: string) {
+    await this.findOne(id);
+    return this.dedicatedIpSyncService.syncCatalogue(id);
+  }
+
+  async getBalance(id: string) {
+    const provider = await this.findOne(id);
+
+    if (provider.code !== 'NEXAVPS') {
+      throw new NotFoundException('Nexa VPS provider not found');
+    }
+
+    const result = await this.nexaVpsService.getBalance(
+      provider.baseUrl || undefined,
+    );
+
+    return {
+      providerId: provider.id,
+      providerName: provider.name,
+      providerCode: provider.code,
+      currency: provider.currency || 'INR',
+      ...result,
+    };
   }
 
   async testConnection(id: string) {
@@ -113,6 +163,36 @@ export class AdminProvidersService {
         providerName: provider.name,
         providerCode: provider.code,
         ...savedResult,
+      };
+    }
+
+    if (provider.code === 'NEXAVPS') {
+      const result = await this.nexaVpsService.testConnection(provider.baseUrl || undefined);
+      const testedAt = new Date().toISOString();
+      const savedResult = { ...result, testedAt };
+
+      await this.prisma.systemSetting.upsert({
+        where: { key: `PROVIDER_CONNECTION_STATUS_${provider.id}` },
+        create: {
+          key: `PROVIDER_CONNECTION_STATUS_${provider.id}`,
+          value: JSON.stringify(savedResult),
+          description: 'Last Nexa VPS connection test result',
+        },
+        update: {
+          value: JSON.stringify(savedResult),
+          description: 'Last Nexa VPS connection test result',
+        },
+      });
+
+      return {
+        providerId: provider.id,
+        providerName: provider.name,
+        providerCode: provider.code,
+        ...savedResult,
+        wallet: {
+          balance: 0,
+          currency: provider.currency || 'INR',
+        },
       };
     }
 

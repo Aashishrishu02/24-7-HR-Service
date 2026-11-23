@@ -1,5 +1,5 @@
 
-import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator';
+import { IsOptional, IsInt, IsNumber, Min, Max, IsString, IsBoolean } from 'class-validator';
 
 export class UpdateRenewalSettingsDto {
   @IsOptional()
@@ -37,7 +37,7 @@ export class UpdateRenewalSettingsDto {
   renewalPricingModel?: string;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   @Max(100)
   hostHeavenMarkupPercent?: number;
@@ -47,4 +47,14 @@ export class UpdateRenewalSettingsDto {
   @Min(0)
   @Max(80)
   hostHeavenProfitMarginPercent?: number;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Max(80)
+  nexaVpsProfitMarginPercent?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  dedicatedIpEnabled?: boolean;
 }

@@ -196,12 +196,8 @@ export class CheckoutService {
   }
 
   /**
-   * Directly provisions a HostHeaven VPS order from live catalogue parameters.
-   * - Validates configuration and rates directly against HostHeaven live catalogue.
-   * - Computes authoritative customer price using 20% margin server-side.
-   * - Verifies customer wallet balance.
-   * - Creates the VM on HostHeaven provider using HostHeaven wallet.
-   * - Debits customer wallet and creates Order & VPSInstance atomically.
+   * Creates a customer order before calling HostHeaven.
+   * Uncertain provider outcomes remain pending for reconciliation.
    */
   async checkoutDirectHostHeaven(
     userId: string,
@@ -209,6 +205,12 @@ export class CheckoutService {
   ) {
     if (!this.hostheavenDirectCatalogueService || !this.hostheavenService) {
       throw new BadRequestException('HostHeaven provider service is not initialized');
+    }
+
+    if ((dto.paymentMethod ?? 'WALLET') !== 'WALLET') {
+      throw new BadRequestException(
+        'Only wallet payment is currently supported for direct HostHeaven checkout.',
+      );
     }
 
     const user = await this.prisma.user.findUnique({
@@ -220,7 +222,6 @@ export class CheckoutService {
       throw new NotFoundException('Active customer account not found');
     }
 
-    // 1. Validate configuration and calculate authoritative price with 20% margin
     const validated = await this.hostheavenDirectCatalogueService.validateConfiguration({
       zoneId: dto.zoneId,
       zoneIsoId: dto.zoneIsoId,
@@ -232,9 +233,10 @@ export class CheckoutService {
       months: dto.months || 1,
     });
 
-    const finalAmountDec = new Prisma.Decimal(validated.customerSellingPrice.toFixed(2));
+    const finalAmountDec = new Prisma.Decimal(
+      validated.customerSellingPrice.toFixed(2),
+    );
 
-    // 2. Verify payment method (wallet)
     const userWallet = await this.prisma.wallet.upsert({
       where: { userId },
       create: { userId },
@@ -245,58 +247,28 @@ export class CheckoutService {
       throw new BadRequestException('Wallet currency must be INR');
     }
 
-    if (userWallet.balance.lessThan(finalAmountDec)) {
-      throw new BadRequestException(
-        `Insufficient wallet balance. Required: ₹${validated.customerSellingPrice.toFixed(2)}, Available: ₹${Number(userWallet.balance).toFixed(2)}`,
-      );
-    }
+    const orderNumber = `HH-${Date.now()}-${randomUUID()
+      .replaceAll('-', '')
+      .slice(0, 8)
+      .toUpperCase()}`;
 
-    // 3. Create the VM upstream on HostHeaven via provider wallet
-    let vmResponse: any;
-    try {
-      vmResponse = await this.hostheavenService.createVm({
-        zoneId: validated.zoneId,
-        zoneIsoId: validated.zoneIsoId,
-        planType: validated.planType,
-        cpuPriceId: validated.cpuPriceId,
-        ramPriceId: validated.ramPriceId,
-        diskPriceId: validated.diskPriceId,
-        bandwidthPriceId: validated.bandwidthPriceId,
-        months: validated.months,
-        quantity: 1,
-        useWalletBalance: true,
-      });
-    } catch (hhErr: any) {
-      const msg = hhErr?.message || String(hhErr);
-      throw new BadRequestException(`HostHeaven VM provisioning failed: ${msg}`);
-    }
-
-    if (vmResponse.status === 'FAILED') {
-      throw new BadRequestException(
-        `HostHeaven VM creation was rejected by provider: ${vmResponse.message || 'Unknown error'}`,
-      );
-    }
-
-    // 4. Atomically debit customer wallet and record Order & VPSInstance
-    const orderNumber = `HH-${Date.now()}-${randomUUID().replaceAll('-', '').slice(0, 8).toUpperCase()}`;
-
-    const result = await this.prisma.$transaction(async (tx) => {
-      // Debit customer wallet
+    // Create the order, payment, provisioning job and wallet debit BEFORE
+    // contacting the provider. This gives uncertain requests a local record.
+    const localOrder = await this.prisma.$transaction(async (tx) => {
       const debitResult = await tx.wallet.updateMany({
         where: {
           id: userWallet.id,
           balance: { gte: finalAmountDec },
         },
-        data: {
-          balance: { decrement: finalAmountDec },
-        },
+        data: { balance: { decrement: finalAmountDec } },
       });
 
       if (debitResult.count !== 1) {
-        throw new ConflictException('Concurrent wallet debit failed. Please try again.');
+        throw new ConflictException(
+          `Insufficient wallet balance or concurrent debit. Required: ₹${validated.customerSellingPrice.toFixed(2)}`,
+        );
       }
 
-      // Maintain internal system VPSPlan for relational consistency
       const systemPlan = await tx.vPSPlan.upsert({
         where: { id: validated.serviceId },
         create: {
@@ -329,7 +301,7 @@ export class CheckoutService {
           operatingSystem: validated.isoName,
           amount: finalAmountDec,
           currency: 'INR',
-          status: 'ACTIVE',
+          status: 'PROVISIONING',
         },
       });
 
@@ -359,51 +331,227 @@ export class CheckoutService {
             orderId: order.id,
             orderNumber,
             serviceId: validated.serviceId,
-            providerOrderId: vmResponse.orderId,
           },
         },
       });
 
-      const assignedVm = vmResponse.vms?.[0];
-      const providerVpsId =
-        assignedVm?.vmId || assignedVm?.id || `hh-vm-${orderNumber.toLowerCase()}`;
-      const uniqueOctet = Math.floor(Math.random() * 200) + 20;
-      const uniqueSub = Math.floor(Math.random() * 250) + 1;
-      const uniqueHost = Math.floor(Math.random() * 250) + 1;
-      const ipAddress =
-        assignedVm?.ipAddress ||
-        `103.${uniqueOctet}.${uniqueSub}.${uniqueHost}`;
-      const hostname =
-        dto.hostname?.trim() ||
-        assignedVm?.hostname ||
-        `vps-${orderNumber.toLowerCase()}.247hrservice.com`;
-      const expiresAt = new Date(Date.now() + validated.months * 30 * 24 * 60 * 60 * 1000);
-
-      const vps = await tx.vPSInstance.create({
+      const job = await tx.provisioningJob.create({
         data: {
-          userId,
           orderId: order.id,
-          provider: 'HOSTHEAVEN',
-          providerVpsId,
-          ipAddress,
-          hostname,
-          operatingSystem: validated.isoName,
-          ram: validated.ramGb,
-          status: vmResponse.status === 'COMPLETED' ? 'ACTIVE' : 'PENDING',
-          expiresAt,
+          source: 'PROVIDER_API',
+          status: 'PROVISIONING',
+          idempotencyKey: `hostheaven-direct:${orderNumber}`,
+          startedAt: new Date(),
         },
       });
 
-      return { order, vps, payment };
+      return {
+        order,
+        payment,
+        job,
+        walletId: userWallet.id,
+      };
     });
 
-    return {
-      success: true,
-      message: 'HostHeaven VPS provisioned successfully',
-      order: result.order,
-      vps: result.vps,
-      providerOrderId: vmResponse.orderId,
-    };
+    let vmResponse: any;
+
+    try {
+      vmResponse = await this.hostheavenService.createVm({
+        zoneId: validated.zoneId,
+        zoneIsoId: validated.zoneIsoId,
+        planType: validated.planType,
+        cpuPriceId: validated.cpuPriceId,
+        ramPriceId: validated.ramPriceId,
+        diskPriceId: validated.diskPriceId,
+        bandwidthPriceId: validated.bandwidthPriceId,
+        months: validated.months,
+        quantity: 1,
+        useWalletBalance: true,
+      });
+    } catch (error: any) {
+      const message = error?.message || String(error);
+
+      await this.prisma.provisioningJob.update({
+        where: { id: localOrder.job.id },
+        data: {
+          status: 'PROVISIONING',
+          errorCode: 'PROVIDER_OUTCOME_UNKNOWN',
+          errorMessage: message.slice(0, 1000),
+        },
+      });
+
+      return {
+        success: true,
+        status: 'PROVISIONING',
+        message: 'Payment recorded. Provider outcome is uncertain; order requires reconciliation. No refund has been issued.',
+        order: localOrder.order,
+        providerRequestId: null,
+      };
+    }
+
+    const providerRequestId =
+      vmResponse?.orderId != null ? String(vmResponse.orderId) : null;
+
+    if (vmResponse?.status === 'FAILED') {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.wallet.update({
+          where: { id: localOrder.walletId },
+          data: { balance: { increment: finalAmountDec } },
+        });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: localOrder.walletId,
+            type: 'REFUND',
+            amount: finalAmountDec,
+            currency: 'INR',
+            reference: orderNumber,
+            idempotencyKey: `wallet-vps-refund:${orderNumber}`,
+            description: `Refund for failed HostHeaven VPS purchase - ${validated.serviceName}`,
+            paymentId: localOrder.payment.id,
+            metadata: {
+              orderId: localOrder.order.id,
+              providerRequestId,
+            },
+          },
+        });
+
+        await tx.payment.update({
+          where: { id: localOrder.payment.id },
+          data: { status: 'REFUNDED' },
+        });
+
+        await tx.order.update({
+          where: { id: localOrder.order.id },
+          data: { status: 'FAILED' },
+        });
+
+        await tx.provisioningJob.update({
+          where: { id: localOrder.job.id },
+          data: {
+            status: 'FAILED',
+            providerRequestId,
+            errorCode: 'PROVIDER_REJECTED',
+            errorMessage: String(vmResponse?.message || 'Provider rejected VM creation').slice(0, 1000),
+            completedAt: new Date(),
+          },
+        });
+      });
+
+      return {
+        success: false,
+        status: 'FAILED',
+        message: 'HostHeaven rejected the VPS purchase. Customer wallet has been refunded.',
+        orderId: localOrder.order.id,
+        providerRequestId,
+      };
+    }
+
+    // Save the provider reference, but never treat PENDING or incomplete
+    // COMPLETED responses as an active VPS.
+    await this.prisma.provisioningJob.update({
+      where: { id: localOrder.job.id },
+      data: {
+        status: 'PROVISIONING',
+        providerRequestId,
+        errorCode: null,
+        errorMessage: null,
+      },
+    });
+
+    const assignedVm = vmResponse?.vms?.[0];
+    const providerVpsId = assignedVm?.vmId;
+    const ipAddress = assignedVm?.ipAddress;
+
+    if (
+      vmResponse?.status !== 'COMPLETED' ||
+      !providerVpsId ||
+      !ipAddress
+    ) {
+      return {
+        success: true,
+        status: 'PROVISIONING',
+        message: 'Payment recorded. HostHeaven provisioning is pending or provider VM details are incomplete. No VPS has been marked active and no refund has been issued.',
+        order: localOrder.order,
+        providerRequestId,
+      };
+    }
+
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        const hostname =
+          dto.hostname?.trim() ||
+          assignedVm?.hostname ||
+          assignedVm?.vmName ||
+          `vps-${orderNumber.toLowerCase()}.247hrservice.com`;
+
+        const expiresAt = new Date(
+          Date.now() + validated.months * 30 * 24 * 60 * 60 * 1000,
+        );
+
+        const vps = await tx.vPSInstance.create({
+          data: {
+            userId,
+            orderId: localOrder.order.id,
+            provider: 'HOSTHEAVEN',
+            providerVpsId: String(providerVpsId),
+            ipAddress: String(ipAddress),
+            hostname,
+            operatingSystem: validated.isoName,
+            ram: validated.ramGb,
+            status: 'ACTIVE',
+            expiresAt,
+          },
+        });
+
+        const order = await tx.order.update({
+          where: { id: localOrder.order.id },
+          data: { status: 'ACTIVE' },
+        });
+
+        await tx.provisioningJob.update({
+          where: { id: localOrder.job.id },
+          data: {
+            status: 'COMPLETED',
+            providerRequestId,
+            completedAt: new Date(),
+            errorCode: null,
+            errorMessage: null,
+          },
+        });
+
+        return { order, vps };
+      });
+
+      return {
+        success: true,
+        status: 'ACTIVE',
+        message: 'HostHeaven VPS provisioned successfully.',
+        order: result.order,
+        vps: result.vps,
+        providerOrderId: providerRequestId,
+      };
+    } catch (error: any) {
+      // The provider may already have created the VM. Keep the paid order
+      // pending for reconciliation; never issue an automatic refund here.
+      await this.prisma.provisioningJob.update({
+        where: { id: localOrder.job.id },
+        data: {
+          status: 'PROVISIONING',
+          providerRequestId,
+          errorCode: 'LOCAL_FINALIZATION_FAILED',
+          errorMessage: String(error?.message || error).slice(0, 1000),
+        },
+      });
+
+      return {
+        success: true,
+        status: 'PROVISIONING',
+        message: 'HostHeaven created the VM, but local VPS registration needs reconciliation. No refund has been issued.',
+        order: localOrder.order,
+        providerRequestId,
+      };
+    }
   }
 
   async payWithWallet(userId: string, orderId: string) {
@@ -770,123 +918,30 @@ export class CheckoutService {
       };
     }
 
-    // 3. Confirm that NO VPS was created before refunding:
-    const payment = order.payments.find(
-      (p) => p.status === 'CAPTURED' && p.provider === 'WALLET',
-    );
+    // A missing local VPS record does NOT prove that HostHeaven did not create one.
+    // Keep the order and payment untouched until provider-side verification is available.
+    return {
+      message: 'Provider-side verification is required. No refund has been issued.',
+      status: 'REQUIRES_MANUAL_REVIEW',
+      orderId: order.id,
+      providerRequestId: latestJob?.providerRequestId ?? null,
+    };
 
-    if (!payment) {
-      const existingRefund = await this.prisma.walletTransaction.findFirst({
-        where: {
-          reference: order.orderNumber,
-          type: 'REFUND',
-        },
-      });
 
-      if (existingRefund) {
-        return {
-          message: 'Order has already been refunded',
-          status: 'REFUNDED',
-          orderId: order.id,
-        };
-      }
-
-      throw new BadRequestException(
-        'No captured wallet payment found for this order to refund',
-      );
-    }
-
-    // Execute atomic, idempotent refund
-    return await this.prisma.$transaction(
-      async (tx) => {
-        const existingRefundTx = await tx.walletTransaction.findFirst({
-          where: {
-            paymentId: payment.id,
-            type: 'REFUND',
-          },
-        });
-
-        if (existingRefundTx) {
-          const userWallet = await tx.wallet.findUniqueOrThrow({
-            where: { userId: order.userId },
-          });
-          return {
-            message: 'Order has already been refunded',
-            status: 'REFUNDED',
-            balance: userWallet.balance,
-          };
-        }
-
-        const userWallet = await tx.wallet.findUniqueOrThrow({
-          where: { userId: order.userId },
-        });
-
-        const updatedWallet = await tx.wallet.update({
-          where: { id: userWallet.id },
-          data: {
-            balance: {
-              increment: payment.amount,
-            },
-          },
-        });
-
-        await tx.walletTransaction.create({
-          data: {
-            walletId: userWallet.id,
-            type: 'REFUND',
-            amount: payment.amount,
-            currency: 'INR',
-            reference: order.orderNumber,
-            idempotencyKey: `wallet-vps-refund:${order.id}`,
-            description: `Refund after reconciliation confirmed no VPS created - Order ${order.orderNumber}`,
-            paymentId: payment.id,
-            metadata: {
-              orderId: order.id,
-              orderNumber: order.orderNumber,
-              reason: 'Reconciliation confirmed no VPS was created by provider',
-            },
-          },
-        });
-
-        await tx.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: 'REFUNDED',
-          },
-        });
-
-        await tx.order.update({
-          where: { id: order.id },
-          data: {
-            status: 'FAILED',
-          },
-        });
-
-        if (latestJob) {
-          await tx.provisioningJob.update({
-            where: { id: latestJob.id },
-            data: {
-              status: 'CANCELLED',
-            },
-          });
-        }
-
-        return {
-          message:
-            'Reconciliation confirmed no VPS was created. Order refunded in full.',
-          status: 'REFUNDED',
-          refundedAmount: payment.amount,
-          balance: updatedWallet.balance,
-          currency: updatedWallet.currency,
-        };
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      },
-    );
   }
 
   async refundOrder(orderId: string, adminUserId?: string) {
-    return this.reconcileOrder(orderId);
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    throw new BadRequestException(
+      'Automatic refund is disabled until provider-side VPS absence is verified.',
+    );
   }
 }

@@ -16,6 +16,7 @@ describe('HostHeaven Live Monthly Pricing + 20% Customer Profit Margin — 10 Ac
   let mockPrisma: any;
   let mockHostHeavenService: any;
   let mockAdminSettingsService: any;
+  let mockDirectCatalogueService: any;
   let syncService: HostHeavenSyncService;
   let publicPlansController: PublicPlansController;
   let checkoutService: CheckoutService;
@@ -114,6 +115,10 @@ describe('HostHeaven Live Monthly Pricing + 20% Customer Profit Margin — 10 Ac
       }),
     };
 
+    mockDirectCatalogueService = {
+      getLiveServices: vi.fn().mockResolvedValue([]),
+    };
+
     syncService = new HostHeavenSyncService(
       mockPrisma,
       mockHostHeavenService,
@@ -123,6 +128,8 @@ describe('HostHeaven Live Monthly Pricing + 20% Customer Profit Margin — 10 Ac
     publicPlansController = new PublicPlansController(
       mockPrisma,
       mockAdminSettingsService,
+      mockDirectCatalogueService,
+      { getPlans: vi.fn().mockResolvedValue({ success: false, plans: [] }) },
     );
 
     checkoutService = new CheckoutService(

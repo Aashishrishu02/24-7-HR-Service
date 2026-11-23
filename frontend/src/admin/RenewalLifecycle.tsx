@@ -25,7 +25,7 @@ type RenewalSettings = {
   terminationPolicy: string;
   renewalPricingModel: string;
   hostHeavenMarkupPercent: number;
-  hostHeavenProfitMarginPercent: number;
+  hostHeavenProfitMarginPercent: number | "";
 };
 
 type UpcomingRenewal = {
@@ -172,9 +172,10 @@ export default function RenewalLifecycle() {
     e.preventDefault();
 
     if (
-      isNaN(Number(settings.hostHeavenProfitMarginPercent)) ||
-      settings.hostHeavenProfitMarginPercent < 0 ||
-      settings.hostHeavenProfitMarginPercent > 80
+      settings.hostHeavenProfitMarginPercent === "" ||
+      !Number.isFinite(Number(settings.hostHeavenProfitMarginPercent)) ||
+      Number(settings.hostHeavenProfitMarginPercent) < 0 ||
+      Number(settings.hostHeavenProfitMarginPercent) > 80
     ) {
       setError("HostHeaven profit margin must be between 0% and 80%.");
       return;
@@ -208,7 +209,7 @@ export default function RenewalLifecycle() {
         ),
       }));
 
-      setMessage("Renewal, lifecycle and HostHeaven pricing settings updated successfully!");
+      setMessage("Renewal, lifecycle and HostHeaven settings updated successfully!");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to save settings");
     } finally {
@@ -459,7 +460,7 @@ export default function RenewalLifecycle() {
                 onChange={(e) =>
                   setSettings({
                     ...settings,
-                    hostHeavenProfitMarginPercent: Number(e.target.value),
+                    hostHeavenProfitMarginPercent: e.target.value === "" ? "" : Number(e.target.value),
                   })
                 }
                 className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
