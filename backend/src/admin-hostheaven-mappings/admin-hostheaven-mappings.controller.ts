@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Delete,
   Param,
@@ -35,6 +36,11 @@ export class AdminHostHeavenMappingsController {
   @Post('sync')
   async syncNow() {
     return this.mappingsService.syncNow();
+  }
+
+  @Put('profit-margin')
+  async updateProfitMargin(@Body('profitMarginPercent') value: number) {
+    return this.mappingsService.updateProfitMargin(Number(value));
   }
 
   @Get('sync/status')

@@ -7,7 +7,6 @@ import {
   MapPin,
   Network,
   RefreshCw,
-  ShieldCheck,
   Zap,
 } from "lucide-react";
 
@@ -54,7 +53,7 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
       setPlans(receivedPlans.filter((plan) => plan.inStock === true));
     } catch {
       setPlans([]);
-      setError("Plans are temporarily unavailable. Please try again.");
+      setError("Dedicated IP catalogue is temporarily unavailable. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -65,83 +64,107 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
   }, [loadPlans]);
 
   const formatPrice = (price: number, currency: string) => {
+    const val = typeof price === "number" ? price : Number(price);
+    if (!Number.isFinite(val) || val <= 0) return "—";
+
+    if (!currency || typeof currency !== "string") return "—";
+    const curr = currency.trim().toUpperCase();
+    const isValidCurrency = /^[A-Z]{3}$/.test(curr);
+    if (!isValidCurrency) return "—";
+
     try {
-      return new Intl.NumberFormat("en-IN", {
+      const locale = curr === "INR" ? "en-IN" : "en-US";
+      return new Intl.NumberFormat(locale, {
         style: "currency",
-        currency: currency || "INR",
+        currency: curr,
         maximumFractionDigits: 2,
-      }).format(price);
+        minimumFractionDigits: 2,
+      }).format(val);
     } catch {
-      return `₹${price.toFixed(2)}`;
+      return "—";
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#080e1b] text-white">
-      {!embedded && <nav className="bg-white shadow-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 lg:px-10">
-          <a href="/" className="flex items-center gap-2">
-            <img
-              src={logo}
-              alt="24/7 Logo"
-              className="h-11 w-11 rounded-full object-contain"
-            />
-            <span className="text-base font-extrabold tracking-tight text-slate-900 sm:text-xl">
-              24/7 HR SERVICE EVERYDAY
-            </span>
-          </a>
-          <div className="flex items-center gap-4 text-sm font-semibold text-slate-700">
-            <a href="/" className="transition hover:text-blue-600">
-              Home
+    <main className="min-h-screen bg-[#171717] font-sans text-[#F1E9DA]">
+      {!embedded && (
+        <nav className="border-b border-[#292521] bg-[#171717]/90 backdrop-blur-md">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-10">
+            <a href="/" className="flex items-center gap-3 group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#C6A66B]/40 bg-[#292521] p-1">
+                <img
+                  src={logo}
+                  alt="24/7 Logo"
+                  className="h-full w-full rounded-full object-contain"
+                />
+              </div>
+              <div>
+                <span className="block font-serif text-lg font-bold text-[#F1E9DA] group-hover:text-[#C6A66B] transition">
+                  24/7 CLOUD HOSTING
+                </span>
+                <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-[#C6A66B]">
+                  Dedicated IPv4
+                </span>
+              </div>
             </a>
-            <a href="/login" className="transition hover:text-blue-600">
-              Login
-            </a>
+            <div className="flex items-center gap-6 text-xs font-semibold uppercase tracking-wider text-[#F1E9DA]/80">
+              <a href="/" className="transition hover:text-[#C6A66B]">
+                Home
+              </a>
+              <a
+                href="/login"
+                className="rounded-lg border border-[#292521] px-4 py-2 transition hover:border-[#C6A66B] hover:text-[#C6A66B]"
+              >
+                Login
+              </a>
+            </div>
           </div>
-        </div>
-      </nav>}
+        </nav>
+      )}
 
-      <section className="border-b border-slate-800 bg-[#0c1424] px-5 py-14 sm:py-20">
+      {/* Header Banner */}
+      <section className="border-b border-[#292521] bg-[#201d1a] px-6 py-14 sm:py-20">
         <div className="mx-auto max-w-7xl">
-          {!embedded && <a
-            href="/"
-            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-slate-400 transition hover:text-white"
-          >
-            <ArrowLeft size={16} /> Back to Home
-          </a>}
+          {!embedded && (
+            <a
+              href="/"
+              className="mb-8 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#F1E9DA]/60 transition hover:text-[#C6A66B]"
+            >
+              <ArrowLeft size={15} /> Back to Home
+            </a>
+          )}
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-300">
-              Dedicated IP Solutions
+            <span className="rounded-full border border-[#C6A66B]/30 bg-[#292521] px-3.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-[#C6A66B]">
+              Dedicated IPv4 Solutions
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-              <ShieldCheck size={15} /> Live plan catalogue
+            <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-emerald-400">
+              <Network size={15} /> In-Stock Inventory
             </span>
           </div>
 
-          <h1 className="mt-5 max-w-3xl text-3xl font-extrabold leading-tight sm:text-5xl">
-            Dedicated IP Plans
+          <h1 className="mt-5 max-w-3xl font-serif text-3xl font-bold leading-tight text-[#F1E9DA] sm:text-5xl">
+            Dedicated IPv4 Allocations
           </h1>
-          <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-            Explore dedicated IP options with clear pricing, locations,
-            network speed and availability. Choose a plan that fits your
-            requirements.
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-[#F1E9DA]/70 sm:text-sm">
+            Dedicated IPv4 address allocations available across designated regional locations with assigned network transit specifications.
           </p>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-12 lg:px-10 lg:py-16">
+      {/* Main Catalogue */}
+      <section className="mx-auto max-w-7xl px-6 py-12 lg:px-10 lg:py-16">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[2px] text-cyan-400">
-              Available catalogue
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#C6A66B]">
+              AVAILABLE IP ALLOCATIONS
             </p>
-            <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">
-              Choose your IP plan
+            <h2 className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">
+              Choose Your Dedicated IP
             </h2>
             {!loading && (
-              <p className="mt-2 text-sm text-slate-400">
-                {plans.length} {plans.length === 1 ? "plan" : "plans"} listed
+              <p className="mt-1 text-xs text-[#F1E9DA]/60 font-mono">
+                {plans.length} {plans.length === 1 ? "allocation" : "allocations"} available
               </p>
             )}
           </div>
@@ -150,27 +173,27 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
             type="button"
             onClick={() => void loadPlans()}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-blue-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#332f2a] bg-[#201d1a] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#F1E9DA] transition hover:border-[#C6A66B] hover:text-[#C6A66B] disabled:opacity-50"
           >
-            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-            Refresh plans
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            Refresh Catalogue
           </button>
         </div>
 
         {loading && (
-          <div className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-slate-800 bg-[#111a2b]">
-            <Loader2 size={32} className="animate-spin text-cyan-400" />
-            <p className="text-sm text-slate-400">Loading dedicated IP plans...</p>
+          <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+            <Loader2 size={28} className="animate-spin text-[#C6A66B]" />
+            <p className="font-mono text-xs text-[#F1E9DA]/60">Verifying live IP catalogue...</p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-8 text-center">
-            <p className="font-semibold text-red-300">{error}</p>
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-center">
+            <p className="text-sm font-semibold text-red-300">{error}</p>
             <button
               type="button"
               onClick={() => void loadPlans()}
-              className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-500"
+              className="mt-4 rounded-lg bg-[#C6A66B] px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8ba82]"
             >
               Try again
             </button>
@@ -178,96 +201,97 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
         )}
 
         {!loading && !error && plans.length === 0 && (
-          <div className="rounded-2xl border border-slate-800 bg-[#111a2b] px-6 py-14 text-center">
-            <Network size={36} className="mx-auto text-slate-500" />
-            <h3 className="mt-4 text-xl font-bold">No plans available right now</h3>
-            <p className="mt-2 text-sm text-slate-400">
-              Please check again later.
+          <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] px-6 py-14 text-center">
+            <Network size={36} className="mx-auto text-[#C6A66B]/60" />
+            <h3 className="mt-4 font-serif text-xl font-bold text-[#F1E9DA]">
+              No allocations available right now
+            </h3>
+            <p className="mt-2 text-xs text-[#F1E9DA]/60">
+              Please check back shortly or speak to our infrastructure team for custom subnets.
             </p>
           </div>
         )}
 
         {!loading && !error && plans.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {plans.map((plan, index) => (
+            {plans.map((plan) => (
               <article
                 key={plan.id || plan.name}
-                className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-[#0b1531]/90 p-5 shadow-[0_16px_50px_rgba(0,0,0,.22)] transition duration-300 hover:-translate-y-1 hover:border-cyan-400/70 ${index === 1 ? "border-cyan-400/60" : "border-blue-900/70"}`}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-xl transition duration-200 hover:-translate-y-1 hover:border-[#C6A66B]/60"
               >
-                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-600" />
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2 text-cyan-100">
-                    <Network size={18} />
-                    <span className="text-xs font-semibold uppercase tracking-wider">
-                      Dedicated IP
-                    </span>
-                  </div>
-                  <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
-                    Available
-                  </span>
-                </div>
-
-                <p className="mt-5 text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  {plan.category || "Dedicated IP"}
-                </p>
-                <h3 className="mt-2 text-xl font-extrabold leading-snug">
-                  {plan.name}
-                </h3>
-                {plan.tier && (
-                  <p className="mt-2 text-sm text-slate-400">{plan.tier}</p>
-                )}
-
-                <div className="my-5 rounded-xl border border-blue-900/60 bg-[#08132d] p-4">
-                  <p className="text-xs font-semibold text-slate-400">
-                    Customer price
-                  </p>
-                  <p className="mt-1 text-3xl font-extrabold text-white">
-                    {formatPrice(plan.price, plan.currency)}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {plan.duration ? `Duration: ${plan.duration}` : "Plan duration as listed"}
-                  </p>
-                </div>
-
-                <div className="flex-1 space-y-3 border-y border-blue-900/60 py-4 text-sm text-slate-200">
-                  {(plan.country || plan.location) && (
-                    <div className="flex items-center gap-3">
-                      <MapPin size={16} className="shrink-0 text-cyan-400" />
-                      <span>
-                        {[plan.location, plan.country]
-                          .filter(Boolean)
-                          .join(", ")}
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 text-[#C6A66B]">
+                      <Network size={18} />
+                      <span className="font-mono text-xs font-semibold uppercase tracking-wider">
+                        Dedicated IPv4
                       </span>
                     </div>
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
+                      In Stock
+                    </span>
+                  </div>
+
+                  <p className="mt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
+                    {plan.category || "Dedicated IP"}
+                  </p>
+                  <h3 className="mt-1 font-serif text-xl font-bold text-[#F1E9DA]">
+                    {plan.name}
+                  </h3>
+                  {plan.tier && (
+                    <p className="mt-1 text-xs text-[#F1E9DA]/60">{plan.tier}</p>
                   )}
-                  {plan.speed && (
-                    <div className="flex items-center gap-3">
-                      <Zap size={16} className="shrink-0 text-cyan-400" />
-                      <span>{plan.speed}</span>
-                    </div>
-                  )}
-                  {plan.duration && (
-                    <div className="flex items-center gap-3">
-                      <Clock3 size={16} className="shrink-0 text-cyan-400" />
-                      <span>{plan.duration}</span>
-                    </div>
-                  )}
-                  {plan.supportedProtocols?.length > 0 && (
-                    <div className="flex items-start gap-3">
-                      <Globe size={16} className="mt-0.5 shrink-0 text-cyan-400" />
-                      <span>{plan.supportedProtocols.join(", ")}</span>
-                    </div>
-                  )}
+
+                  {/* Price Box */}
+                  <div className="my-5 rounded-xl border border-[#332f2a] bg-[#171717] p-4">
+                    <p className="text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
+                      Customer Price
+                    </p>
+                    <p className="mt-1 font-serif text-3xl font-bold text-[#F1E9DA]">
+                      {formatPrice(plan.price, plan.currency)}
+                    </p>
+                    <p className="mt-1 font-mono text-[10px] text-[#C6A66B]">
+                      {plan.duration ? `Duration: ${plan.duration}` : "Standard billing duration"}
+                    </p>
+                  </div>
+
+                  {/* Specifications */}
+                  <div className="space-y-2.5 border-t border-[#332f2a] pt-4 font-mono text-xs text-[#F1E9DA]/80">
+                    {(plan.country || plan.location) && (
+                      <div className="flex items-center gap-2.5">
+                        <MapPin size={15} className="shrink-0 text-[#C6A66B]" />
+                        <span>{[plan.location, plan.country].filter(Boolean).join(", ")}</span>
+                      </div>
+                    )}
+                    {plan.speed && (
+                      <div className="flex items-center gap-2.5">
+                        <Zap size={15} className="shrink-0 text-[#C6A66B]" />
+                        <span>{plan.speed} Transit</span>
+                      </div>
+                    )}
+                    {plan.duration && (
+                      <div className="flex items-center gap-2.5">
+                        <Clock3 size={15} className="shrink-0 text-[#C6A66B]" />
+                        <span>{plan.duration}</span>
+                      </div>
+                    )}
+                    {plan.supportedProtocols?.length > 0 && (
+                      <div className="flex items-start gap-2.5">
+                        <Globe size={15} className="mt-0.5 shrink-0 text-[#C6A66B]" />
+                        <span>{plan.supportedProtocols.join(", ")}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mt-6 border-t border-slate-700 pt-4">
+                <div className="mt-6 border-t border-[#332f2a] pt-4">
                   <button
                     type="button"
                     disabled
-                    className="w-full cursor-not-allowed rounded-xl bg-blue-600/40 px-4 py-3 text-sm font-bold text-blue-100/70"
-                    title="Online payments are not available yet"
+                    className="w-full cursor-not-allowed rounded-lg border border-[#332f2a] bg-[#171717] px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/40"
+                    title="Online checkout for standalone dedicated IP will be available in the next release"
                   >
-                    Buy Now
+                    Allocation via Support
                   </button>
                 </div>
               </article>
@@ -275,37 +299,34 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
           </div>
         )}
 
-        <div className="mt-10 flex items-start gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 p-5">
-          <ShieldCheck size={20} className="mt-0.5 shrink-0 text-cyan-400" />
+        <div className="mt-12 flex items-start gap-3.5 rounded-xl border border-[#C6A66B]/20 bg-[#201d1a] p-5">
+          <Network size={20} className="mt-0.5 shrink-0 text-[#C6A66B]" />
           <div>
-            <p className="text-sm font-bold text-white">
-              Secure and transparent pricing
+            <p className="text-xs font-bold uppercase tracking-wider text-[#F1E9DA]">
+              Dedicated IPv4 Allocation Information
             </p>
-            <p className="mt-1 text-sm leading-6 text-slate-400">
-              Prices shown are customer prices. Plan ordering and checkout are
-              not enabled yet. Availability may change when the catalogue is
-              refreshed.
+            <p className="mt-1 text-xs leading-relaxed text-[#F1E9DA]/70">
+              All listed IPv4 addresses represent discrete IP allocations from available provider inventory. Review location, duration, and transit specifications before requesting allocation.
             </p>
           </div>
         </div>
       </section>
 
-      {!embedded && <footer className="border-t border-slate-800 px-5 py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
-          <span className="text-sm font-extrabold">
-            24<span className="text-cyan-400">/7</span>
-          </span>
-          <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} 24/7. All rights reserved.
-          </p>
-          <a
-            href="/login"
-            className="text-xs text-slate-400 transition hover:text-cyan-400"
-          >
-            Customer Login
-          </a>
-        </div>
-      </footer>}
+      {!embedded && (
+        <footer className="border-t border-[#292521] px-6 py-8 text-xs text-[#F1E9DA]/60">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
+            <span className="font-serif text-sm font-bold text-[#F1E9DA]">
+              24/7 CLOUD HOSTING
+            </span>
+            <p className="text-[11px] text-[#F1E9DA]/50">
+              © {new Date().getFullYear()} 24/7 Cloud Hosting. All rights reserved.
+            </p>
+            <a href="/login" className="transition hover:text-[#C6A66B]">
+              Customer Login
+            </a>
+          </div>
+        </footer>
+      )}
     </main>
   );
 }

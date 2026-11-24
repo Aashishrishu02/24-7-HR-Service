@@ -18,6 +18,7 @@ import api from "./api";
 import Dashboard from "./Dashboard";
 import Home from "./Home";
 import AdminPanel from "./AdminPanel";
+import BuyLinuxIP from "./BuyLinuxIP";
 
 type Screen = "login" | "register" | "verify";
 
@@ -26,6 +27,13 @@ function App() {
 
   if (pathname === "/admin" || pathname === "/admin/login") {
     return <AdminPanel />;
+  }
+
+  const token = typeof window !== "undefined" ? sessionStorage.getItem("indiccloud_token") : null;
+
+  // Unauthenticated visitors to /dedicated-ip can view the dedicated IP catalogue directly
+  if (pathname === "/dedicated-ip" && !token) {
+    return <BuyLinuxIP embedded={false} />;
   }
 
   if (
@@ -38,11 +46,11 @@ function App() {
     pathname === "/linux-vps" ||
     pathname === "/dedicated-ip" ||
     pathname === "/support" ||
-    pathname === "/checkout"
+    pathname === "/checkout" ||
+    pathname === "/buy-vps"
   ) {
     return <Dashboard />;
   }
-
 
   if (pathname === "/login" || pathname === "/register") {
     return <AuthApp />;
@@ -96,7 +104,16 @@ function AuthApp() {
         response.data.token
       );
 
-      window.location.href = "/dashboard";
+      const params = new URLSearchParams(window.location.search);
+      const planId = params.get("planId");
+      const redirect = params.get("redirect");
+      if (planId) {
+        window.location.href = `/checkout?planId=${planId}`;
+      } else if (redirect) {
+        window.location.href = redirect;
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
@@ -194,47 +211,47 @@ function AuthApp() {
   };
 
   const inputClass =
-    "w-full rounded-lg border border-slate-700 bg-[#080e1b] px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15";
+    "w-full rounded-lg border border-[#332f2a] bg-[#171717] px-4 py-3.5 text-sm text-[#F1E9DA] outline-none transition placeholder:text-[#F1E9DA]/30 focus:border-[#C6A66B] focus:ring-1 focus:ring-[#C6A66B]/30";
 
   const labelClass =
-    "mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400";
+    "mb-2 block font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]";
 
   const primaryButton =
-    "flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60";
+    "flex w-full items-center justify-center gap-2 rounded-lg bg-[#C6A66B] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8ba82] disabled:cursor-not-allowed disabled:opacity-60 shadow-lg shadow-[#C6A66B]/15";
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#080e1b] px-4 py-10 text-white">
-      <div className="pointer-events-none absolute -left-40 top-0 h-96 w-96 rounded-full bg-blue-600/10 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-40 bottom-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px]" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#171717] px-4 py-10 font-sans text-[#F1E9DA]">
+      <div className="pointer-events-none absolute -left-40 top-0 h-96 w-96 rounded-full bg-[#C6A66B]/5 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-40 bottom-0 h-96 w-96 rounded-full bg-[#C6A66B]/5 blur-[120px]" />
 
       <div className="relative z-10 w-full max-w-[470px]">
         <div className="mb-7 flex items-center justify-between">
-          <a href="/" className="text-xl font-extrabold tracking-tight">
-            24<span className="text-blue-400">/7</span>
+          <a href="/" className="font-serif text-xl font-bold tracking-tight text-[#F1E9DA]">
+            24/7 <span className="text-[#C6A66B]">CLOUD</span>
           </a>
 
-          <span className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
-            <ShieldCheck size={14} />
-            Secure Infrastructure
+          <span className="flex items-center gap-1.5 rounded-full border border-[#C6A66B]/30 bg-[#292521] px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
+            <ShieldCheck size={13} />
+            Secure Enterprise
           </span>
         </div>
 
-        <div className="rounded-2xl border border-slate-700/70 bg-[#111a2b]/95 p-6 shadow-2xl shadow-black/30 sm:p-9">
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-2xl shadow-black/80 sm:p-9">
           <div className="mb-7 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/15 text-blue-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#C6A66B]/30 bg-[#171717] text-[#C6A66B]">
               {screen === "verify" ? (
-                <Mail size={23} />
+                <Mail size={22} />
               ) : (
-                <Server size={23} />
+                <Server size={22} />
               )}
             </div>
 
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-400">
-                Sovereign Cloud
+              <p className="font-mono text-[9px] font-bold uppercase tracking-[2px] text-[#C6A66B]">
+                Sovereign Infrastructure
               </p>
 
-              <h1 className="mt-1 text-xl font-bold">
+              <h1 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">
                 {screen === "login" && "Console Access"}
                 {screen === "register" && "Create Account"}
                 {screen === "verify" && "Email Verification"}
@@ -244,10 +261,10 @@ function AuthApp() {
 
           {screen === "login" && (
             <>
-              <div className="mb-7 grid grid-cols-2 rounded-lg bg-[#080e1b] p-1">
+              <div className="mb-7 grid grid-cols-2 rounded-lg border border-[#332f2a] bg-[#171717] p-1 font-mono text-xs">
                 <button
                   type="button"
-                  className="rounded-md bg-blue-600 py-2.5 text-xs font-bold text-white"
+                  className="rounded bg-[#C6A66B] py-2 text-xs font-bold uppercase tracking-wider text-[#171717]"
                 >
                   Sign In
                 </button>
@@ -258,9 +275,9 @@ function AuthApp() {
                     resetMessages();
                     setScreen("register");
                   }}
-                  className="rounded-md py-2.5 text-xs font-bold text-slate-400 transition hover:text-white"
+                  className="rounded py-2 text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/60 transition hover:text-[#F1E9DA]"
                 >
-                  Create Account
+                  Register
                 </button>
               </div>
 
@@ -270,7 +287,7 @@ function AuthApp() {
 
                   <div className="relative">
                     <Mail
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#F1E9DA]/40"
                       size={17}
                     />
 
@@ -293,10 +310,10 @@ function AuthApp() {
                       type="button"
                       onClick={() =>
                         setError(
-                          "Password recovery will be added in the next authentication step."
+                          "Password recovery can be requested directly via our 24/7 support desk."
                         )
                       }
-                      className="text-xs text-blue-400 hover:text-blue-300"
+                      className="text-xs text-[#C6A66B] hover:underline"
                     >
                       Forgot Password?
                     </button>
@@ -304,7 +321,7 @@ function AuthApp() {
 
                   <div className="relative">
                     <LockKeyhole
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#F1E9DA]/40"
                       size={17}
                     />
 
@@ -320,7 +337,7 @@ function AuthApp() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#F1E9DA]/40 hover:text-[#F1E9DA]"
                     >
                       {showPassword ? (
                         <EyeOff size={18} />
@@ -332,13 +349,13 @@ function AuthApp() {
                 </div>
 
                 {error && (
-                  <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
+                  <p className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
                     {error}
                   </p>
                 )}
 
                 {message && (
-                  <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-400">
+                  <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-400">
                     {message}
                   </p>
                 )}
@@ -518,7 +535,7 @@ function AuthApp() {
                   type="button"
                   onClick={resendOtp}
                   disabled={loading}
-                  className="w-full text-center text-xs font-semibold text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                  className="w-full text-center text-xs font-semibold text-[#C6A66B] hover:text-[#d8ba82] disabled:opacity-50"
                 >
                   Resend OTP
                 </button>

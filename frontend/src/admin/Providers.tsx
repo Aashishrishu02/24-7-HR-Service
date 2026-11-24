@@ -7,7 +7,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Activity,
-  ShieldCheck,
   ShieldAlert,
   Database,
   Globe,
@@ -391,26 +390,26 @@ export default function Providers() {
     items: PricingItem[] | undefined,
     Icon: typeof Cpu,
   ) => (
-    <div className="rounded-lg border border-slate-700 bg-[#0d1525] p-4">
+    <div className="rounded-xl border border-[#332f2a] bg-[#171717] p-4">
       <div className="mb-3 flex items-center gap-2">
-        <Icon size={17} className="text-cyan-400" />
-        <h4 className="font-semibold text-slate-200">{title}</h4>
+        <Icon size={16} className="text-[#C6A66B]" />
+        <h4 className="font-serif text-sm font-bold text-[#F1E9DA]">{title}</h4>
       </div>
 
       {!items || items.length === 0 ? (
-        <p className="text-xs text-slate-500">No pricing data returned.</p>
+        <p className="font-mono text-xs text-[#F1E9DA]/40">No pricing data returned.</p>
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-3 border-b border-slate-800 pb-2 last:border-0"
+              className="flex items-center justify-between gap-3 border-b border-[#332f2a]/60 pb-2 last:border-0"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm text-slate-300">
+                <p className="truncate font-sans text-sm font-medium text-[#F1E9DA]">
                   {item.label}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="font-mono text-[11px] text-[#F1E9DA]/50">
                   {item.cores !== undefined && `${item.cores} CPU • `}
                   {item.ram !== undefined && `${item.ram} GB RAM • `}
                   {item.disk !== undefined && `${item.disk} GB Disk`}
@@ -420,11 +419,11 @@ export default function Providers() {
               </div>
 
               <div className="shrink-0 text-right">
-                <p className="font-mono text-sm font-semibold text-emerald-400">
+                <p className="font-mono text-sm font-bold text-[#C6A66B]">
                   ₹{(Number(item.price) * 720).toFixed(2)}
-                  <span className="text-[11px] font-normal text-emerald-300/80">/mo</span>
+                  <span className="font-sans text-[11px] font-normal text-[#F1E9DA]/50">/mo</span>
                 </p>
-                <p className="font-mono text-xs text-slate-400">
+                <p className="font-mono text-[11px] text-[#F1E9DA]/40">
                   ₹{Number(item.price).toFixed(4)}/hr
                 </p>
               </div>
@@ -439,10 +438,10 @@ export default function Providers() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">
             Integrated VPS Providers
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
             Status, connectivity diagnostics, and wallet balances for
             backend-configured infrastructure providers.
           </p>
@@ -451,187 +450,167 @@ export default function Providers() {
         <button
           onClick={loadProviders}
           disabled={loading}
-          className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-2.5 font-mono text-xs font-bold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-50"
         >
           <RefreshCw
-            size={16}
+            size={14}
             className={loading ? "animate-spin" : ""}
           />
-          Refresh
+          Refresh Providers
         </button>
       </div>
 
-      <div className="rounded-xl border border-blue-900/50 bg-[#07132a] p-4 text-xs text-slate-300">
-        <div className="flex items-start gap-2.5">
-          <ShieldCheck
-            size={18}
-            className="mt-0.5 shrink-0 text-cyan-400"
-          />
-          <div className="space-y-1">
-            <p className="font-semibold text-cyan-300">
-              Backend-Only Secure Configuration Architecture
-            </p>
-            <p className="leading-relaxed text-slate-400">
-              Provider API credentials and base URLs are configured
-              exclusively via backend server environment variables
-              (e.g. HOSTHEAVEN_* and SMARTVPS_*). The admin panel
-              provides operational status and connection verification
-              without storing or editing plain secrets.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-          <AlertCircle size={17} />
-          {error}
+        <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-950/20 p-4 font-mono text-xs text-red-300">
+          <AlertCircle size={16} className="shrink-0 text-red-400" />
+          <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
-          {success}
+        <div className="flex items-center gap-2 rounded-xl border border-[#C6A66B]/30 bg-[#C6A66B]/10 p-4 font-mono text-xs text-[#C6A66B]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#C6A66B]" />
+          <span>{success}</span>
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-          <p className="text-sm text-slate-400">Integrated Providers</p>
-          <p className="mt-3 text-3xl font-bold">{providers.length}</p>
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+          <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Integrated Providers</p>
+          <p className="mt-3 font-serif text-3xl font-bold text-[#F1E9DA]">{providers.length}</p>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-          <p className="text-sm text-slate-400">Active in Platform</p>
-          <p className="mt-3 text-3xl font-bold text-emerald-400">
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+          <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Active in Platform</p>
+          <p className="mt-3 font-serif text-3xl font-bold text-emerald-400">
             {providers.filter((p) => p.isActive).length}
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-          <p className="text-sm text-slate-400">Verified Connected</p>
-          <p className="mt-3 text-3xl font-bold text-cyan-400">
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+          <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Verified Connected</p>
+          <p className="mt-3 font-serif text-3xl font-bold text-[#C6A66B]">
             {connectedCount} / {providers.length}
           </p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#111a2b]">
-        <div className="border-b border-slate-800 p-4">
-          <h2 className="font-semibold">Backend Providers Status</h2>
+      <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+        <div className="border-b border-[#332f2a] px-6 py-4">
+          <h2 className="font-serif text-base font-bold text-[#F1E9DA]">Backend Providers Status</h2>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-slate-400">
-            <RefreshCw className="mx-auto mb-3 animate-spin" />
-            Loading providers...
+          <div className="p-16 text-center font-mono text-xs text-[#F1E9DA]/50">
+            <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" size={22} />
+            Loading provider connections...
           </div>
         ) : providers.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">
-            <Server className="mx-auto mb-3" size={34} />
+          <div className="p-16 text-center font-mono text-xs text-[#F1E9DA]/50">
+            <Server className="mx-auto mb-3 text-[#F1E9DA]/30" size={34} />
             No integrated providers found in the database.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left text-sm">
-              <thead className="bg-[#0d1525] text-xs uppercase text-slate-400">
+            <table className="w-full min-w-[800px] text-left font-sans text-sm">
+              <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
                 <tr>
-                  <th className="px-5 py-4">Provider</th>
-                  <th className="px-5 py-4">Code</th>
-                  <th className="px-5 py-4">Configuration Target</th>
-                  <th className="px-5 py-4">
+                  <th className="px-6 py-4">Provider</th>
+                  <th className="px-6 py-4">Code</th>
+                  <th className="px-6 py-4">Configuration Target</th>
+                  <th className="px-6 py-4">
                     Connection & Wallet Status
                   </th>
-                  <th className="px-5 py-4">Platform State</th>
-                  <th className="px-5 py-4">Diagnostics</th>
+                  <th className="px-6 py-4">Platform State</th>
+                  <th className="px-6 py-4">Diagnostics</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-[#332f2a]">
                 {providers.map((provider) => {
                   const test = testResults[provider.id];
 
                   return (
                     <tr
                       key={provider.id}
-                      className="hover:bg-slate-800/40"
+                      className="transition hover:bg-[#292521]/60"
                     >
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold">
+                          <p className="font-medium text-[#F1E9DA]">
                             {provider.name}
                           </p>
-                          <span className="rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-bold text-blue-300">
+                          <span className="rounded-md border border-[#C6A66B]/30 bg-[#C6A66B]/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#C6A66B]">
                             Backend Adapter
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 font-mono text-xs text-[#F1E9DA]/40">
                           Priority: {provider.priority}
                         </p>
                       </td>
 
-                      <td className="px-5 py-4 font-mono font-bold text-blue-300">
+                      <td className="px-6 py-4 font-mono font-bold text-[#C6A66B]">
                         {provider.code}
                       </td>
 
-                      <td className="px-5 py-4">
-                        <span className="font-mono text-xs text-slate-400">
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-xs text-[#F1E9DA]/70">
                           {provider.code === "HOSTHEAVEN"
                             ? "HOSTHEAVEN_BASE_URL"
                             : provider.code === "SMARTVPS"
                               ? "SMARTVPS_BASE_URL"
                               : "Server Environment"}
                         </span>
-                        <p className="mt-0.5 max-w-[220px] truncate text-[11px] text-slate-500">
+                        <p className="mt-0.5 max-w-[220px] truncate font-mono text-[11px] text-[#F1E9DA]/40">
                           {provider.baseUrl || "Default adapter URL"}
                         </p>
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         {test ? (
                           test.connected ? (
                             <div>
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                                <CheckCircle2 size={13} />
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-400">
+                                <CheckCircle2 size={12} />
                                 Connected & Verified
                               </span>
 
                               {test.balance !== undefined &&
                                 provider.code.toUpperCase() !== "NEXAVPS" && (
-                                  <p className="mt-1.5 font-mono text-xs text-emerald-300">
-                                    Provider Wallet: {test.currency}{" "}
+                                  <p className="mt-1.5 font-mono text-xs font-semibold text-[#C6A66B]">
+                                    Wallet: {test.currency}{" "}
                                     {Number(test.balance).toLocaleString("en-IN")}
                                   </p>
                                 )}
 
                               {test.testedAt && (
-                                <p className="mt-0.5 text-[10px] text-slate-500">
+                                <p className="mt-0.5 font-mono text-[10px] text-[#F1E9DA]/40">
                                   Checked at {test.testedAt}
                                 </p>
                               )}
                             </div>
                           ) : (
                             <div>
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-400">
-                                <AlertCircle size={13} />
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-red-400">
+                                <AlertCircle size={12} />
                                 {test.message}
                               </span>
                               {test.testedAt && (
-                                <p className="mt-0.5 text-[10px] text-slate-500">
+                                <p className="mt-0.5 font-mono text-[10px] text-[#F1E9DA]/40">
                                   Checked at {test.testedAt}
                                 </p>
                               )}
                             </div>
                           )
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                          <span className="inline-flex items-center gap-1 font-mono text-xs text-[#F1E9DA]/40">
                             <ShieldAlert size={13} />
                             Untested in current session
                           </span>
                         )}
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         {provider.code.toUpperCase() === "NEXAVPS" && (() => {
                           const wallet = nexaBalance[provider.id];
                           const walletValue = wallet?.balance;
@@ -639,24 +618,24 @@ export default function Providers() {
                           return (
                             <div className="space-y-2">
                               {wallet && wallet.message ? (
-                                <p className="text-xs text-red-300">{wallet.message}</p>
+                                <p className="font-mono text-xs text-red-300">{wallet.message}</p>
                               ) : wallet && wallet.balance !== undefined ? (
                                 <div>
-                                  <p className="font-mono text-sm font-semibold text-emerald-300">
-                                    <Wallet size={14} className="mr-1 inline" />
+                                  <p className="font-mono text-sm font-semibold text-[#C6A66B]">
+                                    <Wallet size={13} className="mr-1 inline" />
                                     {wallet.currency}{" "}
                                     {walletValue !== undefined
                                       ? Number(walletValue).toLocaleString("en-IN")
                                       : "Balance data received"}
                                   </p>
                                   {wallet.fetchedAt && (
-                                    <p className="text-[10px] text-slate-500">
-                                      Wallet checked at {wallet.fetchedAt}
+                                    <p className="font-mono text-[10px] text-[#F1E9DA]/40">
+                                      Checked at {wallet.fetchedAt}
                                     </p>
                                   )}
                                 </div>
                               ) : (
-                                <p className="text-xs text-slate-500">
+                                <p className="font-mono text-xs text-[#F1E9DA]/40">
                                   Wallet balance not fetched
                                 </p>
                               )}
@@ -664,10 +643,10 @@ export default function Providers() {
                               <button
                                 onClick={() => handleRefreshNexaBalance(provider)}
                                 disabled={balanceLoadingId === provider.id}
-                                className="flex items-center gap-1.5 rounded-lg border border-emerald-800/60 bg-emerald-950/30 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-900/40 disabled:opacity-50"
+                                className="flex items-center gap-1.5 rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs font-semibold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-50"
                               >
                                 <RefreshCw
-                                  size={13}
+                                  size={12}
                                   className={balanceLoadingId === provider.id ? "animate-spin" : ""}
                                 />
                                 {balanceLoadingId === provider.id ? "Fetching..." : "Refresh Wallet"}
@@ -677,28 +656,29 @@ export default function Providers() {
                         })()}
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         <span
-                          className={
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-wider ${
                             provider.isActive
-                              ? "rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400"
-                              : "rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400"
-                          }
+                              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                              : "border border-red-500/30 bg-red-500/10 text-red-400"
+                          }`}
                         >
+                          <span className={`h-1.5 w-1.5 rounded-full ${provider.isActive ? "bg-emerald-400" : "bg-red-400"}`} />
                           {provider.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
                             title="Test Live Connection"
                             disabled={testingId === provider.id}
                             onClick={() => handleTestConnection(provider)}
-                            className="flex items-center gap-1.5 rounded-lg border border-cyan-800/60 bg-cyan-950/40 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-900/50 disabled:opacity-50"
+                            className="flex items-center gap-1.5 rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs font-semibold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-50"
                           >
                             <Activity
-                              size={14}
+                              size={13}
                               className={
                                 testingId === provider.id
                                   ? "animate-spin"
@@ -717,9 +697,13 @@ export default function Providers() {
                                 : "Activate in platform"
                             }
                             onClick={() => toggleStatus(provider)}
-                            className="rounded-lg border border-slate-700 p-2 text-amber-400 transition hover:bg-slate-700"
+                            className={`rounded-lg border border-[#332f2a] bg-[#171717] p-2 transition ${
+                              provider.isActive
+                                ? "text-red-400 hover:border-red-500/40 hover:bg-red-950/20"
+                                : "text-emerald-400 hover:border-emerald-500/40 hover:bg-emerald-950/20"
+                            }`}
                           >
-                            <Power size={15} />
+                            <Power size={14} />
                           </button>
                         </div>
                       </td>
@@ -733,28 +717,30 @@ export default function Providers() {
       </div>
 
       {hostHeaven && (
-        <div className="overflow-hidden rounded-xl border border-cyan-900/50 bg-[#111a2b]">
-          <div className="flex flex-col justify-between gap-3 border-b border-slate-800 p-5 sm:flex-row sm:items-center">
+        <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+          <div className="flex flex-col justify-between gap-3 border-b border-[#332f2a] p-6 sm:flex-row sm:items-center">
             <div>
-              <div className="flex items-center gap-2">
-                <Database size={19} className="text-cyan-400" />
-                <h2 className="text-lg font-semibold">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-[#C6A66B]">
+                  <Database size={16} />
+                </div>
+                <h2 className="font-serif text-lg font-bold text-[#F1E9DA]">
                   HostHeaven Live Catalogue
                 </h2>
               </div>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
                 Live zones, provider pricing and wallet data from HostHeaven.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={loadHostHeavenCatalogue}
                 disabled={catalogueLoading}
-                className="flex items-center gap-2 rounded-lg border border-cyan-800 bg-cyan-950/40 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-900/50 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl bg-[#C6A66B] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d] disabled:opacity-50"
               >
                 <RefreshCw
-                  size={15}
+                  size={13}
                   className={catalogueLoading ? "animate-spin" : ""}
                 />
                 {catalogueLoading ? "Loading..." : "Refresh Catalogue"}
@@ -763,13 +749,13 @@ export default function Providers() {
               {catalogue && (
                 <button
                   onClick={() => setCatalogueVisible(!catalogueVisible)}
-                  className="rounded-lg border border-slate-700 p-2 text-slate-300 hover:bg-slate-800"
+                  className="rounded-xl border border-[#332f2a] bg-[#171717] p-2 text-[#F1E9DA]/70 transition hover:bg-[#292521] hover:text-[#F1E9DA]"
                   title="Toggle catalogue"
                 >
                   {catalogueVisible ? (
-                    <ChevronUp size={18} />
+                    <ChevronUp size={16} />
                   ) : (
-                    <ChevronDown size={18} />
+                    <ChevronDown size={16} />
                   )}
                 </button>
               )}
@@ -777,76 +763,76 @@ export default function Providers() {
           </div>
 
           {catalogueError && (
-            <div className="m-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-              <AlertCircle size={17} className="mt-0.5 shrink-0" />
+            <div className="m-5 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-950/20 p-4 font-mono text-xs text-red-300">
+              <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-400" />
               <span>{catalogueError}</span>
             </div>
           )}
 
           {!catalogue && !catalogueLoading && !catalogueError && (
-            <div className="p-8 text-center">
-              <Globe size={30} className="mx-auto mb-3 text-slate-500" />
-              <p className="font-medium text-slate-300">
+            <div className="p-12 text-center">
+              <Globe size={32} className="mx-auto mb-3 text-[#F1E9DA]/30" />
+              <p className="font-serif font-bold text-[#F1E9DA]">
                 Catalogue not loaded
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 font-mono text-xs text-[#F1E9DA]/50">
                 Click Refresh Catalogue to fetch live HostHeaven data.
               </p>
             </div>
           )}
 
           {catalogueLoading && !catalogue && (
-            <div className="p-8 text-center text-slate-400">
-              <RefreshCw className="mx-auto mb-3 animate-spin" />
-              Fetching live catalogue...
+            <div className="p-16 text-center font-mono text-xs text-[#F1E9DA]/50">
+              <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" size={22} />
+              Fetching live catalogue from HostHeaven...
             </div>
           )}
 
           {catalogue && catalogueVisible && (
-            <div className="space-y-6 p-5">
+            <div className="space-y-6 p-6">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-5">
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-5">
                   <div className="flex items-center gap-2 text-emerald-400">
-                    <Wallet size={19} />
-                    <p className="text-sm font-medium">
+                    <Wallet size={16} />
+                    <p className="font-mono text-xs font-semibold uppercase tracking-wider">
                       HostHeaven Provider Wallet
                     </p>
                   </div>
-                  <p className="mt-3 text-2xl font-bold text-emerald-300">
+                  <p className="mt-3 font-serif text-3xl font-bold text-[#F1E9DA]">
                     {catalogue.wallet?.currency || "INR"}{" "}
                     {Number(
                       catalogue.wallet?.balance ?? 0,
                     ).toLocaleString("en-IN")}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                     Live provider wallet balance
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-blue-900/50 bg-blue-950/20 p-5">
-                  <div className="flex items-center gap-2 text-blue-400">
-                    <Globe size={19} />
-                    <p className="text-sm font-medium">
+                <div className="rounded-xl border border-[#332f2a] bg-[#171717] p-5">
+                  <div className="flex items-center gap-2 text-[#C6A66B]">
+                    <Globe size={16} />
+                    <p className="font-mono text-xs font-semibold uppercase tracking-wider">
                       Available Zones
                     </p>
                   </div>
-                  <p className="mt-3 text-2xl font-bold text-blue-300">
+                  <p className="mt-3 font-serif text-3xl font-bold text-[#F1E9DA]">
                     {catalogue.zones?.length ?? 0}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                     Zones returned by HostHeaven API
                   </p>
                 </div>
               </div>
 
               <section>
-                <h3 className="mb-3 flex items-center gap-2 font-semibold">
-                  <Globe size={17} className="text-cyan-400" />
+                <h3 className="mb-3.5 flex items-center gap-2 font-serif text-sm font-bold text-[#F1E9DA]">
+                  <Globe size={15} className="text-[#C6A66B]" />
                   Live Hosting Zones
                 </h3>
 
                 {!catalogue.zones || catalogue.zones.length === 0 ? (
-                  <p className="rounded-lg border border-slate-700 p-4 text-sm text-slate-500">
+                  <p className="rounded-xl border border-[#332f2a] p-5 text-center font-mono text-xs text-[#F1E9DA]/50">
                     No zones returned by the provider.
                   </p>
                 ) : (
@@ -854,31 +840,31 @@ export default function Providers() {
                     {catalogue.zones.map((zone) => (
                       <div
                         key={zone.id}
-                        className="rounded-lg border border-slate-700 bg-[#0d1525] p-4"
+                        className="rounded-xl border border-[#332f2a] bg-[#171717] p-4"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="font-semibold text-slate-200">
+                            <p className="font-medium text-[#F1E9DA]">
                               {zone.name}
                             </p>
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-0.5 font-sans text-xs text-[#F1E9DA]/60">
                               {zone.location || "Location not provided"}
                               {zone.country ? `, ${zone.country}` : ""}
                             </p>
                           </div>
                           <span
-                            className={
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${
                               zone.isAvailable === false
-                                ? "rounded-full bg-red-500/10 px-2 py-1 text-[10px] text-red-400"
-                                : "rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-400"
-                            }
+                                ? "border border-red-500/30 bg-red-500/10 text-red-400"
+                                : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                            }`}
                           >
                             {zone.isAvailable === false
                               ? "Unavailable"
                               : "Available"}
                           </span>
                         </div>
-                        <p className="mt-3 break-all font-mono text-[10px] text-slate-500">
+                        <p className="mt-3 break-all font-mono text-[10px] text-[#F1E9DA]/40">
                           ID: {zone.id}
                         </p>
                       </div>
@@ -888,7 +874,7 @@ export default function Providers() {
               </section>
 
               <section>
-                <h3 className="mb-3 font-semibold">
+                <h3 className="mb-3 font-serif text-sm font-bold text-[#F1E9DA]">
                   Shared VPS Pricing
                 </h3>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -916,7 +902,7 @@ export default function Providers() {
               </section>
 
               <section>
-                <h3 className="mb-3 font-semibold">
+                <h3 className="mb-3 font-serif text-sm font-bold text-[#F1E9DA]">
                   Dedicated VPS Pricing
                 </h3>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -943,10 +929,10 @@ export default function Providers() {
                 </div>
               </section>
 
-              <p className="text-xs text-slate-500">
+              <p className="font-mono text-xs text-[#F1E9DA]/40">
                 Data is fetched directly from the HostHeaven backend
                 integration. Provider prices shown here are provider costs,
-                not your platform selling prices.
+                not client selling prices.
               </p>
             </div>
           )}

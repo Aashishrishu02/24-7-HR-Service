@@ -73,7 +73,7 @@ const emptyForm: ProductForm = {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-sm text-white outline-none focus:border-blue-500 disabled:opacity-50";
+  "w-full rounded-xl border border-[#332f2a] bg-[#171717] p-3 text-sm text-[#F1E9DA] outline-none placeholder:text-[#F1E9DA]/40 focus:border-[#C6A66B] focus:ring-1 focus:ring-[#C6A66B]/50 disabled:opacity-50";
 
 export default function ProviderProducts() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -269,68 +269,68 @@ export default function ProviderProducts() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold">Provider Products</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">Provider Products</h1>
+          <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
             Configure VPS products offered by your infrastructure providers.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2.5">
           <button
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2 font-mono text-xs font-semibold text-[#F1E9DA] transition hover:bg-[#201d1a] disabled:opacity-50"
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             Refresh
           </button>
           <button
             onClick={openCreate}
             disabled={activeProviders.length === 0}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-[#C6A66B] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] shadow-sm transition hover:bg-[#d8b87d] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Plus size={17} />
+            <Plus size={15} />
             Add Product
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-          <AlertCircle size={17} className="mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 font-mono text-xs text-red-300">
+          <AlertCircle size={15} className="mt-0.5 shrink-0" />
           <span>{Array.isArray(error) ? error.join(", ") : error}</span>
         </div>
       )}
       {success && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+        <div className="rounded-xl border border-[#C6A66B]/30 bg-[#C6A66B]/10 p-3.5 font-mono text-xs text-[#C6A66B]">
           {success}
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-          <p className="text-sm text-slate-400">Total Products</p>
-          <p className="mt-3 text-3xl font-bold">{products.length}</p>
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5 shadow-sm">
+          <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Total Products</p>
+          <p className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA]">{products.length}</p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-          <p className="text-sm text-slate-400">Active Products</p>
-          <p className="mt-3 text-3xl font-bold text-emerald-400">
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5 shadow-sm">
+          <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Active Products</p>
+          <p className="mt-2 font-serif text-2xl font-bold text-[#C6A66B]">
             {products.filter((product) => product.isActive).length}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-          <p className="text-sm text-slate-400">Inactive Products</p>
-          <p className="mt-3 text-3xl font-bold text-slate-400">
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5 shadow-sm">
+          <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Inactive Products</p>
+          <p className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA]/40">
             {products.filter((product) => !product.isActive).length}
           </p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-4">
+      <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-4 shadow-sm">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="relative">
             <Search
-              size={17}
-              className="absolute left-3 top-3 text-slate-500"
+              size={16}
+              className="absolute left-3.5 top-3.5 text-[#F1E9DA]/40"
             />
             <input
               value={search}
@@ -372,93 +372,93 @@ export default function ProviderProducts() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#111a2b]">
-        <div className="flex items-center justify-between border-b border-slate-800 p-4">
-          <h2 className="font-semibold">Configured Provider Products</h2>
-          <span className="text-xs text-slate-500">
+      <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a] shadow-sm">
+        <div className="flex items-center justify-between border-b border-[#332f2a] px-5 py-3.5">
+          <h2 className="font-serif text-sm font-bold text-[#F1E9DA]">Configured Provider Products</h2>
+          <span className="font-mono text-xs text-[#F1E9DA]/50">
             {filteredProducts.length} products
           </span>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-slate-400">
-            <RefreshCw className="mx-auto mb-3 animate-spin" />
+          <div className="p-12 text-center font-mono text-xs text-[#F1E9DA]/60">
+            <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" />
             Loading provider products...
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">
-            <Server className="mx-auto mb-3" size={34} />
+          <div className="p-12 text-center font-mono text-xs text-[#F1E9DA]/60">
+            <Server className="mx-auto mb-3 text-[#C6A66B]/40" size={34} />
             No provider products found.
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-[11px] text-[#F1E9DA]/40">
               Add a product after configuring an active provider.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1050px] text-left text-sm">
-              <thead className="bg-[#0d1525] text-xs uppercase text-slate-400">
+              <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/60">
                 <tr>
-                  <th className="px-5 py-4">Product</th>
-                  <th className="px-5 py-4">Provider</th>
-                  <th className="px-5 py-4">Type</th>
-                  <th className="px-5 py-4">CPU</th>
-                  <th className="px-5 py-4">RAM</th>
-                  <th className="px-5 py-4">Storage</th>
-                  <th className="px-5 py-4">Region</th>
-                  <th className="px-5 py-4">Status</th>
-                  <th className="px-5 py-4">Actions</th>
+                  <th className="px-5 py-3.5">Product</th>
+                  <th className="px-5 py-3.5">Provider</th>
+                  <th className="px-5 py-3.5">Type</th>
+                  <th className="px-5 py-3.5">CPU</th>
+                  <th className="px-5 py-3.5">RAM</th>
+                  <th className="px-5 py-3.5">Storage</th>
+                  <th className="px-5 py-3.5">Region</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-[#332f2a]">
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-slate-800/40">
+                  <tr key={product.id} className="transition hover:bg-[#292521]/60">
                     <td className="px-5 py-4">
-                      <p className="font-semibold">{product.name}</p>
-                      <p className="mt-1 font-mono text-xs text-slate-500">
+                      <p className="font-medium text-[#F1E9DA]">{product.name}</p>
+                      <p className="mt-1 font-mono text-xs text-[#F1E9DA]/50">
                         {product.externalProductId}
                       </p>
                     </td>
                     <td className="px-5 py-4">
-                      <p>{product.provider?.name || "Unknown provider"}</p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="font-medium text-[#F1E9DA]">{product.provider?.name || "Unknown provider"}</p>
+                      <p className="mt-1 font-mono text-xs text-[#F1E9DA]/50">
                         {product.provider?.code || ""}
                       </p>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/80">
                       {product.productType === "VPS_HOSTING"
                         ? "VPS Hosting"
                         : "Linux IP VPS"}
                     </td>
-                    <td className="px-5 py-4">{product.cpuCores} vCPU</td>
-                    <td className="px-5 py-4">{product.ramGb} GB</td>
-                    <td className="px-5 py-4">{product.storageGb} GB</td>
-                    <td className="px-5 py-4">{product.region || "—"}</td>
+                    <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/80">{product.cpuCores} vCPU</td>
+                    <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/80">{product.ramGb} GB</td>
+                    <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/80">{product.storageGb} GB</td>
+                    <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/80">{product.region || "—"}</td>
                     <td className="px-5 py-4">
                       <span
                         className={
                           product.isActive
-                            ? "rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400"
-                            : "rounded-full bg-slate-500/10 px-3 py-1 text-xs text-slate-400"
+                            ? "inline-block rounded-full border border-[#C6A66B]/30 bg-[#C6A66B]/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#C6A66B]"
+                            : "inline-block rounded-full border border-[#332f2a] bg-[#171717] px-2.5 py-1 font-mono text-[10px] text-[#F1E9DA]/40"
                         }
                       >
                         {product.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           title="Edit product"
                           onClick={() => openEdit(product)}
-                          className="rounded-lg border border-slate-700 p-2 text-blue-400 hover:bg-slate-700"
+                          className="rounded-xl border border-[#332f2a] bg-[#171717] p-2 text-[#C6A66B] transition hover:bg-[#201d1a]"
                         >
-                          <Pencil size={16} />
+                          <Pencil size={15} />
                         </button>
                         <button
                           title={product.isActive ? "Deactivate" : "Activate"}
                           onClick={() => toggleStatus(product)}
-                          className="rounded-lg border border-slate-700 p-2 text-amber-400 hover:bg-slate-700"
+                          className="rounded-xl border border-[#332f2a] bg-[#171717] p-2 text-amber-400 transition hover:bg-[#201d1a]"
                         >
-                          <Power size={16} />
+                          <Power size={15} />
                         </button>
                       </div>
                     </td>
@@ -471,30 +471,30 @@ export default function ProviderProducts() {
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-700 bg-[#111a2b] p-6">
-            <div className="mb-6 flex items-center justify-between">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 text-[#F1E9DA] shadow-2xl">
+            <div className="mb-6 flex items-center justify-between border-b border-[#332f2a] pb-3">
               <div>
-                <h2 className="text-xl font-bold">
+                <h2 className="font-serif text-xl font-bold text-[#F1E9DA]">
                   {editing ? "Edit Provider Product" : "Add Provider Product"}
                 </h2>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-0.5 font-mono text-xs text-[#F1E9DA]/50">
                   Enter the product specifications exactly as defined by the provider.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="rounded-lg p-2 hover:bg-slate-700"
+                className="rounded-lg p-1.5 text-[#F1E9DA]/50 transition hover:bg-[#292521] hover:text-[#F1E9DA]"
               >
-                <X />
+                <X size={18} />
               </button>
             </div>
 
             <form onSubmit={saveProduct} className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-xs text-slate-400">
+                  <label className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
                     Provider
                   </label>
                   <select
@@ -523,7 +523,7 @@ export default function ProviderProducts() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs text-slate-400">
+                  <label className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
                     External Product ID
                   </label>
                   <input
@@ -537,7 +537,7 @@ export default function ProviderProducts() {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="mb-2 block text-xs text-slate-400">
+                  <label className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
                     Product Name
                   </label>
                   <input
@@ -550,7 +550,7 @@ export default function ProviderProducts() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs text-slate-400">
+                  <label className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
                     Product Type
                   </label>
                   <select
@@ -568,7 +568,7 @@ export default function ProviderProducts() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs text-slate-400">
+                  <label className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
                     Region
                   </label>
                   <input
@@ -582,8 +582,8 @@ export default function ProviderProducts() {
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <label className="mb-2 flex items-center gap-2 text-xs text-slate-400">
-                    <Cpu size={14} /> CPU Cores
+                  <label className="mb-1.5 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+                    <Cpu size={14} className="text-[#C6A66B]" /> CPU Cores
                   </label>
                   <input
                     required
@@ -598,8 +598,8 @@ export default function ProviderProducts() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 flex items-center gap-2 text-xs text-slate-400">
-                    <MemoryStick size={14} /> RAM (GB)
+                  <label className="mb-1.5 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+                    <MemoryStick size={14} className="text-[#C6A66B]" /> RAM (GB)
                   </label>
                   <input
                     required
@@ -614,8 +614,8 @@ export default function ProviderProducts() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 flex items-center gap-2 text-xs text-slate-400">
-                    <HardDrive size={14} /> Storage (GB)
+                  <label className="mb-1.5 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+                    <HardDrive size={14} className="text-[#C6A66B]" /> Storage (GB)
                   </label>
                   <input
                     required
@@ -630,7 +630,7 @@ export default function ProviderProducts() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs text-slate-400">
+                  <label className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
                     Bandwidth (GB)
                   </label>
                   <input
@@ -648,7 +648,7 @@ export default function ProviderProducts() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs text-slate-400">
+                <label className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
                   Supported Operating Systems
                 </label>
                 <textarea
@@ -661,34 +661,35 @@ export default function ProviderProducts() {
                   className={inputClass}
                   placeholder={"Ubuntu 22.04, Ubuntu 24.04, Debian 12"}
                 />
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                   Separate OS names with commas or new lines.
                 </p>
               </div>
 
-              <label className="flex items-center gap-3 border-t border-slate-800 pt-4 text-sm">
+              <label className="flex items-center gap-2.5 border-t border-[#332f2a] pt-4 font-mono text-xs text-[#F1E9DA]/80">
                 <input
                   type="checkbox"
                   checked={form.isActive}
                   onChange={(event) =>
                     updateField("isActive", event.target.checked)
                   }
+                  className="h-4 w-4 rounded border-[#332f2a] bg-[#171717] accent-[#C6A66B]"
                 />
                 Product Active
               </label>
 
-              <div className="flex justify-end gap-3 border-t border-slate-800 pt-5">
+              <div className="flex justify-end gap-2.5 border-t border-[#332f2a] pt-4">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="rounded-lg border border-slate-700 px-5 py-2.5 text-sm"
+                  className="rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2 font-mono text-xs font-semibold text-[#F1E9DA] transition hover:bg-[#292521]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving || (!editing && !form.providerId)}
-                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold hover:bg-blue-500 disabled:opacity-50"
+                  className="rounded-xl bg-[#C6A66B] px-5 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] shadow-sm transition hover:bg-[#d8b87d] disabled:opacity-50"
                 >
                   {saving
                     ? "Saving..."

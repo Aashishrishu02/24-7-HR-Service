@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import {
   LayoutDashboard, Users, Server,
   ShieldCheck, LogOut, RefreshCw, Menu, X,
-  Search, ChevronLeft, ChevronRight, Eye, Power, Mail, Calendar, Package,
+  Search, ChevronLeft, ChevronRight, Eye, EyeOff, Power, Mail, Calendar, Package,
   Network, Activity, Cloud,
 } from "lucide-react";
 import adminApi from "./adminApi";
@@ -88,6 +88,7 @@ export default function AdminPanel() {
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -280,29 +281,76 @@ export default function AdminPanel() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080e1c] px-4 text-white">
-        <form onSubmit={handleLogin} className="w-full max-w-md rounded-2xl border border-slate-700 bg-[#111a2b] p-8">
-          <div className="mb-6 text-center">
-            <h1 className="text-4xl font-black">24<span className="text-blue-400">/7</span></h1>
-            <p className="mt-2 text-xs tracking-[3px] text-slate-400">ADMIN PORTAL</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#171717] px-4 text-[#F1E9DA]">
+        <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] p-8 shadow-2xl">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-[#C6A66B] to-transparent" />
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-black tracking-tight text-[#F1E9DA]">
+              24<span className="text-[#C6A66B]">/7</span>
+            </h1>
+            <p className="mt-2 font-mono text-[10px] font-bold uppercase tracking-[3px] text-[#C6A66B]">
+              Admin Control Center
+            </p>
           </div>
-          <h2 className="mb-6 text-xl font-bold">Admin Sign In</h2>
-          <label className="mb-2 block text-sm text-slate-300">Email</label>
-          <input type="email" required value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="admin@example.com"
-            className="mb-5 w-full rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-white outline-none focus:border-blue-500" />
-          <label className="mb-2 block text-sm text-slate-300">Password</label>
-          <input type="password" required value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Enter password"
-            className="mb-5 w-full rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-white outline-none focus:border-blue-500" />
-          {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
-          <button disabled={loading}
-            className="w-full rounded-lg bg-blue-600 p-3 font-bold hover:bg-blue-500 disabled:opacity-50">
-            {loading ? "Signing in..." : "Access Admin Panel"}
-          </button>
-        </form>
+
+          <h2 className="mb-6 font-serif text-2xl font-bold text-[#F1E9DA]">
+            Admin Sign In
+          </h2>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                className="w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3 text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none focus:border-[#C6A66B] transition"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  className="w-full rounded-xl border border-[#332f2a] bg-[#171717] py-3 pl-4 pr-12 text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none focus:border-[#C6A66B] transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-[#F1E9DA]/40 hover:text-[#C6A66B] transition"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-[#C6A66B] py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
+            >
+              {loading ? "Authenticating..." : "Access Control Center"}
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
@@ -329,78 +377,137 @@ export default function AdminPanel() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#080e1c] text-white">
+    <div className="min-h-screen bg-[#171717] text-[#F1E9DA]">
       {menuOpen && (
-        <button aria-label="Close menu overlay" onClick={() => setMenuOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden" />
+        <button
+          aria-label="Close menu overlay"
+          onClick={() => setMenuOpen(false)}
+          className="fixed inset-0 z-40 bg-[#171717]/80 backdrop-blur-sm lg:hidden"
+        />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-hidden border-r border-slate-800 bg-[#0d1525] p-5 transition-transform lg:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="mb-10 flex items-center justify-between">
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-hidden border-r border-[#332f2a] bg-[#201d1a] p-5 transition-transform lg:translate-x-0 ${
+          menuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="mb-8 flex items-center justify-between border-b border-[#332f2a] pb-6">
           <div>
-            <h1 className="text-3xl font-black">24<span className="text-blue-400">/7</span></h1>
-            <p className="text-[10px] tracking-widest text-slate-500">ADMIN CONTROL</p>
+            <h1 className="text-3xl font-black tracking-tight text-[#F1E9DA]">
+              24<span className="text-[#C6A66B]">/7</span>
+            </h1>
+            <p className="font-mono text-[9px] uppercase tracking-widest text-[#C6A66B]">
+              Admin Control Center
+            </p>
           </div>
-          <button onClick={() => setMenuOpen(false)} className="lg:hidden"><X /></button>
+          <button
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-1 text-[#F1E9DA]/50 hover:text-[#F1E9DA] lg:hidden"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto pb-4 pr-1">
-          {links.map(([label, Icon]) => (
-            <button key={label}
-              onClick={() => {
-                setPage(label);
-                setMenuOpen(false);
-                setError("");
-                setSelectedCustomer(null);
-              }}
-              className={`flex w-full items-center gap-3 rounded-lg p-3 text-sm transition ${page === label ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
-              <Icon size={18} /> {label}
-            </button>
-          ))}
+        <nav className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pb-4 pr-1">
+          {links.map(([label, Icon]) => {
+            const isActive = page === label;
+            return (
+              <button
+                key={label}
+                onClick={() => {
+                  setPage(label);
+                  setMenuOpen(false);
+                  setError("");
+                  setSelectedCustomer(null);
+                }}
+                className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-semibold transition ${
+                  isActive
+                    ? "bg-[#C6A66B] text-[#171717] shadow-lg shadow-[#C6A66B]/15"
+                    : "text-[#F1E9DA]/70 hover:bg-[#292521] hover:text-[#F1E9DA]"
+                }`}
+              >
+                <Icon size={17} className={isActive ? "text-[#171717]" : "text-[#C6A66B]"} />
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </nav>
 
-        <button onClick={logout}
-          className="mt-3 flex w-full shrink-0 items-center gap-3 rounded-lg border-t border-slate-800 px-3 py-4 text-sm text-red-400 hover:bg-red-500/10">
-          <LogOut size={18} /> Sign Out
+        <button
+          onClick={logout}
+          className="mt-3 flex w-full shrink-0 items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-3.5 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 transition"
+        >
+          <LogOut size={16} /> Sign Out
         </button>
       </aside>
 
       <main className="min-h-screen lg:pl-64">
-        <header className="flex min-h-20 items-center justify-between gap-3 border-b border-slate-800 px-5 sm:px-8">
+        <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-3 border-b border-[#332f2a] bg-[#171717]/95 px-5 backdrop-blur-md sm:px-8">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMenuOpen(true)} className="lg:hidden"><Menu /></button>
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="rounded-lg border border-[#332f2a] p-2 text-[#F1E9DA]/70 hover:bg-[#201d1a] lg:hidden"
+            >
+              <Menu size={18} />
+            </button>
             <div>
-              <h2 className="font-bold">{page === "Dashboard" ? "Dashboard Overview" : page}</h2>
-              <p className="text-xs text-slate-500">24/7 Hosting Administration</p>
+              <h2 className="font-serif text-lg font-bold text-[#F1E9DA] sm:text-xl">
+                {page === "Dashboard" ? "Dashboard Overview" : page}
+              </h2>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
+                24/7 Hosting Administration
+              </p>
             </div>
           </div>
-          <button onClick={page === "Customers" ? loadCustomers : page === "VPS Management" ? loadVps : loadDashboard}
-            className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800">
-            <RefreshCw size={15} /> Refresh
+          <button
+            onClick={
+              page === "Customers"
+                ? loadCustomers
+                : page === "VPS Management"
+                ? loadVps
+                : loadDashboard
+            }
+            className="flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#201d1a] px-3.5 py-2 font-mono text-xs font-bold text-[#C6A66B] hover:border-[#C6A66B]/50 hover:bg-[#292521] transition"
+          >
+            <RefreshCw size={14} /> Refresh
           </button>
         </header>
 
         <section className="p-5 sm:p-8">
           {error && (
-            <div className="mb-5 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-              {error}
-              <button onClick={() => setError("")}><X size={16} /></button>
+            <div className="mb-6 flex items-center justify-between rounded-xl border border-red-500/30 bg-red-950/20 p-4 text-sm text-red-300">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                <span>{error}</span>
+              </div>
+              <button onClick={() => setError("")} className="rounded p-1 text-[#F1E9DA]/50 hover:text-[#F1E9DA]"><X size={16} /></button>
             </div>
           )}
 
           {page === "Dashboard" && (
             <>
-              <h1 className="mb-1 text-2xl font-bold">Welcome, {admin?.name || "Admin"}</h1>
-              <p className="mb-8 text-sm text-slate-400">{admin?.email}</p>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="mb-8">
+                <h1 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">
+                  Welcome back, <span className="text-[#C6A66B]">{admin?.name || "Admin"}</span>
+                </h1>
+                <p className="mt-1 font-mono text-xs text-[#F1E9DA]/50">{admin?.email}</p>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {cards.map(([label, value, Icon]) => (
-                  <div key={label} className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
+                  <div key={label} className="group relative overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 transition-all hover:border-[#C6A66B]/50 hover:bg-[#25221e]">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-400">{label}</p>
-                      <Icon size={20} className="text-blue-400" />
+                      <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">{label}</p>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#332f2a] bg-[#171717] text-[#C6A66B] transition group-hover:border-[#C6A66B]/40 group-hover:bg-[#C6A66B]/10">
+                        <Icon size={18} />
+                      </div>
                     </div>
-                    <p className="mt-5 text-3xl font-bold">{value ?? "—"}</p>
-                    <p className="mt-2 text-xs text-slate-500">Live database count</p>
+                    <p className="mt-5 font-serif text-3xl font-bold tracking-tight text-[#F1E9DA]">{value ?? "—"}</p>
+                    <div className="mt-3 flex items-center gap-2 font-mono text-[11px] text-[#F1E9DA]/40">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#C6A66B]" />
+                      <span>Live database count</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -409,9 +516,11 @@ export default function AdminPanel() {
 
           {page === "Customers" && (
             <>
-              <div className="mb-7">
-                <h1 className="text-2xl font-bold">Customers Management</h1>
-                <p className="mt-1 text-sm text-slate-400">View and manage registered customer accounts.</p>
+              <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div>
+                  <h1 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">Customer Management</h1>
+                  <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">View, audit, and manage registered client accounts.</p>
+                </div>
               </div>
 
               <div className="mb-6 grid gap-4 sm:grid-cols-3">
@@ -420,84 +529,102 @@ export default function AdminPanel() {
                   ["Active Customers", customerStats.active, ShieldCheck],
                   ["Inactive Customers", customerStats.inactive, Power],
                 ].map(([label, value, Icon]: any) => (
-                  <div key={label} className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
+                  <div key={label} className="rounded-xl border border-[#332f2a] bg-[#201d1a] p-5">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-400">{label}</p>
-                      <Icon size={20} className="text-blue-400" />
+                      <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">{label}</p>
+                      <Icon size={18} className="text-[#C6A66B]" />
                     </div>
-                    <p className="mt-4 text-3xl font-bold">{value}</p>
+                    <p className="mt-4 font-serif text-3xl font-bold text-[#F1E9DA]">{value}</p>
                   </div>
                 ))}
               </div>
 
-              <form onSubmit={handleSearch} className="mb-5 flex flex-col gap-3 sm:flex-row">
+              <form onSubmit={handleSearch} className="mb-6 flex flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 text-slate-500" size={18} />
-                  <input value={searchInput}
+                  <Search className="absolute left-3.5 top-3.5 text-[#F1E9DA]/40" size={18} />
+                  <input
+                    value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
                     placeholder="Search customer by name or email..."
-                    className="w-full rounded-lg border border-slate-700 bg-[#111a2b] py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500" />
+                    className="w-full rounded-xl border border-[#332f2a] bg-[#201d1a] py-3 pl-11 pr-4 font-sans text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none transition focus:border-[#C6A66B] focus:ring-1 focus:ring-[#C6A66B]"
+                  />
                 </div>
-                <button type="submit" className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold hover:bg-blue-500">
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#C6A66B] px-7 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d]"
+                >
                   Search
                 </button>
               </form>
 
-              <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#111a2b]">
-                <div className="flex items-center justify-between border-b border-slate-800 p-4">
-                  <h3 className="font-semibold">Customer List</h3>
-                  <span className="text-xs text-slate-500">{customerStats.total} customers</span>
+              <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+                <div className="flex items-center justify-between border-b border-[#332f2a] px-6 py-4">
+                  <h3 className="font-serif text-base font-bold text-[#F1E9DA]">Client Roster</h3>
+                  <span className="font-mono text-xs text-[#F1E9DA]/50">{customerStats.total} registered</span>
                 </div>
 
                 {customerLoading ? (
-                  <div className="p-12 text-center text-slate-400">
-                    <RefreshCw className="mx-auto mb-3 animate-spin" />
-                    Loading customers...
+                  <div className="p-16 text-center text-[#F1E9DA]/50 font-mono text-xs">
+                    <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" size={22} />
+                    Retrieving customer records...
                   </div>
                 ) : customers.length === 0 ? (
-                  <div className="p-12 text-center text-slate-400">
-                    <Users className="mx-auto mb-3" size={32} />
-                    No customers found.
+                  <div className="p-16 text-center text-[#F1E9DA]/50 font-mono text-xs">
+                    <Users className="mx-auto mb-3 text-[#F1E9DA]/30" size={32} />
+                    No customers found matching search criteria.
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-[#0d1525] text-xs uppercase text-slate-400">
+                    <table className="w-full text-left font-sans text-sm">
+                      <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
                         <tr>
-                          <th className="px-5 py-4">Customer</th>
-                          <th className="px-5 py-4">VPS</th>
-                          <th className="px-5 py-4">Joined</th>
-                          <th className="px-5 py-4">Status</th>
-                          <th className="px-5 py-4">Actions</th>
+                          <th className="px-6 py-4">Customer</th>
+                          <th className="px-6 py-4">VPS Count</th>
+                          <th className="px-6 py-4">Registered</th>
+                          <th className="px-6 py-4">Status</th>
+                          <th className="px-6 py-4">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800">
+                      <tbody className="divide-y divide-[#332f2a]">
                         {customers.map(customer => (
-                          <tr key={customer.id} className="hover:bg-slate-800/40">
-                            <td className="px-5 py-4">
-                              <p className="font-medium">{customer.name || "Unnamed"}</p>
-                              <p className="mt-1 text-xs text-slate-500">{customer.email}</p>
+                          <tr key={customer.id} className="transition hover:bg-[#292521]/60">
+                            <td className="px-6 py-4">
+                              <p className="font-medium text-[#F1E9DA]">{customer.name || "Unnamed Client"}</p>
+                              <p className="mt-0.5 font-mono text-xs text-[#F1E9DA]/50">{customer.email}</p>
                             </td>
-                            <td className="px-5 py-4">{customer._count.vpsInstances}</td>
-                            <td className="px-5 py-4 text-slate-400">{formatDate(customer.createdAt)}</td>
-                            <td className="px-5 py-4">
-                              <span className={`rounded-full px-3 py-1 text-xs ${customer.isActive ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+                            <td className="px-6 py-4 font-mono text-sm text-[#F1E9DA]">{customer._count.vpsInstances}</td>
+                            <td className="px-6 py-4 font-mono text-xs text-[#F1E9DA]/60">{formatDate(customer.createdAt)}</td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-wider ${
+                                customer.isActive
+                                  ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                                  : "border border-red-500/30 bg-red-500/10 text-red-400"
+                              }`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${customer.isActive ? "bg-emerald-400" : "bg-red-400"}`} />
                                 {customer.isActive ? "Active" : "Inactive"}
                               </span>
                             </td>
-                            <td className="px-5 py-4">
+                            <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
-                                <button title="View details"
+                                <button
+                                  title="View details"
                                   onClick={() => openCustomer(customer.id)}
                                   disabled={actionLoading === customer.id}
-                                  className="rounded-lg border border-slate-700 p-2 text-blue-400 hover:bg-slate-700">
-                                  <Eye size={16} />
+                                  className="rounded-lg border border-[#332f2a] bg-[#171717] p-2 text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-40"
+                                >
+                                  <Eye size={15} />
                                 </button>
-                                <button title={customer.isActive ? "Deactivate" : "Activate"}
+                                <button
+                                  title={customer.isActive ? "Deactivate" : "Activate"}
                                   onClick={() => toggleCustomer(customer)}
                                   disabled={actionLoading === customer.id}
-                                  className={`rounded-lg border border-slate-700 p-2 ${customer.isActive ? "text-red-400 hover:bg-red-500/10" : "text-green-400 hover:bg-green-500/10"}`}>
-                                  <Power size={16} />
+                                  className={`rounded-lg border border-[#332f2a] bg-[#171717] p-2 transition disabled:opacity-40 ${
+                                    customer.isActive
+                                      ? "text-red-400 hover:border-red-500/40 hover:bg-red-950/20"
+                                      : "text-emerald-400 hover:border-emerald-500/40 hover:bg-emerald-950/20"
+                                  }`}
+                                >
+                                  <Power size={15} />
                                 </button>
                               </div>
                             </td>
@@ -508,18 +635,22 @@ export default function AdminPanel() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between border-t border-slate-800 p-4">
-                  <p className="text-xs text-slate-500">Page {currentPage} of {totalPages}</p>
+                <div className="flex items-center justify-between border-t border-[#332f2a] px-6 py-4">
+                  <p className="font-mono text-xs text-[#F1E9DA]/50">Page {currentPage} of {totalPages}</p>
                   <div className="flex gap-2">
-                    <button disabled={currentPage <= 1 || customerLoading}
+                    <button
+                      disabled={currentPage <= 1 || customerLoading}
                       onClick={() => setCurrentPage(p => p - 1)}
-                      className="rounded-lg border border-slate-700 p-2 disabled:opacity-30">
-                      <ChevronLeft size={17} />
+                      className="rounded-lg border border-[#332f2a] bg-[#171717] p-2 text-[#F1E9DA]/70 transition hover:bg-[#292521] hover:text-[#F1E9DA] disabled:opacity-30"
+                    >
+                      <ChevronLeft size={16} />
                     </button>
-                    <button disabled={currentPage >= totalPages || customerLoading}
+                    <button
+                      disabled={currentPage >= totalPages || customerLoading}
                       onClick={() => setCurrentPage(p => p + 1)}
-                      className="rounded-lg border border-slate-700 p-2 disabled:opacity-30">
-                      <ChevronRight size={17} />
+                      className="rounded-lg border border-[#332f2a] bg-[#171717] p-2 text-[#F1E9DA]/70 transition hover:bg-[#292521] hover:text-[#F1E9DA] disabled:opacity-30"
+                    >
+                      <ChevronRight size={16} />
                     </button>
                   </div>
                 </div>
@@ -530,9 +661,9 @@ export default function AdminPanel() {
           {page === "VPS Management" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold">VPS Management</h2>
-                <p className="mt-1 text-sm text-slate-400">
-                  View and monitor all customer VPS instances.
+                <h2 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">VPS Management</h2>
+                <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
+                  Monitor, query, and inspect customer server deployments.
                 </p>
               </div>
 
@@ -544,15 +675,15 @@ export default function AdminPanel() {
                   ["Pending", vpsStats?.pending ?? 0],
                   ["Expired", vpsStats?.expired ?? 0],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-                    <p className="text-sm text-slate-400">{label}</p>
-                    <p className="mt-2 text-2xl font-bold">{value}</p>
+                  <div key={label} className="rounded-xl border border-[#332f2a] bg-[#201d1a] p-5">
+                    <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">{label}</p>
+                    <p className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA]">{value}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
-                <div className="mb-4 flex flex-col gap-3 lg:flex-row">
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6">
+                <div className="mb-5 flex flex-col gap-3 lg:flex-row">
                   <div className="flex flex-1 gap-2">
                     <input
                       value={vpsSearchInput}
@@ -564,14 +695,14 @@ export default function AdminPanel() {
                         }
                       }}
                       placeholder="Search IP, hostname, customer name or email..."
-                      className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-sm outline-none focus:border-blue-500"
+                      className="min-w-0 flex-1 rounded-xl border border-[#332f2a] bg-[#171717] p-3 font-sans text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none transition focus:border-[#C6A66B]"
                     />
                     <button
                       onClick={() => {
                         setVpsPage(1);
                         setVpsSearch(vpsSearchInput);
                       }}
-                      className="rounded-lg bg-blue-600 px-4 text-sm font-semibold hover:bg-blue-500"
+                      className="rounded-xl bg-[#C6A66B] px-5 text-xs font-mono font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d]"
                     >
                       Search
                     </button>
@@ -583,7 +714,7 @@ export default function AdminPanel() {
                       setVpsPage(1);
                       setVpsStatus(e.target.value);
                     }}
-                    className="rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-sm"
+                    className="rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3 font-mono text-xs text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
                   >
                     <option value="">All statuses</option>
                     <option value="RUNNING">Running</option>
@@ -597,7 +728,7 @@ export default function AdminPanel() {
                       setVpsPage(1);
                       setVpsProvider(e.target.value);
                     }}
-                    className="rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-sm"
+                    className="rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3 font-mono text-xs text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
                   >
                     <option value="">All providers</option>
                     <option value="SMARTVPS">SMARTVPS</option>
@@ -605,61 +736,68 @@ export default function AdminPanel() {
                 </div>
 
                 {vpsLoading ? (
-                  <div className="p-12 text-center text-slate-400">
-                    <RefreshCw className="mx-auto mb-3 animate-spin" />
+                  <div className="p-16 text-center text-[#F1E9DA]/50 font-mono text-xs">
+                    <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" size={22} />
                     Loading VPS instances...
                   </div>
                 ) : vpsInstances.length === 0 ? (
-                  <div className="p-12 text-center text-slate-400">
-                    <Server className="mx-auto mb-3" size={34} />
+                  <div className="p-16 text-center text-[#F1E9DA]/50 font-mono text-xs">
+                    <Server className="mx-auto mb-3 text-[#F1E9DA]/30" size={34} />
                     No VPS instances found.
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[850px] text-left text-sm">
-                      <thead className="border-b border-slate-800 text-xs uppercase text-slate-500">
+                    <table className="w-full min-w-[850px] text-left font-sans text-sm">
+                      <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
                         <tr>
-                          <th className="px-4 py-3">IP Address</th>
-                          <th className="px-4 py-3">Customer</th>
-                          <th className="px-4 py-3">Provider</th>
-                          <th className="px-4 py-3">OS</th>
-                          <th className="px-4 py-3">RAM</th>
-                          <th className="px-4 py-3">Status</th>
-                          <th className="px-4 py-3">Expiry</th>
-                          <th className="px-4 py-3">Action</th>
+                          <th className="px-5 py-4">IP Address</th>
+                          <th className="px-5 py-4">Customer</th>
+                          <th className="px-5 py-4">Provider</th>
+                          <th className="px-5 py-4">OS</th>
+                          <th className="px-5 py-4">RAM</th>
+                          <th className="px-5 py-4">Status</th>
+                          <th className="px-5 py-4">Expiry</th>
+                          <th className="px-5 py-4">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800">
+                      <tbody className="divide-y divide-[#332f2a]">
                         {vpsInstances.map(vps => (
-                          <tr key={vps.id} className="hover:bg-slate-800/40">
-                            <td className="px-4 py-4 font-mono">{vps.ipAddress}</td>
-                            <td className="px-4 py-4">
-                              <p>{vps.user?.name || "Unnamed"}</p>
-                              <p className="text-xs text-slate-500">{vps.user?.email}</p>
+                          <tr key={vps.id} className="transition hover:bg-[#292521]/60">
+                            <td className="px-5 py-4 font-mono text-sm font-semibold text-[#C6A66B]">{vps.ipAddress}</td>
+                            <td className="px-5 py-4">
+                              <p className="font-medium text-[#F1E9DA]">{vps.user?.name || "Unnamed Client"}</p>
+                              <p className="font-mono text-xs text-[#F1E9DA]/50">{vps.user?.email}</p>
                             </td>
-                            <td className="px-4 py-4">{vps.provider}</td>
-                            <td className="px-4 py-4">{vps.operatingSystem || "—"}</td>
-                            <td className="px-4 py-4">{vps.ram ? `${vps.ram} GB` : "—"}</td>
-                            <td className="px-4 py-4">
-                              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">{vps.provider}</td>
+                            <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">{vps.operatingSystem || "—"}</td>
+                            <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">{vps.ram ? `${vps.ram} GB` : "—"}</td>
+                            <td className="px-5 py-4">
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider ${
                                 vps.status === "RUNNING"
-                                  ? "bg-green-500/15 text-green-400"
+                                  ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                                   : vps.status === "STOPPED"
-                                  ? "bg-slate-500/20 text-slate-300"
-                                  : "bg-yellow-500/15 text-yellow-400"
+                                  ? "border border-[#332f2a] bg-[#171717] text-[#F1E9DA]/50"
+                                  : "border border-amber-500/30 bg-amber-500/10 text-amber-400"
                               }`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${
+                                  vps.status === "RUNNING"
+                                    ? "bg-emerald-400"
+                                    : vps.status === "STOPPED"
+                                    ? "bg-[#F1E9DA]/40"
+                                    : "bg-amber-400"
+                                }`} />
                                 {vps.status}
                               </span>
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/60">
                               {vps.expiresAt ? formatDate(vps.expiresAt) : "—"}
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="px-5 py-4">
                               <button
                                 onClick={() => openVps(vps.id)}
-                                className="flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-2 text-xs hover:bg-slate-700"
+                                className="flex items-center gap-1.5 rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521]"
                               >
-                                <Eye size={14} /> View
+                                <Eye size={13} /> View
                               </button>
                             </td>
                           </tr>
@@ -669,24 +807,24 @@ export default function AdminPanel() {
                   </div>
                 )}
 
-                <div className="mt-4 flex items-center justify-between border-t border-slate-800 pt-4">
-                  <p className="text-xs text-slate-500">
+                <div className="mt-5 flex items-center justify-between border-t border-[#332f2a] pt-4">
+                  <p className="font-mono text-xs text-[#F1E9DA]/50">
                     Page {vpsPage} of {vpsTotalPages}
                   </p>
                   <div className="flex gap-2">
                     <button
                       disabled={vpsPage <= 1 || vpsLoading}
                       onClick={() => setVpsPage(p => p - 1)}
-                      className="rounded-lg border border-slate-700 p-2 disabled:opacity-30"
+                      className="rounded-lg border border-[#332f2a] bg-[#171717] p-2 text-[#F1E9DA]/70 transition hover:bg-[#292521] hover:text-[#F1E9DA] disabled:opacity-30"
                     >
-                      <ChevronLeft size={17} />
+                      <ChevronLeft size={16} />
                     </button>
                     <button
                       disabled={vpsPage >= vpsTotalPages || vpsLoading}
                       onClick={() => setVpsPage(p => p + 1)}
-                      className="rounded-lg border border-slate-700 p-2 disabled:opacity-30"
+                      className="rounded-lg border border-[#332f2a] bg-[#171717] p-2 text-[#F1E9DA]/70 transition hover:bg-[#292521] hover:text-[#F1E9DA] disabled:opacity-30"
                     >
-                      <ChevronRight size={17} />
+                      <ChevronRight size={16} />
                     </button>
                   </div>
                 </div>
@@ -706,19 +844,22 @@ export default function AdminPanel() {
 
       {selectedVps && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={() => setSelectedVps(null)}
         >
           <div
-            className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-700 bg-[#111a2b] p-6"
+            className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-xl font-bold">VPS Details</h2>
-              <button onClick={() => setSelectedVps(null)}><X /></button>
+            <div className="mb-6 flex items-center justify-between border-b border-[#332f2a] pb-4">
+              <div>
+                <h2 className="font-serif text-xl font-bold text-[#F1E9DA]">VPS Instance Details</h2>
+                <p className="font-mono text-xs text-[#C6A66B]">{selectedVps.ipAddress}</p>
+              </div>
+              <button onClick={() => setSelectedVps(null)} className="rounded-lg p-1.5 text-[#F1E9DA]/50 hover:bg-[#171717] hover:text-[#F1E9DA]"><X size={18} /></button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
               {[
                 ["IP Address", selectedVps.ipAddress],
                 ["Hostname", selectedVps.hostname || "—"],
@@ -728,14 +869,14 @@ export default function AdminPanel() {
                 ["RAM", selectedVps.ram ? `${selectedVps.ram} GB` : "—"],
                 ["Status", selectedVps.status],
                 ["Expiry Date", selectedVps.expiresAt ? formatDate(selectedVps.expiresAt) : "—"],
-                ["Customer", selectedVps.user?.name || "Unnamed"],
+                ["Customer", selectedVps.user?.name || "Unnamed Client"],
                 ["Customer Email", selectedVps.user?.email || "—"],
                 ["Created", formatDate(selectedVps.createdAt)],
                 ["VPS ID", selectedVps.id],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-lg bg-[#080e1c] p-3">
-                  <p className="text-xs text-slate-500">{label}</p>
-                  <p className="mt-1 break-all text-sm font-medium">{value}</p>
+                <div key={label} className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-3.5">
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">{label}</p>
+                  <p className="mt-1 break-all font-mono text-xs font-semibold text-[#F1E9DA]">{value}</p>
                 </div>
               ))}
             </div>
@@ -744,57 +885,57 @@ export default function AdminPanel() {
       )}
 
       {selectedCustomer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={() => setSelectedCustomer(null)}>
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-700 bg-[#111a2b] p-6"
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-2xl"
             onClick={e => e.stopPropagation()}>
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex items-center justify-between border-b border-[#332f2a] pb-4">
               <div>
-                <h2 className="text-xl font-bold">Customer Details</h2>
-                <p className="text-xs text-slate-500">Account and VPS information</p>
+                <h2 className="font-serif text-xl font-bold text-[#F1E9DA]">Customer Profile</h2>
+                <p className="font-mono text-xs text-[#F1E9DA]/50">Account details and allocated services</p>
               </div>
-              <button onClick={() => setSelectedCustomer(null)} className="rounded-lg p-2 hover:bg-slate-700">
-                <X />
+              <button onClick={() => setSelectedCustomer(null)} className="rounded-lg p-1.5 text-[#F1E9DA]/50 hover:bg-[#171717] hover:text-[#F1E9DA]">
+                <X size={18} />
               </button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-lg bg-[#080e1c] p-4">
-                <p className="mb-2 text-xs text-slate-500">Customer Name</p>
-                <p className="font-semibold">{selectedCustomer.name || "Unnamed"}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">Customer Name</p>
+                <p className="font-serif text-base font-bold text-[#F1E9DA]">{selectedCustomer.name || "Unnamed Client"}</p>
               </div>
-              <div className="rounded-lg bg-[#080e1c] p-4">
-                <p className="mb-2 flex items-center gap-2 text-xs text-slate-500"><Mail size={13}/> Email</p>
-                <p className="break-all font-semibold">{selectedCustomer.email}</p>
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50"><Mail size={12}/> Email Address</p>
+                <p className="break-all font-mono text-xs font-semibold text-[#F1E9DA]">{selectedCustomer.email}</p>
               </div>
-              <div className="rounded-lg bg-[#080e1c] p-4">
-                <p className="mb-2 flex items-center gap-2 text-xs text-slate-500"><Calendar size={13}/> Registered</p>
-                <p className="font-semibold">{formatDate(selectedCustomer.createdAt)}</p>
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50"><Calendar size={12}/> Member Since</p>
+                <p className="font-mono text-xs font-semibold text-[#F1E9DA]">{formatDate(selectedCustomer.createdAt)}</p>
               </div>
-              <div className="rounded-lg bg-[#080e1c] p-4">
-                <p className="mb-2 text-xs text-slate-500">Account Status</p>
-                <p className={selectedCustomer.isActive ? "font-semibold text-green-400" : "font-semibold text-red-400"}>
-                  {selectedCustomer.isActive ? "Active" : "Inactive"}
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">Account Status</p>
+                <p className={selectedCustomer.isActive ? "font-mono text-xs font-semibold text-emerald-400" : "font-mono text-xs font-semibold text-red-400"}>
+                  {selectedCustomer.isActive ? "Active Account" : "Deactivated / Suspended"}
                 </p>
               </div>
             </div>
 
             <div className="mt-6">
-              <h3 className="mb-3 font-semibold">Customer VPS Instances ({selectedCustomer.vpsInstances.length})</h3>
+              <h3 className="mb-3 font-serif text-sm font-bold text-[#F1E9DA]">Customer VPS Instances ({selectedCustomer.vpsInstances.length})</h3>
               {selectedCustomer.vpsInstances.length === 0 ? (
-                <p className="rounded-lg bg-[#080e1c] p-5 text-sm text-slate-400">No VPS instances found.</p>
+                <p className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-5 text-center font-mono text-xs text-[#F1E9DA]/50">No VPS instances provisioned for this customer.</p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {selectedCustomer.vpsInstances.map(vps => (
-                    <div key={vps.id} className="rounded-lg border border-slate-700 bg-[#080e1c] p-4">
+                    <div key={vps.id} className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
                       <div className="flex flex-wrap justify-between gap-2">
-                        <p className="font-semibold">{vps.ipAddress}</p>
-                        <span className="text-xs text-blue-400">{vps.status}</span>
+                        <p className="font-mono text-sm font-bold text-[#C6A66B]">{vps.ipAddress}</p>
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-emerald-400">{vps.status}</span>
                       </div>
-                      <p className="mt-2 text-xs text-slate-400">
+                      <p className="mt-1 font-mono text-xs text-[#F1E9DA]/60">
                         {vps.provider} · {vps.operatingSystem || "OS not specified"} · {vps.ram ? `${vps.ram} GB RAM` : "RAM N/A"}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                         Expires: {vps.expiresAt ? formatDate(vps.expiresAt) : "Not specified"}
                       </p>
                     </div>
@@ -809,8 +950,13 @@ export default function AdminPanel() {
                 if (customer) toggleCustomer(customer);
               }}
               disabled={actionLoading === selectedCustomer.id}
-              className={`mt-6 w-full rounded-lg p-3 font-semibold ${selectedCustomer.isActive ? "bg-red-600 hover:bg-red-500" : "bg-green-600 hover:bg-green-500"}`}>
-              {selectedCustomer.isActive ? "Deactivate Customer" : "Activate Customer"}
+              className={`mt-6 w-full rounded-xl py-3.5 font-mono text-xs font-bold uppercase tracking-wider transition ${
+                selectedCustomer.isActive
+                  ? "border border-red-500/40 bg-red-950/30 text-red-300 hover:bg-red-900/40"
+                  : "border border-emerald-500/40 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-900/40"
+              }`}
+            >
+              {selectedCustomer.isActive ? "Deactivate Customer Account" : "Activate Customer Account"}
             </button>
           </div>
         </div>

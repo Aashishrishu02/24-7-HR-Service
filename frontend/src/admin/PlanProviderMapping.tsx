@@ -8,7 +8,7 @@ type Product = { id: string; providerId: string; name: string; externalProductId
 type Mapping = { id: string; planId: string; providerId: string; providerProductId: string; priority: number; isEnabled: boolean; autoPurchaseEnabled: boolean; maxAllowedCost?: string | number | null; plan: Plan; provider: Provider; providerProduct: Product };
 type FormState = { planId: string; providerId: string; providerProductId: string; priority: string; isEnabled: boolean; autoPurchaseEnabled: boolean; maxAllowedCost: string };
 const initial: FormState = { planId:"", providerId:"", providerProductId:"", priority:"100", isEnabled:true, autoPurchaseEnabled:false, maxAllowedCost:"" };
-const input = "w-full rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-sm text-white outline-none focus:border-blue-500";
+const input = "w-full rounded-xl border border-[#332f2a] bg-[#171717] p-3 font-mono text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none transition focus:border-[#C6A66B] focus:ring-1 focus:ring-[#C6A66B]";
 const rows = (d:any, key:string) => Array.isArray(d?.[key]) ? d[key] : Array.isArray(d) ? d : [];
 
 export default function PlanProviderMapping() {
@@ -66,32 +66,275 @@ export default function PlanProviderMapping() {
     } catch(e:any) { setError(e.response?.data?.message || "Mapping update failed."); }
   };
 
-  return <div className="space-y-6">
-    <div className="flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-2xl font-bold">VPS Plan Provider Mapping</h1><p className="mt-1 text-sm text-slate-400">Connect customer plans to eligible provider products and define fallback priority.</p></div><div className="flex gap-2"><button onClick={load} className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm"><RefreshCw size={15}/> Refresh</button><button onClick={()=>{setForm(initial);setModal(true);setError("");}} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold"><Plus size={16}/> Add Mapping</button></div></div>
-    {error && <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"><AlertCircle size={16}/>{error}</div>}
-    {success && <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-300">{success}</div>}
-    <div className="flex justify-end"><select className={`${input} max-w-xs`} value={enabledFilter} onChange={e=>setEnabledFilter(e.target.value)}><option value="">All mappings</option><option value="true">Enabled</option><option value="false">Disabled</option></select></div>
-    <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#111a2b]">
-      {loading ? <div className="p-12 text-center text-slate-400"><RefreshCw className="mx-auto mb-3 animate-spin"/>Loading mappings...</div> : mappings.length===0 ? <div className="p-12 text-center text-slate-400">No mappings configured yet.</div> :
-      <div className="overflow-x-auto"><table className="w-full min-w-[1000px] text-left text-sm"><thead className="bg-[#0d1525] text-xs uppercase text-slate-400"><tr>{["VPS Plan","Provider","Provider Product","Priority","Mapping","Auto Purchase","Actions"].map(x=><th key={x} className="px-4 py-3">{x}</th>)}</tr></thead><tbody className="divide-y divide-slate-800">{mappings.map(m=><tr key={m.id}>
-        <td className="px-4 py-4"><p className="font-semibold">{m.plan?.name || "—"}</p><p className="text-xs text-slate-500">{m.plan?.productType}</p></td>
-        <td className="px-4 py-4">{m.provider?.name || "—"}<p className="text-xs text-slate-500">{m.provider?.code}</p></td>
-        <td className="px-4 py-4">{m.providerProduct?.name || "—"}<p className="text-xs text-slate-500">{m.providerProduct?.externalProductId}</p></td>
-        <td className="px-4 py-4"><input aria-label="Priority" type="number" min="0" defaultValue={m.priority} onBlur={e=>{const n=Number(e.target.value);if(n!==m.priority && n>=0) update(m,{priority:n});}} className={`${input} w-20`}/></td>
-        <td className="px-4 py-4"><select className={input} value={String(m.isEnabled)} onChange={e=>update(m,{isEnabled:e.target.value==="true"})}><option value="true">Enabled</option><option value="false">Disabled</option></select></td>
-        <td className="px-4 py-4"><span className={m.autoPurchaseEnabled?"text-amber-400":"text-green-400"}>{m.autoPurchaseEnabled?"Enabled":"Off"}</span></td>
-        <td className="px-4 py-4"><button disabled={!m.provider?.apiPurchaseEnabled || m.autoPurchaseEnabled} onClick={()=>update(m,{autoPurchaseEnabled:true})} title={!m.provider?.apiPurchaseEnabled?"Provider API purchasing is disabled":""} className="rounded-lg border border-slate-700 px-3 py-2 text-xs disabled:opacity-40">Enable API Purchase</button></td>
-      </tr>)}</tbody></table></div>}
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">VPS Plan Provider Mapping</h1>
+          <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
+            Connect customer plans to eligible provider products and define fallback priority.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={load}
+            className="flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-2 font-mono text-xs font-bold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521]"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
+          <button
+            onClick={() => {
+              setForm(initial);
+              setModal(true);
+              setError("");
+            }}
+            className="flex items-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d]"
+          >
+            <Plus size={16} /> Add Mapping
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-950/20 p-4 font-mono text-xs text-red-300">
+          <AlertCircle size={16} className="text-red-400" />
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-xl border border-[#C6A66B]/30 bg-[#C6A66B]/10 p-4 font-mono text-xs text-[#C6A66B]">
+          {success}
+        </div>
+      )}
+
+      <div className="flex justify-end">
+        <select
+          className={`${input} max-w-xs`}
+          value={enabledFilter}
+          onChange={(e) => setEnabledFilter(e.target.value)}
+        >
+          <option value="">All mappings</option>
+          <option value="true">Enabled</option>
+          <option value="false">Disabled</option>
+        </select>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+        {loading ? (
+          <div className="p-16 text-center font-mono text-xs text-[#F1E9DA]/50">
+            <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" size={22} />
+            Loading mappings...
+          </div>
+        ) : mappings.length === 0 ? (
+          <div className="p-16 text-center font-mono text-xs text-[#F1E9DA]/50">
+            No mappings configured yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px] text-left font-sans text-sm">
+              <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
+                <tr>
+                  {["VPS Plan", "Provider", "Provider Product", "Priority", "Mapping", "Auto Purchase", "Actions"].map((x) => (
+                    <th key={x} className="px-5 py-3.5">
+                      {x}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#332f2a]">
+                {mappings.map((m) => (
+                  <tr key={m.id} className="transition hover:bg-[#292521]/60">
+                    <td className="px-5 py-4">
+                      <p className="font-medium text-[#F1E9DA]">{m.plan?.name || "—"}</p>
+                      <p className="font-mono text-xs text-[#F1E9DA]/50">{m.plan?.productType}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <p className="text-[#F1E9DA]">{m.provider?.name || "—"}</p>
+                      <p className="font-mono text-xs text-[#C6A66B]">{m.provider?.code}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <p className="text-[#F1E9DA]">{m.providerProduct?.name || "—"}</p>
+                      <p className="font-mono text-xs text-[#F1E9DA]/50">{m.providerProduct?.externalProductId}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <input
+                        aria-label="Priority"
+                        type="number"
+                        min="0"
+                        defaultValue={m.priority}
+                        onBlur={(e) => {
+                          const n = Number(e.target.value);
+                          if (n !== m.priority && n >= 0) update(m, { priority: n });
+                        }}
+                        className={`${input} w-20 py-1.5`}
+                      />
+                    </td>
+                    <td className="px-5 py-4">
+                      <select
+                        className={`${input} py-1.5`}
+                        value={String(m.isEnabled)}
+                        onChange={(e) => update(m, { isEnabled: e.target.value === "true" })}
+                      >
+                        <option value="true">Enabled</option>
+                        <option value="false">Disabled</option>
+                      </select>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`font-mono text-xs font-semibold ${m.autoPurchaseEnabled ? "text-amber-400" : "text-emerald-400"}`}>
+                        {m.autoPurchaseEnabled ? "Enabled" : "Off"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <button
+                        disabled={!m.provider?.apiPurchaseEnabled || m.autoPurchaseEnabled}
+                        onClick={() => update(m, { autoPurchaseEnabled: true })}
+                        title={!m.provider?.apiPurchaseEnabled ? "Provider API purchasing is disabled" : ""}
+                        className="rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-40"
+                      >
+                        Enable API Purchase
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {modal && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => !saving && setModal(false)}
+        >
+          <form
+            onSubmit={submit}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[92vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-[#332f2a] pb-4">
+              <div>
+                <h2 className="font-serif text-xl font-bold text-[#F1E9DA]">Create Plan Mapping</h2>
+                <p className="font-sans text-xs text-[#F1E9DA]/50">Only compatible active provider products are selectable.</p>
+              </div>
+              <button type="button" onClick={() => setModal(false)} className="rounded-lg p-1.5 text-[#F1E9DA]/50 hover:bg-[#171717] hover:text-[#F1E9DA]">
+                <X size={18} />
+              </button>
+            </div>
+
+            <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+              VPS Plan *
+              <select
+                required
+                className={`${input} mt-1.5 font-sans`}
+                value={form.planId}
+                onChange={(e) => setForm({ ...form, planId: e.target.value, providerProductId: "" })}
+              >
+                <option value="">Select plan</option>
+                {plans.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} · {p.productType} · {p.cpuCores} CPU / {p.ramGb} GB RAM
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+              Provider *
+              <select
+                required
+                className={`${input} mt-1.5 font-sans`}
+                value={form.providerId}
+                onChange={(e) => setForm({ ...form, providerId: e.target.value, providerProductId: "" })}
+              >
+                <option value="">Select provider</option>
+                {providers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.code})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+              Compatible Provider Product *
+              <select
+                required
+                disabled={!form.providerId || !form.planId}
+                className={`${input} mt-1.5 font-sans`}
+                value={form.providerProductId}
+                onChange={(e) => setForm({ ...form, providerProductId: e.target.value })}
+              >
+                <option value="">Select product</option>
+                {eligibleProducts.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} · {p.cpuCores} CPU / {p.ramGb} GB RAM / {p.storageGb} GB
+                  </option>
+                ))}
+              </select>
+              {form.planId && form.providerId && eligibleProducts.length === 0 && (
+                <p className="mt-1 font-mono text-xs text-amber-400">No active product meets this plan's type and specifications.</p>
+              )}
+            </label>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+                Priority (lower = first) *
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  className={`${input} mt-1.5 font-mono`}
+                  value={form.priority}
+                  onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                />
+              </label>
+              <label className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/70">
+                Maximum provider cost (₹)
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className={`${input} mt-1.5 font-mono`}
+                  value={form.maxAllowedCost}
+                  onChange={(e) => setForm({ ...form, maxAllowedCost: e.target.value })}
+                />
+              </label>
+            </div>
+
+            <label className="flex items-center gap-2 font-sans text-sm text-[#F1E9DA]">
+              <input
+                type="checkbox"
+                checked={form.isEnabled}
+                onChange={(e) => setForm({ ...form, isEnabled: e.target.checked })}
+                className="rounded accent-[#C6A66B]"
+              />
+              Mapping enabled
+            </label>
+
+            <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3 font-mono text-xs text-amber-200">
+              Automatic provider purchasing is intentionally OFF until provider API documentation and credentials are verified.
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-[#332f2a] pt-4">
+              <button
+                type="button"
+                onClick={() => setModal(false)}
+                className="rounded-xl border border-[#332f2a] bg-[#171717] px-5 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/70 hover:bg-[#292521]"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={saving || !eligibleProducts.some((p) => p.id === form.providerProductId)}
+                className="rounded-xl bg-[#C6A66B] px-6 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d] disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Create Mapping"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
-    {modal && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={()=>!saving&&setModal(false)}><form onSubmit={submit} onClick={e=>e.stopPropagation()} className="max-h-[92vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl border border-slate-700 bg-[#111a2b] p-6">
-      <div className="flex items-center justify-between"><div><h2 className="text-xl font-bold">Create Plan Mapping</h2><p className="text-xs text-slate-400">Only compatible active provider products are selectable.</p></div><button type="button" onClick={()=>setModal(false)}><X/></button></div>
-      <label className="block text-sm">VPS Plan *<select required className={`${input} mt-1`} value={form.planId} onChange={e=>setForm({...form,planId:e.target.value,providerProductId:""})}><option value="">Select plan</option>{plans.map(p=><option key={p.id} value={p.id}>{p.name} · {p.productType} · {p.cpuCores} CPU / {p.ramGb} GB RAM</option>)}</select></label>
-      <label className="block text-sm">Provider *<select required className={`${input} mt-1`} value={form.providerId} onChange={e=>setForm({...form,providerId:e.target.value,providerProductId:""})}><option value="">Select provider</option>{providers.map(p=><option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}</select></label>
-      <label className="block text-sm">Compatible Provider Product *<select required disabled={!form.providerId||!form.planId} className={`${input} mt-1`} value={form.providerProductId} onChange={e=>setForm({...form,providerProductId:e.target.value})}><option value="">Select product</option>{eligibleProducts.map(p=><option key={p.id} value={p.id}>{p.name} · {p.cpuCores} CPU / {p.ramGb} GB RAM / {p.storageGb} GB</option>)}</select>{form.planId&&form.providerId&&eligibleProducts.length===0&&<p className="mt-1 text-xs text-amber-400">No active product meets this plan's type and specifications.</p>}</label>
-      <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Priority (lower = first) *<input required type="number" min="0" className={`${input} mt-1`} value={form.priority} onChange={e=>setForm({...form,priority:e.target.value})}/></label><label className="text-sm">Maximum provider cost (₹)<input type="number" min="0" step="0.01" className={`${input} mt-1`} value={form.maxAllowedCost} onChange={e=>setForm({...form,maxAllowedCost:e.target.value})}/></label></div>
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isEnabled} onChange={e=>setForm({...form,isEnabled:e.target.checked})}/> Mapping enabled</label>
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">Automatic provider purchasing is intentionally OFF until provider API documentation and credentials are verified.</div>
-      <div className="flex justify-end gap-2"><button type="button" onClick={()=>setModal(false)} className="rounded-lg border border-slate-700 px-4 py-2">Cancel</button><button disabled={saving||!eligibleProducts.some(p=>p.id===form.providerProductId)} className="rounded-lg bg-blue-600 px-5 py-2 font-semibold disabled:opacity-50">{saving?"Saving...":"Create Mapping"}</button></div>
-    </form></div>}
-  </div>;
+  );
 }

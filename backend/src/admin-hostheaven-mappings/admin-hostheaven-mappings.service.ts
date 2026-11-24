@@ -38,6 +38,27 @@ export class AdminHostHeavenMappingsService {
     return this.syncService.getSyncStatus();
   }
 
+  async updateProfitMargin(profitMarginPercent: number) {
+    if (
+      !Number.isFinite(profitMarginPercent) ||
+      profitMarginPercent < 0 ||
+      profitMarginPercent > 80
+    ) {
+      throw new BadRequestException(
+        'HostHeaven profit margin must be between 0% and 80%.',
+      );
+    }
+
+    const settings = await this.adminSettingsService.updateSettings({
+      hostHeavenProfitMarginPercent: profitMarginPercent,
+    });
+
+    return {
+      success: true,
+      profitMarginPercent: settings.hostHeavenProfitMarginPercent,
+    };
+  }
+
   async confirmCost(id: string, confirmedCost: number) {
     return this.syncService.confirmProviderCost(id, confirmedCost);
   }

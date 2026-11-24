@@ -13,7 +13,6 @@ import {
   Plus,
   RefreshCw,
   Server,
-  ShieldCheck,
   Wallet,
   X,
   Zap,
@@ -106,6 +105,7 @@ type VPSPlan = {
   storageGb?: number | null;
   bandwidthGb?: number | null;
   price: number | string;
+  monthlyPrice?: number | string;
   currency?: string;
   durationDays?: number;
   supportedOS?: string[];
@@ -238,6 +238,7 @@ const determineInitialPage = (): Page => {
 
 export default function Dashboard() {
   const [page, setPage] = useState<Page>(determineInitialPage());
+  const [checkoutReturnPage, setCheckoutReturnPage] = useState<Page>("Windows VPS");
   const [dedicatedIpEnabled, setDedicatedIpEnabled] = useState(false);
   const [dedicatedIpStatusLoaded, setDedicatedIpStatusLoaded] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -744,7 +745,13 @@ export default function Dashboard() {
     }
   };
 
+  const closeCheckout = () => {
+    setSelectedPlan(null);
+    go(checkoutReturnPage === "Checkout" ? "Windows VPS" : checkoutReturnPage);
+  };
+
   const openCheckout = (plan: VPSPlan) => {
+    setCheckoutReturnPage(page === "Checkout" ? "Windows VPS" : page);
     setSelectedPlan(plan);
     setSelectedOS(plan.supportedOS?.[0] || "Ubuntu 22.04");
     setSelectedMonths(1);
@@ -989,90 +996,117 @@ export default function Dashboard() {
 
   const PlanCard = ({ plan, index }: { plan: VPSPlan; index: number }) => {
     const availableOS = plan.supportedOS || [];
+    const isFeatured = index === 1;
     return (
       <article
-        className={`group relative overflow-hidden rounded-2xl border bg-[#0b1531]/90 p-5 shadow-[0_16px_50px_rgba(0,0,0,.22)] transition duration-300 hover:-translate-y-1 hover:border-cyan-400/70 ${index === 1 ? "border-cyan-400/60" : "border-blue-900/70"}`}
+        className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-[#201d1a] p-6 shadow-xl transition duration-200 hover:-translate-y-1 ${
+          isFeatured
+            ? "border-[#C6A66B] shadow-2xl shadow-[#C6A66B]/15 scale-[1.02] z-10"
+            : "border-[#332f2a] hover:border-[#C6A66B]/60"
+        }`}
       >
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-500 via-cyan-300 to-blue-600" />
-        {index === 1 && (
-          <span className="absolute right-4 top-4 rounded-full bg-cyan-300/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-200">
-            Popular
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#C6A66B]/20 via-[#C6A66B] to-[#C6A66B]/20" />
+        {isFeatured && (
+          <span className="absolute right-4 top-4 rounded-full bg-[#C6A66B] px-3 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-[#171717]">
+            Recommended
           </span>
         )}
-        <div className="flex items-start justify-between gap-3 pr-16">
-          <div className="flex items-center gap-2 text-cyan-100">
-            <Monitor size={18} />
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              {plan.productType === "LINUX_IP_VPS"
-                ? "Dedicated IP"
-                : "VPS Hosting"}
+        <div>
+          <div className="flex items-start justify-between gap-3 pr-16">
+            <div className="flex items-center gap-2 text-[#C6A66B]">
+              <Monitor size={17} />
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#C6A66B]">
+                {plan.productType === "LINUX_IP_VPS"
+                  ? "Dedicated IP"
+                  : "Cloud VPS"}
+              </span>
+            </div>
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
+              In Stock
             </span>
           </div>
-          <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
-            Available
-          </span>
-        </div>
-        <h3 className="mt-4 min-h-12 text-lg font-extrabold leading-snug text-white">
-          {plan.name}
-        </h3>
-        {plan.description && (
-          <p className="mt-1 line-clamp-2 min-h-8 text-xs leading-5 text-slate-400">
-            {plan.description}
-          </p>
-        )}
-        <div className="mt-5 space-y-3 border-y border-blue-900/60 py-4 text-sm text-slate-200">
-          <div className="flex items-center gap-3">
-            <Cpu size={16} className="text-cyan-300" />
-            <span>{plan.cpuCores ?? "—"} vCPU Cores</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Zap size={16} className="text-cyan-300" />
-            <span>{plan.ramGb ?? "—"} GB RAM</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <HardDrive size={16} className="text-cyan-300" />
-            <span>{plan.storageGb ?? "—"} GB SSD Storage</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <ArrowUpRight size={16} className="text-cyan-300" />
-            <span>{plan.bandwidthGb ?? "—"} GB Bandwidth</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Globe size={16} className="text-cyan-300" />
-            <span>Location: {plan.location || "India"}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <ShieldCheck size={16} className="text-cyan-300" />
-            <span>Full control panel & support</span>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {availableOS.slice(0, 3).map((os) => (
-            <span
-              key={os}
-              className="rounded-md bg-blue-950/80 px-2 py-1 text-[10px] text-blue-200"
-            >
-              {os}
-            </span>
-          ))}
-        </div>
-        <div className="mt-5 flex items-end justify-between gap-3">
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              Starting from
+
+          <h3 className="mt-4 min-h-12 font-serif text-xl font-bold leading-snug text-[#F1E9DA]">
+            {plan.name}
+          </h3>
+          {plan.description && (
+            <p className="mt-1 line-clamp-2 min-h-8 text-xs leading-relaxed text-[#F1E9DA]/60">
+              {plan.description}
             </p>
-            <p className="mt-1 text-2xl font-black text-white">
-              {formatDecimal(plan.price, plan.currency || "INR")}
-              <span className="ml-1 text-xs font-medium text-slate-400">
-                /month
+          )}
+
+          <div className="mt-5 space-y-2.5 border-y border-[#332f2a] py-4 font-mono text-xs text-[#F1E9DA]/80">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#F1E9DA]/50">
+                <Cpu size={14} className="text-[#C6A66B]" /> CPU Cores
+              </span>
+              <span className="font-bold text-[#F1E9DA]">
+                {plan.cpuCores ?? "—"} vCPU
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#F1E9DA]/50">
+                <Zap size={14} className="text-[#C6A66B]" /> Memory
+              </span>
+              <span className="font-bold text-[#F1E9DA]">
+                {plan.ramGb ?? "—"} GB RAM
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#F1E9DA]/50">
+                <HardDrive size={14} className="text-[#C6A66B]" /> Storage
+              </span>
+              <span className="font-bold text-[#F1E9DA]">
+                {plan.storageGb ?? "—"} GB NVMe
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#F1E9DA]/50">
+                <ArrowUpRight size={14} className="text-[#C6A66B]" /> Bandwidth
+              </span>
+              <span className="font-bold text-[#F1E9DA]">
+                {plan.bandwidthGb ?? "—"} GB
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[#F1E9DA]/50">
+                <Globe size={14} className="text-[#C6A66B]" /> Datacenter
+              </span>
+              <span className="font-bold text-[#F1E9DA]">
+                {plan.location || "Location information unavailable"}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {availableOS.slice(0, 3).map((os) => (
+              <span
+                key={os}
+                className="rounded border border-[#332f2a] bg-[#171717] px-2 py-0.5 font-mono text-[10px] text-[#C6A66B]"
+              >
+                {os}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-[#332f2a] pt-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="font-mono text-[9px] uppercase tracking-wider text-[#F1E9DA]/50">
+              Customer Price
+            </p>
+            <p className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">
+              {formatDecimal(plan.monthlyPrice ?? plan.price, plan.currency || "INR")}
+              <span className="ml-1 text-xs font-sans font-normal text-[#F1E9DA]/60">
+                /mo
               </span>
             </p>
           </div>
           <button
             onClick={() => openCheckout(plan)}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-3 text-xs font-extrabold text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#C6A66B] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82]"
           >
-            Buy Now <ArrowRight size={15} />
+            Deploy <ArrowRight size={14} />
           </button>
         </div>
       </article>
@@ -1080,71 +1114,77 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#050b20] text-white selection:bg-cyan-300 selection:text-[#06132d]">
-      <div className="pointer-events-none fixed inset-0 -z-0 bg-[radial-gradient(ellipse_at_50%_-15%,rgba(21,88,220,.28),transparent_48%),radial-gradient(ellipse_at_100%_60%,rgba(8,74,155,.12),transparent_35%)]" />
+    <div className="min-h-screen overflow-x-hidden bg-[#171717] font-sans text-[#F1E9DA] selection:bg-[#C6A66B]/30 selection:text-[#F1E9DA]">
+      <div className="pointer-events-none fixed inset-0 -z-0 bg-[radial-gradient(ellipse_at_50%_-15%,rgba(198,166,107,.08),transparent_50%),radial-gradient(ellipse_at_100%_60%,rgba(198,166,107,.04),transparent_40%)]" />
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-40 border-b border-blue-900/50 bg-[#050b20]/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-[#292521] bg-[#171717]/90 backdrop-blur-xl">
         <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
           <button
             onClick={() => go("Home")}
-            className="flex items-center gap-3 text-left"
+            className="flex items-center gap-3 text-left group"
           >
-            <img
-              src={logo}
-              alt="24/7"
-              className="h-10 w-10 rounded-xl object-contain"
-            />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#C6A66B]/40 bg-[#292521] p-1 shadow-md transition group-hover:border-[#C6A66B]">
+              <img
+                src={logo}
+                alt="24/7"
+                className="h-full w-full rounded-full object-contain"
+              />
+            </div>
             <span>
-              <span className="block text-lg font-black tracking-wide">
-                24/7 <span className="text-cyan-300">HR SERVICE</span>
+              <span className="block font-serif text-lg font-bold tracking-tight text-[#F1E9DA] transition group-hover:text-[#C6A66B]">
+                24/7 <span className="text-[#C6A66B]">CLOUD</span>
               </span>
-              <span className="block text-[9px] tracking-[.28em] text-slate-500">
-                VPS HOSTING
+              <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-[#C6A66B]">
+                ENTERPRISE CONSOLE
               </span>
             </span>
           </button>
 
           <nav className="hidden items-center gap-1 lg:flex">
-            {navItems.filter((item) => item.label !== "Dedicated IP" || dedicatedIpEnabled).map((item) => (
-              <button
-                key={item.label}
-                onClick={() => go(item.label)}
-                className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
-                  page === item.label
-                    ? "bg-blue-500/15 text-cyan-200"
-                    : "text-slate-300 hover:bg-white/5 hover:text-white"
-                }`}
-              >
-                {item.short}
-              </button>
-            ))}
+            {navItems
+              .filter(
+                (item) => item.label !== "Dedicated IP" || dedicatedIpEnabled,
+              )
+              .map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => go(item.label)}
+                  className={`rounded-full px-3.5 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition ${
+                    page === item.label
+                      ? "bg-[#C6A66B] text-[#171717] shadow-md shadow-[#C6A66B]/15"
+                      : "text-[#F1E9DA]/70 hover:bg-[#201d1a] hover:text-[#F1E9DA]"
+                  }`}
+                >
+                  {item.short}
+                </button>
+              ))}
           </nav>
 
           <div className="hidden items-center gap-3 sm:flex">
             {/* Quick Wallet pill in header */}
             <button
               onClick={() => go("Wallet")}
-              className="flex items-center gap-2 rounded-full border border-blue-800/80 bg-blue-950/40 px-3.5 py-1.5 text-xs transition hover:border-cyan-300"
+              className="flex items-center gap-2 rounded-full border border-[#C6A66B]/30 bg-[#201d1a] px-3.5 py-1.5 text-xs transition hover:border-[#C6A66B]"
               title="View wallet balance and history"
             >
-              <Wallet size={14} className="text-cyan-300" />
-              <span className="font-bold text-white">
+              <Wallet size={14} className="text-[#C6A66B]" />
+              <span className="font-mono font-bold text-[#F1E9DA]">
                 {formatDecimal(currentWalletBalance)}
               </span>
             </button>
 
             <div className="text-right">
-              <p className="text-xs font-bold">
+              <p className="text-xs font-bold text-[#F1E9DA]">
                 {profile?.name || "My Account"}
               </p>
-              <p className="max-w-40 truncate text-[10px] text-slate-500">
+              <p className="max-w-40 truncate font-mono text-[10px] text-[#F1E9DA]/50">
                 {profile?.email || ""}
               </p>
             </div>
             <button
               onClick={logout}
-              className="rounded-full border border-blue-800/80 px-4 py-2 text-xs font-bold text-slate-200 transition hover:border-cyan-300 hover:text-cyan-200"
+              className="rounded-full border border-[#332f2a] bg-[#171717] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80 transition hover:border-[#C6A66B] hover:text-[#C6A66B]"
             >
               Logout
             </button>
@@ -1152,7 +1192,7 @@ export default function Dashboard() {
 
           <button
             onClick={() => setMobileMenu((v) => !v)}
-            className="rounded-lg border border-blue-900 p-2 lg:hidden"
+            className="rounded-lg border border-[#292521] p-2 text-[#F1E9DA] transition hover:bg-[#292521] lg:hidden"
             aria-label="Toggle navigation"
           >
             {mobileMenu ? <X size={20} /> : <Menu size={20} />}
@@ -1160,23 +1200,27 @@ export default function Dashboard() {
         </div>
 
         {mobileMenu && (
-          <nav className="grid grid-cols-2 gap-2 border-t border-blue-900/50 px-4 py-3 sm:grid-cols-3 lg:hidden">
-            {navItems.filter((item) => item.label !== "Dedicated IP" || dedicatedIpEnabled).map((item) => (
-              <button
-                key={item.label}
-                onClick={() => go(item.label)}
-                className={`rounded-lg px-3 py-3 text-left text-sm ${
-                  page === item.label
-                    ? "bg-blue-600 text-white"
-                    : "bg-white/5 text-slate-300"
-                }`}
-              >
-                {item.short}
-              </button>
-            ))}
+          <nav className="grid grid-cols-2 gap-2 border-t border-[#292521] bg-[#201d1a] px-4 py-3 sm:grid-cols-3 lg:hidden">
+            {navItems
+              .filter(
+                (item) => item.label !== "Dedicated IP" || dedicatedIpEnabled,
+              )
+              .map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => go(item.label)}
+                  className={`rounded-lg px-3 py-3 text-left font-mono text-xs font-bold uppercase tracking-wider ${
+                    page === item.label
+                      ? "bg-[#C6A66B] text-[#171717]"
+                      : "bg-[#171717] text-[#F1E9DA]/70"
+                  }`}
+                >
+                  {item.short}
+                </button>
+              ))}
             <button
               onClick={logout}
-              className="rounded-lg bg-red-500/10 px-3 py-3 text-left text-sm text-red-300"
+              className="rounded-lg bg-red-500/10 px-3 py-3 text-left font-mono text-xs font-bold uppercase tracking-wider text-red-300"
             >
               Logout
             </button>
@@ -1187,14 +1231,14 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="relative z-10 mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10">
         {notice && (
-          <div className="mt-5 flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          <div className="mt-5 flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
             <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="shrink-0 text-emerald-300" />
+              <CheckCircle2 size={16} className="shrink-0 text-emerald-400" />
               <span>{notice}</span>
             </div>
             <button
               onClick={() => setNotice("")}
-              className="text-emerald-400 hover:text-emerald-100"
+              className="text-emerald-400 hover:text-emerald-200"
             >
               <X size={15} />
             </button>
@@ -1202,14 +1246,14 @@ export default function Dashboard() {
         )}
 
         {error && (
-          <div className="mt-5 flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="mt-5 flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             <div className="flex items-center gap-2">
-              <AlertCircle size={16} className="shrink-0 text-red-300" />
+              <AlertCircle size={16} className="shrink-0 text-red-400" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError("")}
-              className="text-red-400 hover:text-red-100"
+              className="text-red-400 hover:text-red-200"
             >
               <X size={15} />
             </button>
@@ -1222,68 +1266,62 @@ export default function Dashboard() {
           page === "Linux VPS") && (
           <>
             {page === "Home" && (
-              <section className="relative mt-7 overflow-hidden rounded-[28px] border border-blue-700/50 bg-[linear-gradient(112deg,#07184a_0%,#092d82_48%,#071c50_100%)] px-6 py-14 text-center shadow-[0_25px_90px_rgba(0,48,160,.24)] sm:mt-9 sm:px-12 sm:py-20">
-                <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
-                <div className="pointer-events-none absolute -right-12 bottom-0 h-72 w-72 rounded-full bg-cyan-300/15 blur-3xl" />
+              <section className="relative mt-7 overflow-hidden rounded-2xl border border-[#C6A66B]/30 bg-[#201d1a] px-6 py-12 text-center shadow-2xl sm:mt-9 sm:px-12 sm:py-16">
+                <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-[#C6A66B]/5 blur-3xl" />
+                <div className="pointer-events-none absolute -right-12 bottom-0 h-72 w-72 rounded-full bg-[#C6A66B]/5 blur-3xl" />
                 <div className="relative mx-auto max-w-3xl">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-cyan-200/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[.2em] text-cyan-100">
-                    <Zap size={13} /> High performance cloud servers
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[#C6A66B]/30 bg-[#292521] px-4 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#C6A66B]">
+                    <Zap size={13} /> High-Performance Cloud Console
                   </span>
-                  <h1 className="mt-6 text-4xl font-black leading-[1.08] tracking-tight sm:text-6xl">
-                    Your Windows VPS
-                    <br />
-                    <span className="bg-gradient-to-r from-cyan-200 to-sky-400 bg-clip-text text-transparent">
-                      Starts Here.
-                    </span>
+                  <h1 className="mt-5 font-serif text-3xl font-bold tracking-tight text-[#F1E9DA] sm:text-5xl">
+                    Enterprise VPS Infrastructure
                   </h1>
-                  <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-blue-100/80 sm:text-base">
-                    High performance VPS hosting with instant delivery,
-                    reliable uptime and full control. Choose your server and get
-                    started in minutes.
+                  <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[#F1E9DA]/75 sm:text-base">
+                    Deploy, scale, and monitor mission-critical virtual nodes with verified enterprise hardware and instant automated management.
                   </p>
                   <div className="mt-8 flex flex-wrap justify-center gap-3">
                     <button
                       onClick={() => go("Windows VPS")}
-                      className="rounded-xl bg-cyan-300 px-6 py-3.5 text-sm font-extrabold text-[#071638] shadow-xl shadow-cyan-500/20 transition hover:bg-cyan-200"
+                      className="rounded-lg bg-[#C6A66B] px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[#171717] shadow-xl shadow-[#C6A66B]/20 transition hover:bg-[#d8ba82]"
                     >
-                      Buy VPS <ArrowRight className="ml-2 inline" size={16} />
+                      Deploy Windows VPS <ArrowRight className="ml-1.5 inline" size={15} />
                     </button>
                     <button
                       onClick={() => go("Linux VPS")}
-                      className="rounded-xl border border-white/30 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/10"
+                      className="rounded-lg border border-[#332f2a] bg-[#171717] px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[#F1E9DA] transition hover:border-[#C6A66B] hover:text-[#C6A66B]"
                     >
-                      Explore Linux VPS
+                      Deploy Linux VPS
                     </button>
                     <button
                       onClick={() => go("My VPS")}
-                      className="rounded-xl border border-white/30 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/10"
+                      className="rounded-lg border border-[#332f2a] bg-[#171717] px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[#F1E9DA] transition hover:border-[#C6A66B] hover:text-[#C6A66B]"
                     >
-                      My Servers
+                      My Servers ({vpsList.length})
                     </button>
                   </div>
-                  <div className="mt-12 grid grid-cols-2 gap-5 border-t border-white/15 pt-7 sm:grid-cols-4">
+                  <div className="mt-10 grid grid-cols-2 gap-5 border-t border-[#332f2a] pt-7 sm:grid-cols-4 font-mono">
                     <div>
-                      <p className="text-2xl font-black">99.9%</p>
-                      <p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">
-                        Network uptime target
+                      <p className="font-serif text-2xl font-bold text-[#C6A66B]">{activeCount}</p>
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-[#F1E9DA]/60">
+                        Active Instances
                       </p>
                     </div>
                     <div>
-                      <p className="text-2xl font-black">SSD</p>
-                      <p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">
-                        Fast storage
+                      <p className="font-serif text-2xl font-bold text-[#F1E9DA]">NVMe</p>
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-[#F1E9DA]/60">
+                        Solid-State Arrays
                       </p>
                     </div>
                     <div>
-                      <p className="text-2xl font-black">24/7</p>
-                      <p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">
-                        Support
+                      <p className="font-serif text-2xl font-bold text-[#F1E9DA]">24/7</p>
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-[#F1E9DA]/60">
+                        Support Desk
                       </p>
                     </div>
                     <div>
-                      <p className="text-2xl font-black">Secure</p>
-                      <p className="mt-1 text-[10px] uppercase tracking-wider text-blue-200">
-                        Wallet & UPI Checkout
+                      <p className="font-serif text-2xl font-bold text-[#C6A66B]">{formatDecimal(currentWalletBalance)}</p>
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-[#F1E9DA]/60">
+                        Wallet Balance
                       </p>
                     </div>
                   </div>
@@ -1294,38 +1332,37 @@ export default function Dashboard() {
             <section className="pt-12 sm:pt-14">
               <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[.24em] text-cyan-300">
-                    Choose your server
+                  <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#C6A66B]">
+                    AVAILABLE CLOUD CATALOGUE
                   </p>
-                  <h2 className="mt-2 text-2xl font-black sm:text-3xl">
+                  <h2 className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">
                     {page === "Home"
-                      ? "Explore VPS Plans"
+                      ? "Explore Available Cloud Plans"
                       : page === "Windows VPS"
-                        ? "Windows VPS Plans"
-                        : "Linux VPS Plans"}
+                        ? "Windows Cloud VPS Plans"
+                        : "Linux Cloud VPS Plans"}
                   </h2>
-                  <p className="mt-2 text-sm text-slate-400">
-                    All plans include full control panel, SSD storage and 24×7
-                    support.
+                  <p className="mt-2 text-sm text-[#F1E9DA]/70">
+                    High-performance virtual nodes powered by enterprise NVMe storage and dedicated support.
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => go("Windows VPS")}
-                    className={`rounded-full border px-4 py-2 text-xs font-bold ${
+                    className={`rounded-lg border px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider transition ${
                       page === "Windows VPS"
-                        ? "border-cyan-300 bg-cyan-300/10 text-cyan-100"
-                        : "border-blue-900 text-slate-300"
+                        ? "border-[#C6A66B] bg-[#C6A66B] text-[#171717]"
+                        : "border-[#332f2a] bg-[#201d1a] text-[#F1E9DA]/70 hover:border-[#C6A66B]/50"
                     }`}
                   >
                     Windows
                   </button>
                   <button
                     onClick={() => go("Linux VPS")}
-                    className={`rounded-full border px-4 py-2 text-xs font-bold ${
+                    className={`rounded-lg border px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider transition ${
                       page === "Linux VPS"
-                        ? "border-cyan-300 bg-cyan-300/10 text-cyan-100"
-                        : "border-blue-900 text-slate-300"
+                        ? "border-[#C6A66B] bg-[#C6A66B] text-[#171717]"
+                        : "border-[#332f2a] bg-[#201d1a] text-[#F1E9DA]/70 hover:border-[#C6A66B]/50"
                     }`}
                   >
                     Linux
@@ -1338,7 +1375,7 @@ export default function Dashboard() {
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className="h-[390px] animate-pulse rounded-2xl border border-blue-900 bg-[#0b1531]"
+                      className="h-[390px] animate-pulse rounded-2xl border border-[#332f2a] bg-[#201d1a]"
                     />
                   ))}
                 </div>
@@ -1349,20 +1386,20 @@ export default function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-blue-900/70 bg-[#0b1531]/80 px-6 py-12 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 text-cyan-300">
+                <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] px-6 py-12 text-center text-[#F1E9DA]">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#C6A66B]/20 bg-[#171717] text-[#C6A66B]">
                     <Server size={26} />
                   </div>
-                  <h3 className="mt-4 text-lg font-bold">
+                  <h3 className="mt-4 font-serif text-lg font-bold">
                     VPS plans will appear here
                   </h3>
-                  <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-400">
+                  <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-[#F1E9DA]/60">
                     {plansError ||
                       "Our team is updating the available server plans. Please check again shortly."}
                   </p>
                   <button
                     onClick={fetchPlans}
-                    className="mt-5 inline-flex items-center gap-2 rounded-lg border border-blue-800 px-4 py-2 text-xs font-bold text-cyan-200 hover:bg-blue-900/40"
+                    className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#C6A66B] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82]"
                   >
                     <RefreshCw size={14} /> Refresh plans
                   </button>
@@ -1380,43 +1417,43 @@ export default function Dashboard() {
           <section className="pt-10">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">
+                <p className="font-mono text-xs font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                   Customer area
                 </p>
-                <h1 className="mt-2 text-3xl font-black">My Servers</h1>
-                <p className="mt-2 text-sm text-slate-400">
+                <h1 className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">My Servers</h1>
+                <p className="mt-2 text-sm text-[#F1E9DA]/60">
                   Manage your VPS instances and server status.
                 </p>
               </div>
               <button
                 onClick={fetchVps}
-                className="inline-flex items-center gap-2 rounded-xl border border-blue-800 px-4 py-3 text-xs font-bold text-cyan-200 transition hover:bg-blue-900/40"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-3 text-xs font-bold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521]"
               >
                 <RefreshCw size={15} /> Refresh
               </button>
             </div>
 
             <div className="mt-7 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-blue-900 bg-[#0b1531] p-5">
-                <p className="text-xs text-slate-400">Total servers</p>
-                <p className="mt-2 text-3xl font-black">{vpsList.length}</p>
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+                <p className="text-xs text-[#F1E9DA]/50 uppercase tracking-wider font-mono">Total servers</p>
+                <p className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">{vpsList.length}</p>
               </div>
-              <div className="rounded-2xl border border-blue-900 bg-[#0b1531] p-5">
-                <p className="text-xs text-slate-400">Running</p>
-                <p className="mt-2 text-3xl font-black text-emerald-300">
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+                <p className="text-xs text-[#F1E9DA]/50 uppercase tracking-wider font-mono">Running</p>
+                <p className="mt-2 font-serif text-3xl font-bold text-emerald-400">
                   {activeCount}
                 </p>
               </div>
-              <div className="rounded-2xl border border-blue-900 bg-[#0b1531] p-5">
-                <p className="text-xs text-slate-400">Stopped / Other</p>
-                <p className="mt-2 text-3xl font-black">
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+                <p className="text-xs text-[#F1E9DA]/50 uppercase tracking-wider font-mono">Stopped / Other</p>
+                <p className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">
                   {vpsList.length - activeCount}
                 </p>
               </div>
             </div>
 
             {loading ? (
-              <p className="py-12 text-center text-sm text-slate-400">
+              <p className="py-12 text-center text-sm text-[#F1E9DA]/60">
                 Loading servers…
               </p>
             ) : vpsList.length ? (
@@ -1424,23 +1461,23 @@ export default function Dashboard() {
                 {vpsList.map((vps) => (
                   <article
                     key={vps.id}
-                    className="rounded-2xl border border-blue-900/70 bg-[#0b1531] p-5"
+                    className="relative overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5 sm:p-6 transition hover:border-[#C6A66B]/40"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="rounded-xl bg-blue-500/15 p-3 text-cyan-300">
+                        <div className="rounded-xl border border-[#C6A66B]/20 bg-[#171717] p-3 text-[#C6A66B]">
                           <Server size={20} />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold">
+                            <h3 className="font-bold text-[#F1E9DA]">
                               {vps.hostname || "VPS Server"}
                             </h3>
                             <span
                               className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                                 vps.provider === "HOSTHEAVEN"
-                                  ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                                  : "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                                  ? "bg-[#C6A66B]/15 text-[#C6A66B] border border-[#C6A66B]/30"
+                                  : "bg-[#292521] text-[#F1E9DA]/70 border border-[#332f2a]"
                               }`}
                             >
                               {vps.provider === "HOSTHEAVEN"
@@ -1448,7 +1485,7 @@ export default function Dashboard() {
                                 : vps.provider || "SmartVPS"}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-[#F1E9DA]/50">
                             {vps.providerVpsId ? `VM ID: ${vps.providerVpsId}` : vps.provider}
                           </p>
                         </div>
@@ -1457,10 +1494,10 @@ export default function Dashboard() {
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                             vps.status === "RUNNING" || vps.status === "ACTIVE"
-                              ? "bg-emerald-400/10 text-emerald-300"
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                               : vps.status === "SUSPENDED"
                               ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                              : "bg-slate-700 text-slate-300"
+                              : "bg-[#171717] text-[#F1E9DA]/60 border border-[#332f2a]"
                           }`}
                         >
                           {vps.status}
@@ -1468,8 +1505,8 @@ export default function Dashboard() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                             vps.autoRenew && vps.autoRenewConsentAt
-                              ? "bg-blue-500/15 text-cyan-300 border border-cyan-500/30"
-                              : "bg-slate-800 text-slate-400"
+                              ? "bg-[#C6A66B]/15 text-[#C6A66B] border border-[#C6A66B]/30"
+                              : "bg-[#171717] text-[#F1E9DA]/40 border border-[#332f2a]"
                           }`}
                         >
                           Auto-Renew: {vps.autoRenew && vps.autoRenewConsentAt ? "ON" : "OFF"}
@@ -1494,26 +1531,26 @@ export default function Dashboard() {
                       </div>
                     )}
 
-                    <div className="mt-5 grid grid-cols-2 gap-4 border-y border-blue-900/60 py-4 text-sm">
+                    <div className="mt-5 grid grid-cols-2 gap-4 border-y border-[#332f2a] py-4 text-sm">
                       <div>
-                        <p className="text-[10px] text-slate-500">IP ADDRESS</p>
-                        <p className="mt-1 font-semibold text-cyan-200">
+                        <p className="text-[10px] uppercase tracking-wider text-[#F1E9DA]/50 font-mono">IP ADDRESS</p>
+                        <p className="mt-1 font-mono font-semibold text-[#C6A66B]">
                           {vps.ipAddress}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-500">
+                        <p className="text-[10px] uppercase tracking-wider text-[#F1E9DA]/50 font-mono">
                           OPERATING SYSTEM
                         </p>
-                        <p className="mt-1">{vps.operatingSystem || "—"}</p>
+                        <p className="mt-1 text-[#F1E9DA]">{vps.operatingSystem || "—"}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-500">MEMORY</p>
-                        <p className="mt-1">{vps.ram ?? "—"} GB RAM</p>
+                        <p className="text-[10px] uppercase tracking-wider text-[#F1E9DA]/50 font-mono">MEMORY</p>
+                        <p className="mt-1 text-[#F1E9DA]">{vps.ram ?? "—"} GB RAM</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-500">EXPIRES</p>
-                        <p className="mt-1">
+                        <p className="text-[10px] uppercase tracking-wider text-[#F1E9DA]/50 font-mono">EXPIRES</p>
+                        <p className="mt-1 text-[#F1E9DA]">
                           {vps.expiresAt
                             ? new Date(vps.expiresAt).toLocaleDateString()
                             : "—"}
@@ -1533,7 +1570,7 @@ export default function Dashboard() {
                         className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold disabled:opacity-50 ${
                           vps.status === "RUNNING"
                             ? "bg-red-500/10 text-red-300 hover:bg-red-500/20 border border-red-500/20"
-                            : "bg-emerald-500 text-[#031a16] hover:bg-emerald-400"
+                            : "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30"
                         }`}
                       >
                         {actionLoading === vps.id ? (
@@ -1546,14 +1583,14 @@ export default function Dashboard() {
 
                       <button
                         onClick={() => openDiagnosticsModal(vps)}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-cyan-800/60 bg-cyan-950/40 px-3 py-2.5 text-xs font-bold text-cyan-300 hover:bg-cyan-900/50"
+                        className="flex items-center justify-center gap-2 rounded-xl border border-[#C6A66B]/30 bg-[#171717] px-3 py-2.5 text-xs font-bold text-[#C6A66B] hover:bg-[#292521] transition"
                       >
                         <Activity size={14} /> Manage & Metrics
                       </button>
 
                       <button
                         onClick={() => openRenewalModal(vps.id)}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-blue-700/60 bg-blue-900/30 px-3 py-2.5 text-xs font-bold text-cyan-200 hover:bg-blue-800/40"
+                        className="flex items-center justify-center gap-2 rounded-xl border border-[#332f2a] bg-[#171717] px-3 py-2.5 text-xs font-bold text-[#F1E9DA] hover:border-[#C6A66B]/40 hover:bg-[#292521] transition"
                       >
                         <RefreshCw size={14} /> Auto-Renew
                       </button>
@@ -1562,15 +1599,15 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="mt-7 rounded-2xl border border-blue-900 bg-[#0b1531] p-12 text-center">
-                <Server className="mx-auto text-cyan-300" size={34} />
-                <h3 className="mt-4 text-lg font-bold">No VPS servers yet</h3>
-                <p className="mt-2 text-sm text-slate-400">
+              <div className="mt-7 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-12 text-center text-[#F1E9DA]">
+                <Server className="mx-auto text-[#C6A66B]" size={34} />
+                <h3 className="mt-4 font-serif text-lg font-bold">No VPS servers yet</h3>
+                <p className="mt-2 text-sm text-[#F1E9DA]/60">
                   Choose a plan to get your first server.
                 </p>
                 <button
                   onClick={() => go("Windows VPS")}
-                  className="mt-5 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-extrabold text-[#06132d]"
+                  className="mt-5 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition"
                 >
                   Browse VPS Plans
                 </button>
@@ -1584,11 +1621,11 @@ export default function Dashboard() {
           <section className="mx-auto max-w-4xl pt-10">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">
+                <p className="font-mono text-xs font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                   Billing & Balance
                 </p>
-                <h1 className="mt-2 text-3xl font-black">My Wallet</h1>
-                <p className="mt-2 text-sm text-slate-400">
+                <h1 className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">My Wallet</h1>
+                <p className="mt-2 text-sm text-[#F1E9DA]/60">
                   Manage your prepaid balance for instant VPS deployments and
                   auto-renewals.
                 </p>
@@ -1599,7 +1636,7 @@ export default function Dashboard() {
                     void fetchWallet();
                     void fetchTransactions();
                   }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-blue-800 px-4 py-3 text-xs font-bold text-cyan-200 transition hover:bg-blue-900/40"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-3 text-xs font-bold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521]"
                 >
                   <RefreshCw
                     size={15}
@@ -1609,7 +1646,7 @@ export default function Dashboard() {
                 </button>
                 <button
                   onClick={() => setShowTopupModal(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 py-3 text-xs font-black text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/10 transition hover:bg-[#d8ba82]"
                 >
                   <Plus size={16} /> Add Funds
                 </button>
@@ -1617,39 +1654,40 @@ export default function Dashboard() {
             </div>
 
             {/* Balance Card */}
-            <div className="mt-7 overflow-hidden rounded-3xl border border-blue-700/60 bg-[linear-gradient(112deg,#07184a_0%,#092d82_50%,#071c50_100%)] p-7 shadow-xl sm:p-9">
+            <div className="relative mt-7 overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] p-7 shadow-2xl sm:p-9">
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-[#C6A66B] to-transparent" />
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-cyan-300/15 p-3.5 text-cyan-200">
+                  <div className="rounded-2xl border border-[#C6A66B]/20 bg-[#171717] p-3.5 text-[#C6A66B]">
                     <Wallet size={32} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-blue-200">
+                    <p className="font-mono text-xs font-bold uppercase tracking-wider text-[#C6A66B]">
                       Available Balance
                     </p>
-                    <p className="mt-1 text-4xl font-black tracking-tight text-white sm:text-5xl">
+                    <p className="mt-1 font-serif text-4xl font-bold tracking-tight text-[#F1E9DA] sm:text-5xl">
                       {formatDecimal(currentWalletBalance)}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-200">
+                  <span className="rounded-full border border-[#C6A66B]/30 bg-[#171717] px-3 py-1 font-mono text-xs font-bold text-[#C6A66B]">
                     Currency: INR (₹)
                   </span>
-                  <span className="text-[11px] text-blue-200/70">
+                  <span className="font-mono text-[11px] text-[#F1E9DA]/50">
                     Account ID: {profile?.id?.slice(0, 8) || "—"}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-5 text-xs text-blue-100/80">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#332f2a] pt-5 text-xs text-[#F1E9DA]/70">
                 <p>
                   Use your wallet balance to instantly provision VPS servers
                   without per-order payment gateway delays.
                 </p>
                 <button
                   onClick={() => setShowTopupModal(true)}
-                  className="inline-flex items-center gap-1.5 font-bold text-cyan-200 underline decoration-cyan-400/50 hover:text-white"
+                  className="inline-flex items-center gap-1.5 font-bold text-[#C6A66B] underline decoration-[#C6A66B]/50 hover:text-[#d8ba82]"
                 >
                   Top-up ₹500, ₹1000 or custom amount <ArrowRight size={13} />
                 </button>
@@ -1659,21 +1697,21 @@ export default function Dashboard() {
             {/* Transaction History */}
             <div className="mt-10">
               <div className="flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-lg font-bold">
-                  <History size={18} className="text-cyan-300" />
+                <h3 className="flex items-center gap-2 font-serif text-lg font-bold text-[#F1E9DA]">
+                  <History size={18} className="text-[#C6A66B]" />
                   Transaction History
                 </h3>
-                <span className="text-xs text-slate-400">
+                <span className="font-mono text-xs text-[#F1E9DA]/50">
                   {transactions.length} record
                   {transactions.length === 1 ? "" : "s"}
                 </span>
               </div>
 
               {transactions.length > 0 ? (
-                <div className="mt-4 overflow-hidden rounded-2xl border border-blue-900/70 bg-[#0b1531]">
+                <div className="mt-4 overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                      <thead className="border-b border-blue-900/60 bg-[#06112c] text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
                         <tr>
                           <th className="px-5 py-3.5">Date & Time</th>
                           <th className="px-5 py-3.5">Type</th>
@@ -1682,15 +1720,15 @@ export default function Dashboard() {
                           <th className="px-5 py-3.5 text-right">Amount</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-blue-900/40">
+                      <tbody className="divide-y divide-[#332f2a]/60">
                         {transactions.map((tx) => {
                           const isCredit = tx.type === "CREDIT";
                           return (
                             <tr
                               key={tx.id}
-                              className="transition hover:bg-white/[0.02]"
+                              className="transition hover:bg-[#292521]/40"
                             >
-                              <td className="whitespace-nowrap px-5 py-4 text-xs text-slate-400">
+                              <td className="whitespace-nowrap px-5 py-4 font-mono text-xs text-[#F1E9DA]/60">
                                 {new Date(tx.createdAt).toLocaleString(
                                   "en-IN",
                                   {
@@ -1701,26 +1739,26 @@ export default function Dashboard() {
                               </td>
                               <td className="px-5 py-4">
                                 <span
-                                  className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                                  className={`inline-block rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
                                     isCredit
-                                      ? "bg-emerald-400/10 text-emerald-300"
-                                      : "bg-cyan-400/10 text-cyan-300"
+                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                      : "bg-[#C6A66B]/10 text-[#C6A66B] border border-[#C6A66B]/20"
                                   }`}
                                 >
                                   {tx.type}
                                 </span>
                               </td>
-                              <td className="px-5 py-4 text-xs font-medium text-slate-200">
+                              <td className="px-5 py-4 text-xs font-medium text-[#F1E9DA]">
                                 {tx.description}
                               </td>
-                              <td className="whitespace-nowrap px-5 py-4 text-[11px] font-mono text-slate-400">
+                              <td className="whitespace-nowrap px-5 py-4 text-[11px] font-mono text-[#F1E9DA]/50">
                                 {tx.reference || "—"}
                               </td>
                               <td
-                                className={`whitespace-nowrap px-5 py-4 text-right text-sm font-bold ${
+                                className={`whitespace-nowrap px-5 py-4 text-right font-mono text-sm font-bold ${
                                   isCredit
-                                    ? "text-emerald-300"
-                                    : "text-slate-100"
+                                    ? "text-emerald-400"
+                                    : "text-[#F1E9DA]"
                                 }`}
                               >
                                 {isCredit ? "+" : "-"}
@@ -1734,21 +1772,21 @@ export default function Dashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 rounded-2xl border border-blue-900/60 bg-[#0b1531] p-10 text-center">
+                <div className="mt-4 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-10 text-center text-[#F1E9DA]">
                   <Wallet
-                    className="mx-auto text-slate-500 opacity-60"
+                    className="mx-auto text-[#C6A66B]/50"
                     size={36}
                   />
-                  <h4 className="mt-3 text-sm font-bold text-slate-300">
+                  <h4 className="mt-3 font-serif text-sm font-bold text-[#F1E9DA]">
                     No transactions yet
                   </h4>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-[#F1E9DA]/60">
                     Add funds to your wallet to get started with fast
                     deployments.
                   </p>
                   <button
                     onClick={() => setShowTopupModal(true)}
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-blue-800 px-4 py-2 text-xs font-bold text-cyan-200 hover:bg-blue-900/40"
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-[#C6A66B]/30 bg-[#171717] px-4 py-2 font-mono text-xs font-bold text-[#C6A66B] hover:bg-[#292521] transition"
                   >
                     <Plus size={14} /> Add First Deposit
                   </button>
@@ -1763,18 +1801,18 @@ export default function Dashboard() {
           <section className="pt-10">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">
+                <p className="font-mono text-xs font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                   Billing History
                 </p>
-                <h1 className="mt-2 text-3xl font-black">Orders & Invoices</h1>
-                <p className="mt-2 text-sm text-slate-400">
+                <h1 className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">Orders & Invoices</h1>
+                <p className="mt-2 text-sm text-[#F1E9DA]/60">
                   Review all your server purchases, renewal invoices and
                   provisioning statuses.
                 </p>
               </div>
               <button
                 onClick={fetchOrders}
-                className="inline-flex items-center gap-2 rounded-xl border border-blue-800 px-4 py-3 text-xs font-bold text-cyan-200 transition hover:bg-blue-900/40"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-3 text-xs font-bold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521]"
               >
                 <RefreshCw
                   size={15}
@@ -1792,25 +1830,25 @@ export default function Dashboard() {
                   return (
                     <article
                       key={ord.id}
-                      className="rounded-2xl border border-blue-900/70 bg-[#0b1531] p-5 sm:p-6"
+                      className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5 sm:p-6 transition hover:border-[#C6A66B]/40"
                     >
-                      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-blue-900/60 pb-4">
+                      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#332f2a] pb-4">
                         <div>
                           <div className="flex items-center gap-2.5">
-                            <span className="font-mono text-sm font-bold text-white">
+                            <span className="font-mono text-sm font-bold text-[#F1E9DA]">
                               {ord.orderNumber}
                             </span>
                             <span
-                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                              className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
                                 isPaidOrActive
-                                  ? "bg-emerald-400/10 text-emerald-300"
-                                  : "bg-amber-400/10 text-amber-300"
+                                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                  : "bg-amber-400/10 text-amber-300 border border-amber-400/20"
                               }`}
                             >
                               {ord.status}
                             </span>
                           </div>
-                          <p className="mt-1 text-xs text-slate-400">
+                          <p className="mt-1 font-mono text-xs text-[#F1E9DA]/50">
                             Placed on{" "}
                             {new Date(ord.createdAt).toLocaleString("en-IN", {
                               dateStyle: "medium",
@@ -1819,10 +1857,10 @@ export default function Dashboard() {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
                             Total Paid
                           </p>
-                          <p className="text-xl font-black text-cyan-200">
+                          <p className="font-serif text-xl font-bold text-[#C6A66B]">
                             {formatDecimal(ord.amount, ord.currency)}
                           </p>
                         </div>
@@ -1830,13 +1868,13 @@ export default function Dashboard() {
 
                       <div className="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
                             Plan & Specs
                           </p>
-                          <p className="mt-1 text-sm font-bold text-slate-200">
+                          <p className="mt-1 text-sm font-bold text-[#F1E9DA]">
                             {ord.planName}
                           </p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-[#F1E9DA]/60">
                             {ord.plan
                               ? `${ord.plan.cpuCores ?? "—"} vCPU · ${ord.plan.ramGb ?? "—"}GB RAM · ${ord.plan.storageGb ?? "—"}GB SSD`
                               : ord.operatingSystem}
@@ -1844,29 +1882,29 @@ export default function Dashboard() {
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
                             OS / Environment
                           </p>
-                          <p className="mt-1 text-sm text-slate-200">
+                          <p className="mt-1 text-sm text-[#F1E9DA]">
                             {ord.operatingSystem}
                           </p>
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
                             Server Status
                           </p>
                           {ord.vpsInstance ? (
                             <div className="mt-1">
-                              <span className="font-mono text-xs font-semibold text-cyan-300">
+                              <span className="font-mono text-xs font-semibold text-[#C6A66B]">
                                 IP: {ord.vpsInstance.ipAddress}
                               </span>
-                              <span className="ml-2 inline-block rounded-full bg-emerald-400/10 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                              <span className="ml-2 inline-block rounded-full bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
                                 {ord.vpsInstance.status}
                               </span>
                             </div>
                           ) : (
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-[#F1E9DA]/50">
                               {ord.status === "ACTIVE"
                                 ? "Provisioned"
                                 : "Awaiting assignment"}
@@ -1879,15 +1917,15 @@ export default function Dashboard() {
                 })}
               </div>
             ) : (
-              <div className="mt-7 rounded-2xl border border-blue-900 bg-[#0b1531] p-12 text-center">
-                <CreditCard className="mx-auto text-cyan-300" size={34} />
-                <h3 className="mt-4 text-lg font-bold">No orders yet</h3>
-                <p className="mt-2 text-sm text-slate-400">
+              <div className="mt-7 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-12 text-center text-[#F1E9DA]">
+                <CreditCard className="mx-auto text-[#C6A66B]" size={34} />
+                <h3 className="mt-4 font-serif text-lg font-bold">No orders yet</h3>
+                <p className="mt-2 text-sm text-[#F1E9DA]/60">
                   Deploy your first VPS cloud server from our available plans.
                 </p>
                 <button
                   onClick={() => go("Windows VPS")}
-                  className="mt-5 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-extrabold text-[#06132d]"
+                  className="mt-5 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition"
                 >
                   Browse VPS Plans
                 </button>
@@ -1899,20 +1937,20 @@ export default function Dashboard() {
         {/* Checkout Page */}
         {page === "Checkout" && (
           <section className="mx-auto max-w-2xl pt-10">
-            <div className="flex items-center justify-between border-b border-blue-900/60 pb-5">
+            <div className="flex items-center justify-between border-b border-[#332f2a] pb-5">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">
+                <p className="font-mono text-xs font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                   Instant Cloud Deployment
                 </p>
-                <h1 className="mt-2 text-3xl font-black">VPS Checkout</h1>
-                <p className="mt-1 text-sm text-slate-400">
+                <h1 className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">VPS Checkout</h1>
+                <p className="mt-1 text-sm text-[#F1E9DA]/60">
                   Configure server operating system and complete instant payment.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => go("Windows VPS")}
-                className="rounded-xl border border-blue-800 px-4 py-2.5 text-xs font-bold text-slate-300 hover:border-cyan-300 hover:text-white"
+                className="rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-2.5 font-mono text-xs font-bold text-[#F1E9DA]/80 hover:border-[#C6A66B] hover:text-[#C6A66B] transition"
               >
                 ← Back to Plans
               </button>
@@ -1927,21 +1965,21 @@ export default function Dashboard() {
             {selectedPlan ? (
               <div className="mt-7 space-y-6">
                 {/* Plan Card with switcher */}
-                <div className="rounded-2xl border border-blue-900 bg-[#101e43] p-5">
+                <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
                         Selected Plan
                       </p>
-                      <h3 className="mt-1 text-xl font-bold text-white">
+                      <h3 className="mt-1 font-serif text-xl font-bold text-[#F1E9DA]">
                         {selectedPlan.name}
                       </h3>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-semibold text-cyan-300">
+                        <span className="font-mono text-xs font-semibold text-[#C6A66B]">
                           {formatDecimal(selectedPlan.price, selectedPlan.currency || "INR")}/month
                         </span>
                         {selectedPlan.isHostHeaven && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-bold text-cyan-300">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-[#C6A66B]/30 bg-[#C6A66B]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#C6A66B]">
                             <Zap size={11} /> HostHeaven Direct Cloud
                           </span>
                         )}
@@ -1960,7 +1998,7 @@ export default function Dashboard() {
                             }
                           }
                         }}
-                        className="rounded-lg border border-blue-700 bg-[#07122c] px-3 py-1.5 text-xs font-semibold text-cyan-200 outline-none focus:border-cyan-300"
+                        className="rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 text-xs font-semibold text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
                       >
                         {plans.map((pl) => (
                           <option key={pl.id} value={pl.id}>
@@ -1971,7 +2009,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-blue-900/60 pt-4 text-xs text-slate-300 sm:grid-cols-4">
+                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#332f2a] pt-4 font-mono text-xs text-[#F1E9DA]/70 sm:grid-cols-4">
                     <span>{selectedPlan.cpuCores ?? "—"} vCPU</span>
                     <span>{selectedPlan.ramGb ?? "—"} GB RAM</span>
                     <span>{selectedPlan.storageGb ?? "—"} GB SSD</span>
@@ -1981,7 +2019,7 @@ export default function Dashboard() {
 
                 {/* Billing Duration Selector */}
                 <div>
-                  <label className="mb-2 block text-xs font-bold text-slate-300">
+                  <label className="mb-2 block font-mono text-xs font-bold text-[#F1E9DA]/80 uppercase tracking-wider">
                     Billing Duration
                   </label>
                   <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -2004,12 +2042,12 @@ export default function Dashboard() {
                           onClick={() => setSelectedMonths(opt.months)}
                           className={`rounded-xl border p-3 text-left transition ${
                             isSelected
-                              ? "border-cyan-300 bg-cyan-300/10 text-white"
-                              : "border-blue-900 bg-[#07122c] text-slate-300 hover:border-blue-700"
+                              ? "border-[#C6A66B] bg-[#C6A66B]/10 text-[#F1E9DA]"
+                              : "border-[#332f2a] bg-[#171717] text-[#F1E9DA]/70 hover:border-[#C6A66B]/40"
                           }`}
                         >
                           <p className="text-xs font-bold">{opt.label}</p>
-                          <p className="mt-1 text-[11px] font-semibold text-cyan-300">
+                          <p className="mt-1 font-mono text-[11px] font-semibold text-[#C6A66B]">
                             {formatDecimal(optionPrice)}
                           </p>
                         </button>
@@ -2022,13 +2060,13 @@ export default function Dashboard() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   {hhZones.length > 0 && (
                     <div>
-                      <label className="mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                        <Globe size={14} className="text-cyan-300" /> Deployment Zone
+                      <label className="mb-2 flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
+                        <Globe size={14} className="text-[#C6A66B]" /> Deployment Zone
                       </label>
                       <select
                         value={selectedZoneId}
                         onChange={(e) => handleZoneChange(e.target.value)}
-                        className="w-full rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3.5 text-sm text-white outline-none focus:border-cyan-300"
+                        className="w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3.5 text-sm text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
                       >
                         {hhZones.map((z) => (
                           <option key={z.id} value={z.id}>
@@ -2040,13 +2078,13 @@ export default function Dashboard() {
                   )}
 
                   <div>
-                    <label className="mb-2 block text-xs font-bold text-slate-300">
+                    <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                       Select Operating System
                     </label>
                     <select
                       value={selectedOS}
                       onChange={(e) => setSelectedOS(e.target.value)}
-                      className="w-full rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3.5 text-sm text-white outline-none focus:border-cyan-300"
+                      className="w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3.5 text-sm text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
                     >
                       {(hhIsos.length > 0
                         ? hhIsos.map((iso) => iso.isoName)
@@ -2064,22 +2102,22 @@ export default function Dashboard() {
 
                 {/* Hostname configuration */}
                 <div>
-                  <label className="mb-2 flex items-center justify-between text-xs font-bold text-slate-300">
+                  <label className="mb-2 flex items-center justify-between font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                     <span>Server Hostname</span>
-                    <span className="text-[10px] font-normal text-slate-500">Optional</span>
+                    <span className="text-[10px] font-normal text-[#F1E9DA]/40">Optional</span>
                   </label>
                   <input
                     type="text"
                     value={customHostname}
                     onChange={(e) => setCustomHostname(e.target.value)}
                     placeholder="e.g. web01.myserver.com"
-                    className="w-full rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-cyan-300"
+                    className="w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3 text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none focus:border-[#C6A66B]"
                   />
                 </div>
 
                 {/* Payment Method Selector */}
                 <div>
-                  <p className="mb-3 text-xs font-bold text-slate-300">
+                  <p className="mb-3 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                     Select Payment Method
                   </p>
                   <div className="grid grid-cols-2 gap-3">
@@ -2088,13 +2126,13 @@ export default function Dashboard() {
                       onClick={() => setPaymentMethod("WALLET")}
                       className={`rounded-xl border p-4 text-left transition ${
                         paymentMethod === "WALLET"
-                          ? "border-cyan-300 bg-cyan-300/10"
-                          : "border-blue-900 bg-[#07122c]"
+                          ? "border-[#C6A66B] bg-[#C6A66B]/10"
+                          : "border-[#332f2a] bg-[#171717]"
                       }`}
                     >
-                      <Wallet size={19} className="text-cyan-300" />
-                      <p className="mt-2 text-sm font-bold">Wallet Pay</p>
-                      <p className="mt-1 text-[10px] text-slate-400">
+                      <Wallet size={19} className="text-[#C6A66B]" />
+                      <p className="mt-2 text-sm font-bold text-[#F1E9DA]">Wallet Pay</p>
+                      <p className="mt-1 font-mono text-[10px] text-[#F1E9DA]/50">
                         Balance: {formatDecimal(currentWalletBalance)}
                       </p>
                     </button>
@@ -2104,13 +2142,13 @@ export default function Dashboard() {
                       onClick={() => setPaymentMethod("RAZORPAY")}
                       className={`rounded-xl border p-4 text-left transition ${
                         paymentMethod === "RAZORPAY"
-                          ? "border-cyan-300 bg-cyan-300/10"
-                          : "border-blue-900 bg-[#07122c]"
+                          ? "border-[#C6A66B] bg-[#C6A66B]/10"
+                          : "border-[#332f2a] bg-[#171717]"
                       }`}
                     >
-                      <CreditCard size={19} className="text-cyan-300" />
-                      <p className="mt-2 text-sm font-bold">Razorpay</p>
-                      <p className="mt-1 text-[10px] text-slate-400">
+                      <CreditCard size={19} className="text-[#C6A66B]" />
+                      <p className="mt-2 text-sm font-bold text-[#F1E9DA]">Razorpay</p>
+                      <p className="mt-1 text-[10px] text-[#F1E9DA]/50">
                         UPI · Cards · Netbanking
                       </p>
                     </button>
@@ -2119,13 +2157,13 @@ export default function Dashboard() {
 
                 {/* Balance validation */}
                 {paymentMethod === "WALLET" && (
-                  <div className="rounded-xl border border-blue-900/80 bg-[#07122c] p-3.5 text-xs">
+                  <div className="rounded-xl border border-[#332f2a] bg-[#171717] p-3.5 text-xs">
                     {hasSufficientBalance ? (
-                      <div className="flex items-center gap-2 text-emerald-300">
+                      <div className="flex items-center gap-2 text-emerald-400">
                         <CheckCircle2 size={16} />
                         <span>
                           Sufficient balance available. Remaining after order:{" "}
-                          <strong>
+                          <strong className="font-mono text-[#F1E9DA]">
                             {formatDecimal(
                               currentWalletBalance - currentCheckoutPrice,
                             )}
@@ -2155,7 +2193,7 @@ export default function Dashboard() {
                             );
                             setShowTopupModal(true);
                           }}
-                          className="rounded-lg bg-cyan-300/20 px-3 py-1.5 text-xs font-bold text-cyan-200 hover:bg-cyan-300/30"
+                          className="rounded-lg bg-[#C6A66B]/20 px-3 py-1.5 font-mono text-xs font-bold text-[#C6A66B] hover:bg-[#C6A66B]/30"
                         >
                           Add Funds
                         </button>
@@ -2165,10 +2203,10 @@ export default function Dashboard() {
                 )}
 
                 {/* Price Breakdown */}
-                <div className="rounded-2xl border border-blue-900 bg-[#101e43] p-5">
-                  <div className="flex items-center justify-between text-xs text-slate-400">
+                <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+                  <div className="flex items-center justify-between text-xs text-[#F1E9DA]/60">
                     <span>Monthly Base Rate</span>
-                    <span>
+                    <span className="font-mono">
                       {formatDecimal(
                         selectedPlan.price,
                         selectedPlan.currency || "INR",
@@ -2176,15 +2214,15 @@ export default function Dashboard() {
                       /month
                     </span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+                  <div className="mt-2 flex items-center justify-between text-xs text-[#F1E9DA]/60">
                     <span>Billing Duration</span>
-                    <span className="font-semibold text-slate-200">
+                    <span className="font-semibold text-[#F1E9DA]">
                       {selectedMonths} Month{selectedMonths > 1 ? "s" : ""}
                     </span>
                   </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-blue-900/60 pt-3">
-                    <span className="text-sm font-bold">Total Payable</span>
-                    <span className="text-2xl font-black text-cyan-200">
+                  <div className="mt-3 flex items-center justify-between border-t border-[#332f2a] pt-3">
+                    <span className="text-sm font-bold text-[#F1E9DA]">Total Payable</span>
+                    <span className="font-serif text-2xl font-bold text-[#C6A66B]">
                       {formatDecimal(
                         currentCheckoutPrice,
                         selectedPlan.currency || "INR",
@@ -2198,7 +2236,7 @@ export default function Dashboard() {
                   <button
                     disabled={checkoutLoading || !hasSufficientBalance}
                     onClick={handleCheckoutSubmit}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 py-4 text-sm font-black text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
                   >
                     {checkoutLoading ? (
                       <>
@@ -2215,7 +2253,7 @@ export default function Dashboard() {
                   <button
                     disabled={checkoutLoading}
                     onClick={handleCheckoutSubmit}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 py-4 text-sm font-black text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
                   >
                     {checkoutLoading ? (
                       <RefreshCw size={17} className="animate-spin" />
@@ -2226,23 +2264,23 @@ export default function Dashboard() {
                   </button>
                 )}
 
-                <p className="text-center text-[10px] text-slate-500">
+                <p className="text-center font-mono text-[10px] text-[#F1E9DA]/40">
                   Instant deployment upon payment. Server details will appear under My Servers.
                 </p>
               </div>
             ) : plansLoading ? (
-              <div className="mt-7 h-64 animate-pulse rounded-2xl border border-blue-900 bg-[#0b1531]" />
+              <div className="mt-7 h-64 animate-pulse rounded-2xl border border-[#332f2a] bg-[#201d1a]" />
             ) : (
-              <div className="mt-7 rounded-2xl border border-blue-900 bg-[#0b1531] p-12 text-center">
-                <Server className="mx-auto text-cyan-300" size={34} />
-                <h3 className="mt-4 text-lg font-bold">No plan selected</h3>
-                <p className="mt-2 text-sm text-slate-400">
+              <div className="mt-7 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-12 text-center text-[#F1E9DA]">
+                <Server className="mx-auto text-[#C6A66B]" size={34} />
+                <h3 className="mt-4 font-serif text-lg font-bold">No plan selected</h3>
+                <p className="mt-2 text-sm text-[#F1E9DA]/60">
                   Please choose a VPS plan to proceed with checkout.
                 </p>
                 <button
                   type="button"
                   onClick={() => go("Windows VPS")}
-                  className="mt-5 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-extrabold text-[#06132d]"
+                  className="mt-5 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition"
                 >
                   Browse VPS Plans
                 </button>
@@ -2254,22 +2292,22 @@ export default function Dashboard() {
         {/* Support Page */}
         {page === "Support" && (
           <section className="mx-auto max-w-3xl pt-12">
-            <p className="text-xs font-bold uppercase tracking-[.22em] text-cyan-300">
+            <p className="font-mono text-xs font-bold uppercase tracking-[.22em] text-[#C6A66B]">
               We are here to help
             </p>
-            <h1 className="mt-2 text-3xl font-black">24/7 Customer Support</h1>
-            <div className="mt-7 rounded-2xl border border-blue-900 bg-[#0b1531] p-7">
-              <Headphones className="text-cyan-300" size={30} />
-              <h3 className="mt-4 text-lg font-bold">
+            <h1 className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">24/7 Customer Support</h1>
+            <div className="mt-7 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-7 text-[#F1E9DA]">
+              <Headphones className="text-[#C6A66B]" size={30} />
+              <h3 className="mt-4 font-serif text-lg font-bold">
                 Need help with your VPS or Wallet?
               </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
+              <p className="mt-2 text-sm leading-6 text-[#F1E9DA]/60">
                 Contact our support team for assistance with orders, wallet
                 deposits, billing invoices and server operational management.
               </p>
               <a
                 href="mailto:support@247hrservice.com"
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-extrabold text-[#06132d]"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition"
               >
                 Contact Support <ArrowUpRight size={16} />
               </a>
@@ -2279,8 +2317,8 @@ export default function Dashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-blue-900/50 bg-[#04091a]">
-        <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-4 px-4 py-7 text-xs text-slate-500 sm:flex-row sm:items-center sm:px-6 lg:px-10">
+      <footer className="relative z-10 border-t border-[#292521] bg-[#171717]">
+        <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-4 px-4 py-7 text-xs text-[#F1E9DA]/50 sm:flex-row sm:items-center sm:px-6 lg:px-10">
           <div className="flex items-center gap-2">
             <img
               src={logo}
@@ -2292,16 +2330,16 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="flex flex-wrap gap-4">
-            <button onClick={() => go("Support")} className="hover:text-cyan-200">
+            <button onClick={() => go("Support")} className="hover:text-[#C6A66B] transition">
               Contact
             </button>
-            <button onClick={() => go("Wallet")} className="hover:text-cyan-200">
+            <button onClick={() => go("Wallet")} className="hover:text-[#C6A66B] transition">
               Wallet
             </button>
-            <button onClick={() => go("Orders")} className="hover:text-cyan-200">
+            <button onClick={() => go("Orders")} className="hover:text-[#C6A66B] transition">
               Orders
             </button>
-            <button onClick={() => go("My VPS")} className="hover:text-cyan-200">
+            <button onClick={() => go("My VPS")} className="hover:text-[#C6A66B] transition">
               My Servers
             </button>
           </div>
@@ -2311,25 +2349,25 @@ export default function Dashboard() {
       {/* Top-Up Wallet Modal */}
       {showTopupModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#020617]/85 p-3 backdrop-blur-md sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#171717]/85 p-3 backdrop-blur-md sm:p-6"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setShowTopupModal(false);
           }}
         >
-          <div className="my-auto w-full max-w-md overflow-hidden rounded-3xl border border-cyan-300/30 bg-[#0a1430] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
-            <div className="flex items-start justify-between border-b border-blue-900/70 px-6 py-5">
+          <div className="my-auto w-full max-w-md overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
+            <div className="flex items-start justify-between border-b border-[#332f2a] px-6 py-5">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[.22em] text-cyan-300">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                   Prepaid Balance
                 </p>
-                <h2 className="mt-1 text-2xl font-black">Top-Up Wallet</h2>
-                <p className="mt-1 text-xs text-slate-400">
+                <h2 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">Top-Up Wallet</h2>
+                <p className="mt-1 text-xs text-[#F1E9DA]/60">
                   Add funds via UPI, Cards, Netbanking or Razorpay.
                 </p>
               </div>
               <button
                 onClick={() => setShowTopupModal(false)}
-                className="rounded-lg border border-blue-900 p-2 text-slate-400 hover:text-white"
+                className="rounded-lg border border-[#332f2a] p-2 text-[#F1E9DA]/50 hover:text-[#F1E9DA] transition"
               >
                 <X size={18} />
               </button>
@@ -2343,16 +2381,16 @@ export default function Dashboard() {
               )}
 
               {/* Current balance indicator */}
-              <div className="flex items-center justify-between rounded-xl border border-blue-900 bg-[#07122c] p-3 text-xs">
-                <span className="text-slate-400">Current Balance:</span>
-                <span className="font-bold text-cyan-200">
+              <div className="flex items-center justify-between rounded-xl border border-[#332f2a] bg-[#171717] p-3 text-xs">
+                <span className="font-mono text-[#F1E9DA]/60">Current Balance:</span>
+                <span className="font-serif font-bold text-[#C6A66B]">
                   {formatDecimal(currentWalletBalance)}
                 </span>
               </div>
 
               {/* Quick preset amounts */}
               <div>
-                <label className="mb-2 block text-xs font-bold text-slate-300">
+                <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                   Select Amount (INR)
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -2361,10 +2399,10 @@ export default function Dashboard() {
                       key={amt}
                       type="button"
                       onClick={() => setTopupAmount(amt)}
-                      className={`rounded-xl border py-2.5 text-xs font-bold transition ${
+                      className={`rounded-xl border py-2.5 font-mono text-xs font-bold transition ${
                         topupAmount === amt
-                          ? "border-cyan-300 bg-cyan-300/15 text-cyan-200"
-                          : "border-blue-900 bg-[#07122c] text-slate-300 hover:border-blue-700"
+                          ? "border-[#C6A66B] bg-[#C6A66B]/15 text-[#C6A66B]"
+                          : "border-[#332f2a] bg-[#171717] text-[#F1E9DA]/70 hover:border-[#C6A66B]/40"
                       }`}
                     >
                       ₹{amt}
@@ -2375,11 +2413,11 @@ export default function Dashboard() {
 
               {/* Custom amount */}
               <div>
-                <label className="mb-2 block text-xs font-bold text-slate-300">
+                <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                   Or enter custom amount (Min. ₹100)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-3 text-sm font-bold text-slate-400">
+                  <span className="absolute left-4 top-3 font-mono text-sm font-bold text-[#F1E9DA]/50">
                     ₹
                   </span>
                   <input
@@ -2389,7 +2427,7 @@ export default function Dashboard() {
                     step="100"
                     value={topupAmount}
                     onChange={(e) => setTopupAmount(Number(e.target.value))}
-                    className="w-full rounded-xl border border-blue-800 bg-[#07122c] py-3 pl-8 pr-4 text-sm font-bold text-white outline-none focus:border-cyan-300"
+                    className="w-full rounded-xl border border-[#332f2a] bg-[#171717] py-3 pl-8 pr-4 font-mono text-sm font-bold text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
                   />
                 </div>
               </div>
@@ -2397,7 +2435,7 @@ export default function Dashboard() {
               <button
                 disabled={topupLoading || topupAmount < 100}
                 onClick={handleTopup}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 py-3.5 text-sm font-extrabold text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
               >
                 {topupLoading ? (
                   <>
@@ -2410,7 +2448,7 @@ export default function Dashboard() {
                 )}
               </button>
 
-              <p className="text-center text-[10px] text-slate-500">
+              <p className="text-center font-mono text-[10px] text-[#F1E9DA]/40">
                 100% secure payment powered by Razorpay. Funds are credited
                 immediately.
               </p>
@@ -2422,27 +2460,27 @@ export default function Dashboard() {
       {/* Checkout Modal */}
       {selectedPlan && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#020617]/85 p-3 backdrop-blur-md sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#171717]/85 p-3 backdrop-blur-md sm:p-6"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget && !checkoutLoading)
-              setSelectedPlan(null);
+              closeCheckout();
           }}
         >
-          <div className="my-auto w-full max-w-xl overflow-hidden rounded-3xl border border-cyan-300/30 bg-[#0a1430] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
-            <div className="flex items-start justify-between border-b border-blue-900/70 px-5 py-5 sm:px-7">
+          <div className="my-auto w-full max-w-xl overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
+            <div className="flex items-start justify-between border-b border-[#332f2a] px-5 py-5 sm:px-7">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[.22em] text-cyan-300">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                   VPS Checkout
                 </p>
-                <h2 className="mt-1 text-2xl font-black">Complete Your Order</h2>
-                <p className="mt-1 text-xs text-slate-400">
+                <h2 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">Complete Your Order</h2>
+                <p className="mt-1 text-xs text-[#F1E9DA]/60">
                   Review server configuration and choose payment option.
                 </p>
               </div>
               <button
                 disabled={checkoutLoading}
-                onClick={() => setSelectedPlan(null)}
-                className="rounded-lg border border-blue-900 p-2 text-slate-400 hover:text-white disabled:opacity-50"
+                onClick={closeCheckout}
+                className="rounded-lg border border-[#332f2a] p-2 text-[#F1E9DA]/50 hover:text-[#F1E9DA] transition disabled:opacity-50"
                 aria-label="Close checkout"
               >
                 <X size={18} />
@@ -2457,22 +2495,22 @@ export default function Dashboard() {
               )}
 
               {/* Plan Details */}
-              <div className="rounded-2xl border border-blue-900 bg-[#101e43] p-4">
+              <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">
                       Selected plan
                     </p>
-                    <h3 className="mt-1 font-bold">{selectedPlan.name}</h3>
-                    <p className="mt-0.5 text-xs font-semibold text-cyan-300">
+                    <h3 className="mt-1 font-serif font-bold text-[#F1E9DA]">{selectedPlan.name}</h3>
+                    <p className="mt-0.5 font-mono text-xs font-semibold text-[#C6A66B]">
                       {formatDecimal(selectedPlan.price, selectedPlan.currency || "INR")}/month
                     </p>
                   </div>
-                  <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-bold text-emerald-300">
+                  <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-mono text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
                     Ready to Deploy
                   </span>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-4">
+                <div className="mt-4 grid grid-cols-2 gap-3 font-mono text-xs text-[#F1E9DA]/70 sm:grid-cols-4">
                   <span>{selectedPlan.cpuCores ?? "—"} vCPU</span>
                   <span>{selectedPlan.ramGb ?? "—"} GB RAM</span>
                   <span>{selectedPlan.storageGb ?? "—"} GB SSD</span>
@@ -2484,13 +2522,13 @@ export default function Dashboard() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {hhZones.length > 0 && (
                   <div>
-                    <label className="mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                      <Globe size={14} className="text-cyan-300" /> Deployment Zone
+                    <label className="mb-2 flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
+                      <Globe size={14} className="text-[#C6A66B]" /> Deployment Zone
                     </label>
                     <select
                       value={selectedZoneId}
                       onChange={(e) => handleZoneChange(e.target.value)}
-                      className="w-full rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
+                      className="w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3 text-sm text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
                     >
                       {hhZones.map((z) => (
                         <option key={z.id} value={z.id}>
@@ -2502,13 +2540,13 @@ export default function Dashboard() {
                 )}
 
                 <div>
-                  <label className="mb-2 block text-xs font-bold text-slate-300">
+                  <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                     Select Operating System
                   </label>
                   <select
                     value={selectedOS}
                     onChange={(e) => setSelectedOS(e.target.value)}
-                    className="w-full rounded-xl border border-blue-800 bg-[#07122c] px-4 py-3 text-sm text-white outline-none focus:border-cyan-300"
+                    className="w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3 text-sm text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
                   >
                     {(hhIsos.length > 0
                       ? hhIsos.map((iso) => iso.isoName)
@@ -2526,7 +2564,7 @@ export default function Dashboard() {
 
               {/* Payment Method Selector */}
               <div>
-                <p className="mb-3 text-xs font-bold text-slate-300">
+                <p className="mb-3 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                   Select Payment Method
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -2535,13 +2573,13 @@ export default function Dashboard() {
                     onClick={() => setPaymentMethod("WALLET")}
                     className={`rounded-xl border p-4 text-left transition ${
                       paymentMethod === "WALLET"
-                        ? "border-cyan-300 bg-cyan-300/10"
-                        : "border-blue-900 bg-[#07122c]"
+                        ? "border-[#C6A66B] bg-[#C6A66B]/10"
+                        : "border-[#332f2a] bg-[#171717]"
                     }`}
                   >
-                    <Wallet size={19} className="text-cyan-300" />
-                    <p className="mt-2 text-sm font-bold">Wallet Pay</p>
-                    <p className="mt-1 text-[10px] text-slate-400">
+                    <Wallet size={19} className="text-[#C6A66B]" />
+                    <p className="mt-2 text-sm font-bold text-[#F1E9DA]">Wallet Pay</p>
+                    <p className="mt-1 font-mono text-[10px] text-[#F1E9DA]/50">
                       Balance: {formatDecimal(currentWalletBalance)}
                     </p>
                   </button>
@@ -2551,13 +2589,13 @@ export default function Dashboard() {
                     onClick={() => setPaymentMethod("RAZORPAY")}
                     className={`rounded-xl border p-4 text-left transition ${
                       paymentMethod === "RAZORPAY"
-                        ? "border-cyan-300 bg-cyan-300/10"
-                        : "border-blue-900 bg-[#07122c]"
+                        ? "border-[#C6A66B] bg-[#C6A66B]/10"
+                        : "border-[#332f2a] bg-[#171717]"
                     }`}
                   >
-                    <CreditCard size={19} className="text-cyan-300" />
-                    <p className="mt-2 text-sm font-bold">Razorpay</p>
-                    <p className="mt-1 text-[10px] text-slate-400">
+                    <CreditCard size={19} className="text-[#C6A66B]" />
+                    <p className="mt-2 text-sm font-bold text-[#F1E9DA]">Razorpay</p>
+                    <p className="mt-1 text-[10px] text-[#F1E9DA]/50">
                       UPI · Cards · Netbanking
                     </p>
                   </button>
@@ -2566,13 +2604,13 @@ export default function Dashboard() {
 
               {/* Balance Check for Wallet */}
               {paymentMethod === "WALLET" && (
-                <div className="rounded-xl border border-blue-900/80 bg-[#07122c] p-3 text-xs">
+                <div className="rounded-xl border border-[#332f2a] bg-[#171717] p-3 text-xs">
                   {hasSufficientBalance ? (
-                    <div className="flex items-center gap-2 text-emerald-300">
+                    <div className="flex items-center gap-2 text-emerald-400">
                       <CheckCircle2 size={15} />
                       <span>
                         Sufficient balance available. Remaining after order:{" "}
-                        <strong>
+                        <strong className="font-mono text-[#F1E9DA]">
                           {formatDecimal(
                             currentWalletBalance - selectedPlanPrice,
                           )}
@@ -2602,7 +2640,7 @@ export default function Dashboard() {
                           );
                           setShowTopupModal(true);
                         }}
-                        className="rounded-lg bg-cyan-300/20 px-3 py-1 text-xs font-bold text-cyan-200 hover:bg-cyan-300/30"
+                        className="rounded-lg bg-[#C6A66B]/20 px-3 py-1 font-mono text-xs font-bold text-[#C6A66B] hover:bg-[#C6A66B]/30"
                       >
                         Add Funds
                       </button>
@@ -2612,10 +2650,10 @@ export default function Dashboard() {
               )}
 
               {/* Total Summary */}
-              <div className="rounded-2xl border border-blue-900 bg-[#101e43] p-4">
-                <div className="flex items-center justify-between text-xs text-slate-400">
+              <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4">
+                <div className="flex items-center justify-between text-xs text-[#F1E9DA]/60">
                   <span>Plan price</span>
-                  <span>
+                  <span className="font-mono">
                     {formatDecimal(
                       selectedPlan.price,
                       selectedPlan.currency || "INR",
@@ -2623,14 +2661,14 @@ export default function Dashboard() {
                     /month
                   </span>
                 </div>
-                <div className="mt-3 flex items-center justify-between border-t border-blue-900/60 pt-3">
-                  <span className="text-sm font-bold">Total Payable</span>
-                  <span className="text-2xl font-black text-cyan-200">
+                <div className="mt-3 flex items-center justify-between border-t border-[#332f2a] pt-3">
+                  <span className="text-sm font-bold text-[#F1E9DA]">Total Payable</span>
+                  <span className="font-serif text-2xl font-bold text-[#C6A66B]">
                     {formatDecimal(
                       selectedPlan.price,
                       selectedPlan.currency || "INR",
                     )}
-                    <span className="ml-1 text-xs font-medium text-slate-400">
+                    <span className="ml-1 font-sans text-xs font-normal text-[#F1E9DA]/50">
                       /month
                     </span>
                   </span>
@@ -2642,7 +2680,7 @@ export default function Dashboard() {
                 <button
                   disabled={checkoutLoading || !hasSufficientBalance}
                   onClick={handleCheckoutSubmit}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 py-4 text-sm font-black text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
                 >
                   {checkoutLoading ? (
                     <>
@@ -2660,7 +2698,7 @@ export default function Dashboard() {
                 <button
                   disabled={checkoutLoading}
                   onClick={handleCheckoutSubmit}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-300 px-5 py-4 text-sm font-black text-[#06132d] shadow-lg shadow-cyan-500/20 transition hover:brightness-110 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
                 >
                   {checkoutLoading ? (
                     <RefreshCw size={17} className="animate-spin" />
@@ -2671,7 +2709,7 @@ export default function Dashboard() {
                 </button>
               )}
 
-              <p className="text-center text-[10px] leading-5 text-slate-500">
+              <p className="text-center font-mono text-[10px] leading-5 text-[#F1E9DA]/40">
                 Servers are provisioned and activated instantly upon payment
                 completion.
               </p>
@@ -2683,28 +2721,28 @@ export default function Dashboard() {
       {/* Auto-Renewal & Lifecycle Modal */}
       {renewalModalVpsId && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#020617]/85 p-3 backdrop-blur-md sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#171717]/85 p-3 backdrop-blur-md sm:p-6"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget && !renewalActionLoading) {
               setRenewalModalVpsId(null);
             }
           }}
         >
-          <div className="my-auto w-full max-w-xl overflow-hidden rounded-3xl border border-blue-500/30 bg-[#0a1430] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
-            <div className="flex items-start justify-between border-b border-blue-900/70 px-6 py-5">
+          <div className="my-auto w-full max-w-xl overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
+            <div className="flex items-start justify-between border-b border-[#332f2a] px-6 py-5">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[.22em] text-cyan-300">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                   Server Lifecycle
                 </p>
-                <h2 className="mt-1 text-2xl font-black">Auto-Renewal & Extension</h2>
-                <p className="mt-1 text-xs text-slate-400">
+                <h2 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">Auto-Renewal & Extension</h2>
+                <p className="mt-1 text-xs text-[#F1E9DA]/60">
                   {renewalDetails ? `${renewalDetails.hostname || "VPS"} (${renewalDetails.ipAddress})` : "Loading details…"}
                 </p>
               </div>
               <button
                 disabled={renewalActionLoading}
                 onClick={() => setRenewalModalVpsId(null)}
-                className="rounded-lg border border-blue-900 p-2 text-slate-400 hover:text-white disabled:opacity-50"
+                className="rounded-lg border border-[#332f2a] p-2 text-[#F1E9DA]/50 hover:text-[#F1E9DA] transition disabled:opacity-50"
               >
                 <X size={18} />
               </button>
@@ -2723,8 +2761,8 @@ export default function Dashboard() {
               )}
 
               {renewalLoading || !renewalDetails ? (
-                <p className="py-8 text-center text-sm text-slate-400">
-                  <RefreshCw size={20} className="mx-auto animate-spin text-cyan-300 mb-2" />
+                <p className="py-8 text-center text-sm text-[#F1E9DA]/60">
+                  <RefreshCw size={20} className="mx-auto animate-spin text-[#C6A66B] mb-2" />
                   Loading renewal details…
                 </p>
               ) : (
@@ -2747,47 +2785,47 @@ export default function Dashboard() {
                   )}
 
                   {/* Plan & Pricing Overview */}
-                  <div className="grid grid-cols-2 gap-3 rounded-2xl border border-blue-900/60 bg-[#07122c] p-4 text-xs">
+                  <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[#332f2a] bg-[#171717] p-4 text-xs">
                     <div>
-                      <span className="text-slate-400">Plan:</span>
-                      <p className="mt-0.5 font-bold text-white text-sm">{renewalDetails.plan.name}</p>
+                      <span className="font-mono text-[#F1E9DA]/50 uppercase text-[10px]">Plan:</span>
+                      <p className="mt-0.5 font-bold text-[#F1E9DA] text-sm">{renewalDetails.plan.name}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Duration:</span>
-                      <p className="mt-0.5 font-bold text-white text-sm">{renewalDetails.plan.durationDays} Days</p>
+                      <span className="font-mono text-[#F1E9DA]/50 uppercase text-[10px]">Duration:</span>
+                      <p className="mt-0.5 font-bold text-[#F1E9DA] text-sm">{renewalDetails.plan.durationDays} Days</p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Current Expiry:</span>
-                      <p className="mt-0.5 font-bold text-cyan-200">
+                      <span className="font-mono text-[#F1E9DA]/50 uppercase text-[10px]">Current Expiry:</span>
+                      <p className="mt-0.5 font-mono font-bold text-[#C6A66B]">
                         {renewalDetails.expiresAt ? new Date(renewalDetails.expiresAt).toLocaleDateString() : "—"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Renewal Price:</span>
-                      <p className="mt-0.5 font-bold text-emerald-300 text-sm">
+                      <span className="font-mono text-[#F1E9DA]/50 uppercase text-[10px]">Renewal Price:</span>
+                      <p className="mt-0.5 font-serif font-bold text-emerald-400 text-sm">
                         ₹{renewalDetails.plan.renewalPrice}
                       </p>
                     </div>
                   </div>
 
                   {/* Auto-Renewal Consent Box */}
-                  <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-4 space-y-3">
+                  <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-bold text-white flex items-center gap-2">
-                          <RefreshCw size={14} className="text-cyan-300" /> Automatic Wallet Renewal
+                        <p className="text-xs font-bold text-[#F1E9DA] flex items-center gap-2">
+                          <RefreshCw size={14} className="text-[#C6A66B]" /> Automatic Wallet Renewal
                         </p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
+                        <p className="text-[11px] text-[#F1E9DA]/50 mt-0.5">
                           {renewalDetails.autoRenew
                             ? `Active (Consent recorded on ${renewalDetails.autoRenewConsentAt ? new Date(renewalDetails.autoRenewConsentAt).toLocaleDateString() : "N/A"})`
                             : "Disabled. Existing instances remain opted out until explicit consent."}
                         </p>
                       </div>
                       <span
-                        className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                        className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-bold ${
                           renewalDetails.autoRenew
-                            ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30"
-                            : "bg-slate-700 text-slate-400"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                            : "bg-[#292521] text-[#F1E9DA]/40 border border-[#332f2a]"
                         }`}
                       >
                         {renewalDetails.autoRenew ? "ENABLED" : "DISABLED"}
@@ -2795,13 +2833,13 @@ export default function Dashboard() {
                     </div>
 
                     {!renewalDetails.autoRenew ? (
-                      <div className="space-y-3 pt-2 border-t border-blue-900/40">
-                        <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-slate-300">
+                      <div className="space-y-3 pt-2 border-t border-[#332f2a]">
+                        <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-[#F1E9DA]/70">
                           <input
                             type="checkbox"
                             checked={renewalConsentChecked}
                             onChange={(e) => setRenewalConsentChecked(e.target.checked)}
-                            className="mt-0.5 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-0"
+                            className="mt-0.5 rounded border-[#332f2a] bg-[#201d1a] text-[#C6A66B] focus:ring-0"
                           />
                           <span>
                             I give my <strong>explicit customer consent</strong> authorizing 24/7 VPS to automatically deduct <strong>₹{renewalDetails.plan.renewalPrice}</strong> from my available wallet balance prior to expiry to renew this server for {renewalDetails.plan.durationDays} days.
@@ -2810,16 +2848,16 @@ export default function Dashboard() {
                         <button
                           disabled={!renewalConsentChecked || renewalActionLoading}
                           onClick={() => handleToggleAutoRenew(true)}
-                          className="w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white transition hover:bg-blue-500 disabled:opacity-40"
+                          className="w-full rounded-xl bg-[#C6A66B] py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8ba82] disabled:opacity-40"
                         >
                           {renewalActionLoading ? "Saving Consent…" : "Enable Auto-Renewal with Consent"}
                         </button>
                       </div>
                     ) : (
-                      <div className="pt-2 border-t border-blue-900/40 flex items-center justify-between">
-                        <p className="text-[11px] text-slate-400">
+                      <div className="pt-2 border-t border-[#332f2a] flex items-center justify-between">
+                        <p className="text-[11px] text-[#F1E9DA]/60">
                           Next attempt:{" "}
-                          <strong className="text-white">
+                          <strong className="text-[#F1E9DA] font-mono">
                             {renewalDetails.nextRenewalAttempt
                               ? new Date(renewalDetails.nextRenewalAttempt).toLocaleDateString()
                               : "Prior to expiry"}
@@ -2828,7 +2866,7 @@ export default function Dashboard() {
                         <button
                           disabled={renewalActionLoading}
                           onClick={() => handleToggleAutoRenew(false)}
-                          className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/10 transition disabled:opacity-50"
+                          className="rounded-lg bg-[#292521] border border-[#332f2a] px-3 py-1.5 font-mono text-xs font-bold text-red-400 hover:bg-red-500/10 transition disabled:opacity-50"
                         >
                           Disable Auto-Renewal
                         </button>
@@ -2837,12 +2875,12 @@ export default function Dashboard() {
                   </div>
 
                   {/* Wallet Balance & Insufficient Warning */}
-                  <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-4 text-xs space-y-2">
+                  <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4 text-xs space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400 flex items-center gap-1.5">
-                        <Wallet size={14} className="text-cyan-300" /> Wallet Balance:
+                      <span className="text-[#F1E9DA]/60 flex items-center gap-1.5">
+                        <Wallet size={14} className="text-[#C6A66B]" /> Wallet Balance:
                       </span>
-                      <span className="font-bold text-white text-sm">
+                      <span className="font-serif font-bold text-[#F1E9DA] text-sm">
                         ₹{renewalDetails.wallet.balance}
                       </span>
                     </div>
@@ -2860,7 +2898,7 @@ export default function Dashboard() {
                             setRenewalModalVpsId(null);
                             setShowTopupModal(true);
                           }}
-                          className="w-full rounded-lg bg-amber-500 py-2 text-center text-xs font-bold text-[#02101e] hover:bg-amber-400 transition"
+                          className="w-full rounded-lg bg-[#C6A66B] py-2 text-center font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition"
                         >
                           Top Up Wallet Now
                         </button>
@@ -2874,10 +2912,10 @@ export default function Dashboard() {
 
                   {/* Recent Renewal Result */}
                   {renewalDetails.recentAttempts && renewalDetails.recentAttempts.length > 0 && (
-                    <div className="rounded-xl border border-blue-900/40 bg-[#07122c]/50 p-3 text-[11px] text-slate-400">
-                      <span className="font-semibold text-slate-300">Last Renewal Result:</span>{" "}
+                    <div className="rounded-xl border border-[#332f2a] bg-[#171717]/50 p-3 text-[11px] text-[#F1E9DA]/60">
+                      <span className="font-semibold text-[#F1E9DA]">Last Renewal Result:</span>{" "}
                       <span
-                        className={`font-bold ${
+                        className={`font-mono font-bold ${
                           renewalDetails.recentAttempts[0].status === "SUCCESS"
                             ? "text-emerald-400"
                             : "text-amber-400"
@@ -2897,7 +2935,7 @@ export default function Dashboard() {
                     <button
                       disabled={!renewalDetails.isBalanceSufficient || renewalActionLoading}
                       onClick={handleManualRenew}
-                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 py-3.5 text-xs font-extrabold text-[#021511] transition hover:brightness-110 disabled:opacity-40"
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#C6A66B] py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-40"
                     >
                       {renewalActionLoading ? (
                         <RefreshCw size={15} className="animate-spin" />
@@ -2916,49 +2954,49 @@ export default function Dashboard() {
       {/* HostHeaven Diagnostics & Server Management Modal */}
       {manageModalVps && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#020617]/85 p-3 backdrop-blur-md sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#171717]/85 p-3 backdrop-blur-md sm:p-6"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget && !manageActionLoading) {
               setManageModalVps(null);
             }
           }}
         >
-          <div className="my-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-cyan-500/30 bg-[#0a1430] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
+          <div className="my-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
             {/* Modal Header */}
-            <div className="flex items-start justify-between border-b border-blue-900/70 px-6 py-5">
+            <div className="flex items-start justify-between border-b border-[#332f2a] px-6 py-5">
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-bold uppercase tracking-[.22em] text-cyan-300">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
                     HostHeaven Infrastructure
                   </p>
-                  <span className="rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-bold text-blue-300">
+                  <span className="rounded border border-[#C6A66B]/30 bg-[#C6A66B]/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#C6A66B]">
                     UserSide API
                   </span>
                 </div>
-                <h2 className="mt-1 text-2xl font-black">
+                <h2 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">
                   Server Management & Metrics
                 </h2>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 font-mono text-xs text-[#F1E9DA]/60">
                   {manageModalVps.hostname || "VPS Server"} · {manageModalVps.ipAddress}
                 </p>
               </div>
               <button
                 disabled={manageActionLoading}
                 onClick={() => setManageModalVps(null)}
-                className="rounded-lg border border-blue-900 p-2 text-slate-400 hover:text-white disabled:opacity-50"
+                className="rounded-lg border border-[#332f2a] p-2 text-[#F1E9DA]/50 hover:text-[#F1E9DA] transition disabled:opacity-50"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex border-b border-blue-900/60 bg-[#07122c] px-6 text-xs font-bold text-slate-400">
+            <div className="flex border-b border-[#332f2a] bg-[#171717] px-6 font-mono text-xs font-bold text-[#F1E9DA]/60">
               <button
                 onClick={() => setManageTab("overview")}
                 className={`py-3 px-3 border-b-2 transition ${
                   manageTab === "overview"
-                    ? "border-cyan-300 text-cyan-300"
-                    : "border-transparent hover:text-white"
+                    ? "border-[#C6A66B] text-[#C6A66B]"
+                    : "border-transparent hover:text-[#F1E9DA]"
                 }`}
               >
                 Overview & Power
@@ -2967,8 +3005,8 @@ export default function Dashboard() {
                 onClick={() => setManageTab("metrics")}
                 className={`py-3 px-3 border-b-2 transition flex items-center gap-1.5 ${
                   manageTab === "metrics"
-                    ? "border-cyan-300 text-cyan-300"
-                    : "border-transparent hover:text-white"
+                    ? "border-[#C6A66B] text-[#C6A66B]"
+                    : "border-transparent hover:text-[#F1E9DA]"
                 }`}
               >
                 <Activity size={13} /> Resource Metrics
@@ -2977,8 +3015,8 @@ export default function Dashboard() {
                 onClick={() => setManageTab("storage")}
                 className={`py-3 px-3 border-b-2 transition flex items-center gap-1.5 ${
                   manageTab === "storage"
-                    ? "border-cyan-300 text-cyan-300"
-                    : "border-transparent hover:text-white"
+                    ? "border-[#C6A66B] text-[#C6A66B]"
+                    : "border-transparent hover:text-[#F1E9DA]"
                 }`}
               >
                 <HardDrive size={13} /> Storage Drives
@@ -2987,8 +3025,8 @@ export default function Dashboard() {
                 onClick={() => setManageTab("password")}
                 className={`py-3 px-3 border-b-2 transition flex items-center gap-1.5 ${
                   manageTab === "password"
-                    ? "border-cyan-300 text-cyan-300"
-                    : "border-transparent hover:text-white"
+                    ? "border-[#C6A66B] text-[#C6A66B]"
+                    : "border-transparent hover:text-[#F1E9DA]"
                 }`}
               >
                 <KeyRound size={13} /> Password
@@ -2997,8 +3035,8 @@ export default function Dashboard() {
                 onClick={() => setManageTab("rebuild")}
                 className={`py-3 px-3 border-b-2 transition flex items-center gap-1.5 ${
                   manageTab === "rebuild"
-                    ? "border-cyan-300 text-cyan-300"
-                    : "border-transparent hover:text-white"
+                    ? "border-[#C6A66B] text-[#C6A66B]"
+                    : "border-transparent hover:text-[#F1E9DA]"
                 }`}
               >
                 <RotateCcw size={13} /> Rebuild OS
@@ -3019,8 +3057,8 @@ export default function Dashboard() {
               )}
 
               {manageLoading ? (
-                <div className="py-12 text-center text-slate-400">
-                  <RefreshCw className="mx-auto mb-3 animate-spin text-cyan-300" />
+                <div className="py-12 text-center text-[#F1E9DA]/60">
+                  <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" />
                   Fetching live telemetry from HostHeaven...
                 </div>
               ) : (
@@ -3030,26 +3068,26 @@ export default function Dashboard() {
                     <div className="space-y-5">
                       {/* Telemetry info cards */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-3.5">
-                          <p className="text-[10px] text-slate-500 uppercase">Proxmox VMID</p>
-                          <p className="mt-1 font-mono font-bold text-white">
+                        <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-3.5">
+                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Proxmox VMID</p>
+                          <p className="mt-1 font-mono font-bold text-[#F1E9DA]">
                             {manageDetails?.proxmoxVmid || "101"}
                           </p>
                         </div>
-                        <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-3.5">
-                          <p className="text-[10px] text-slate-500 uppercase">Cluster Node</p>
-                          <p className="mt-1 font-mono font-bold text-white">
+                        <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-3.5">
+                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Cluster Node</p>
+                          <p className="mt-1 font-mono font-bold text-[#F1E9DA]">
                             {manageDetails?.serverId || "node-in-del-01"}
                           </p>
                         </div>
-                        <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-3.5">
-                          <p className="text-[10px] text-slate-500 uppercase">Provider Status</p>
+                        <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-3.5">
+                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Provider Status</p>
                           <p className="mt-1 font-bold text-emerald-400">
                             {manageDetails?.status || manageModalVps.status}
                           </p>
                         </div>
-                        <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-3.5">
-                          <p className="text-[10px] text-slate-500 uppercase">Lock Status</p>
+                        <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-3.5">
+                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Lock Status</p>
                           <p className="mt-1 font-bold flex items-center gap-1 text-emerald-400">
                             {manageLock?.isLocked ? (
                               <>
@@ -3067,50 +3105,50 @@ export default function Dashboard() {
                       </div>
 
                       {/* Power Controls */}
-                      <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-5">
-                        <h4 className="font-bold text-sm text-slate-200 mb-3">
+                      <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-5">
+                        <h4 className="font-bold text-sm text-[#F1E9DA] mb-3">
                           Server Power Actions
                         </h4>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                           <button
                             disabled={manageActionLoading}
                             onClick={() => handleHostHeavenPowerAction("start")}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 px-3 py-2.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 px-3 py-2.5 font-mono text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 disabled:opacity-50 transition"
                           >
                             <Zap size={14} /> Start Server
                           </button>
                           <button
                             disabled={manageActionLoading}
                             onClick={() => handleHostHeavenPowerAction("stop")}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-red-500/15 border border-red-500/30 px-3 py-2.5 text-xs font-bold text-red-300 hover:bg-red-500/25 disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 rounded-xl bg-red-500/15 border border-red-500/30 px-3 py-2.5 font-mono text-xs font-bold text-red-300 hover:bg-red-500/25 disabled:opacity-50 transition"
                           >
                             <Power size={14} /> Stop Server
                           </button>
                           <button
                             disabled={manageActionLoading}
                             onClick={() => handleHostHeavenPowerAction("reboot")}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/30 px-3 py-2.5 text-xs font-bold text-amber-300 hover:bg-amber-500/25 disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/30 px-3 py-2.5 font-mono text-xs font-bold text-amber-300 hover:bg-amber-500/25 disabled:opacity-50 transition"
                           >
                             <RefreshCw size={14} /> Reboot Server
                           </button>
                           <button
                             disabled={manageActionLoading}
                             onClick={() => handleHostHeavenPowerAction("pause")}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-slate-800/80 border border-slate-700 px-3 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700 disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 rounded-xl bg-[#201d1a] border border-[#332f2a] px-3 py-2.5 font-mono text-xs font-bold text-[#F1E9DA]/80 hover:bg-[#292521] disabled:opacity-50 transition"
                           >
                             Pause Server
                           </button>
                           <button
                             disabled={manageActionLoading}
                             onClick={() => handleHostHeavenPowerAction("hibernate")}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-slate-800/80 border border-slate-700 px-3 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700 disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 rounded-xl bg-[#201d1a] border border-[#332f2a] px-3 py-2.5 font-mono text-xs font-bold text-[#F1E9DA]/80 hover:bg-[#292521] disabled:opacity-50 transition"
                           >
                             Hibernate
                           </button>
                           <button
                             disabled={manageActionLoading}
                             onClick={() => handleHostHeavenPowerAction("resume")}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-cyan-950/60 border border-cyan-800/60 px-3 py-2.5 text-xs font-bold text-cyan-300 hover:bg-cyan-900/70 disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 rounded-xl bg-[#201d1a] border border-[#C6A66B]/30 px-3 py-2.5 font-mono text-xs font-bold text-[#C6A66B] hover:bg-[#292521] disabled:opacity-50 transition"
                           >
                             Resume Server
                           </button>
@@ -3123,18 +3161,18 @@ export default function Dashboard() {
                   {manageTab === "metrics" && (
                     <div className="space-y-4">
                       {/* CPU Usage Card */}
-                      <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-4 text-xs">
+                      <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4 text-xs">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold text-slate-300 flex items-center gap-1.5">
-                            <Cpu size={15} className="text-cyan-300" /> CPU Utilization:
+                          <span className="font-bold text-[#F1E9DA]/80 flex items-center gap-1.5">
+                            <Cpu size={15} className="text-[#C6A66B]" /> CPU Utilization:
                           </span>
-                          <span className="font-mono font-bold text-cyan-300 text-sm">
+                          <span className="font-mono font-bold text-[#C6A66B] text-sm">
                             {manageMetrics?.cpu?.usagePercent ?? 18}%
                           </span>
                         </div>
-                        <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div className="w-full bg-[#201d1a] rounded-full h-2.5 overflow-hidden border border-[#332f2a]">
                           <div
-                            className="bg-cyan-400 h-2.5 rounded-full transition-all duration-500"
+                            className="bg-[#C6A66B] h-2.5 rounded-full transition-all duration-500"
                             style={{
                               width: `${Math.min(100, manageMetrics?.cpu?.usagePercent ?? 18)}%`,
                             }}
@@ -3143,18 +3181,18 @@ export default function Dashboard() {
                       </div>
 
                       {/* Memory Usage Card */}
-                      <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-4 text-xs">
+                      <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4 text-xs">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold text-slate-300 flex items-center gap-1.5">
-                            <Server size={15} className="text-purple-300" /> Memory (RAM):
+                          <span className="font-bold text-[#F1E9DA]/80 flex items-center gap-1.5">
+                            <Server size={15} className="text-[#C6A66B]" /> Memory (RAM):
                           </span>
-                          <span className="font-mono font-bold text-purple-300 text-sm">
+                          <span className="font-mono font-bold text-[#C6A66B] text-sm">
                             {manageMetrics?.ram?.usedMb ?? 1420} MB / {manageMetrics?.ram?.totalMb ?? 4096} MB ({manageMetrics?.ram?.usagePercent ?? 34}%)
                           </span>
                         </div>
-                        <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div className="w-full bg-[#201d1a] rounded-full h-2.5 overflow-hidden border border-[#332f2a]">
                           <div
-                            className="bg-purple-400 h-2.5 rounded-full transition-all duration-500"
+                            className="bg-[#C6A66B]/80 h-2.5 rounded-full transition-all duration-500"
                             style={{
                               width: `${Math.min(100, manageMetrics?.ram?.usagePercent ?? 34)}%`,
                             }}
@@ -3164,22 +3202,22 @@ export default function Dashboard() {
 
                       {/* Network & Disk IO */}
                       <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-4">
-                          <p className="text-slate-400 font-bold mb-2">Network Traffic</p>
-                          <p className="text-slate-300">
-                            RX: <span className="font-mono font-bold text-white">{(Number(manageMetrics?.network?.rxBytes || 154203940) / 1024 / 1024).toFixed(1)} MB</span>
+                        <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4">
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50 mb-2">Network Traffic</p>
+                          <p className="text-[#F1E9DA]/80">
+                            RX: <span className="font-mono font-bold text-[#F1E9DA]">{(Number(manageMetrics?.network?.rxBytes || 154203940) / 1024 / 1024).toFixed(1)} MB</span>
                           </p>
-                          <p className="text-slate-300 mt-1">
-                            TX: <span className="font-mono font-bold text-white">{(Number(manageMetrics?.network?.txBytes || 89421040) / 1024 / 1024).toFixed(1)} MB</span>
+                          <p className="text-[#F1E9DA]/80 mt-1">
+                            TX: <span className="font-mono font-bold text-[#F1E9DA]">{(Number(manageMetrics?.network?.txBytes || 89421040) / 1024 / 1024).toFixed(1)} MB</span>
                           </p>
                         </div>
-                        <div className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-4">
-                          <p className="text-slate-400 font-bold mb-2">Disk I/O</p>
-                          <p className="text-slate-300">
-                            Read: <span className="font-mono font-bold text-white">{(Number(manageMetrics?.disk?.readBytes || 42109400) / 1024 / 1024).toFixed(1)} MB</span>
+                        <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4">
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50 mb-2">Disk I/O</p>
+                          <p className="text-[#F1E9DA]/80">
+                            Read: <span className="font-mono font-bold text-[#F1E9DA]">{(Number(manageMetrics?.disk?.readBytes || 42109400) / 1024 / 1024).toFixed(1)} MB</span>
                           </p>
-                          <p className="text-slate-300 mt-1">
-                            Write: <span className="font-mono font-bold text-white">{(Number(manageMetrics?.disk?.writeBytes || 19482010) / 1024 / 1024).toFixed(1)} MB</span>
+                          <p className="text-[#F1E9DA]/80 mt-1">
+                            Write: <span className="font-mono font-bold text-[#F1E9DA]">{(Number(manageMetrics?.disk?.writeBytes || 19482010) / 1024 / 1024).toFixed(1)} MB</span>
                           </p>
                         </div>
                       </div>
@@ -3195,23 +3233,23 @@ export default function Dashboard() {
                       ]).map((drive: any) => (
                         <div
                           key={drive.mountPoint}
-                          className="rounded-2xl border border-blue-900/60 bg-[#07122c] p-4 space-y-2"
+                          className="rounded-2xl border border-[#332f2a] bg-[#171717] p-4 space-y-2"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-white">
-                              Mount: <span className="font-mono text-cyan-300">{drive.mountPoint}</span> ({drive.fsType})
+                            <span className="font-bold text-[#F1E9DA]">
+                              Mount: <span className="font-mono text-[#C6A66B]">{drive.mountPoint}</span> ({drive.fsType})
                             </span>
-                            <span className="text-slate-300 font-mono">
+                            <span className="text-[#F1E9DA]/70 font-mono">
                               {drive.usedGb} GB / {drive.totalGb} GB ({drive.usagePercentage}%)
                             </span>
                           </div>
-                          <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                          <div className="w-full bg-[#201d1a] rounded-full h-2 overflow-hidden border border-[#332f2a]">
                             <div
-                              className="bg-blue-400 h-2 rounded-full"
+                              className="bg-[#C6A66B] h-2 rounded-full"
                               style={{ width: `${Math.min(100, drive.usagePercentage)}%` }}
                             />
                           </div>
-                          <p className="text-[11px] text-slate-500">
+                          <p className="font-mono text-[11px] text-[#F1E9DA]/40">
                             Free Space: {drive.freeGb} GB available
                           </p>
                         </div>
@@ -3221,17 +3259,17 @@ export default function Dashboard() {
 
                   {/* TAB: PASSWORD CHANGE */}
                   {manageTab === "password" && (
-                    <div className="space-y-4 rounded-2xl border border-blue-900/60 bg-[#07122c] p-5 text-xs">
+                    <div className="space-y-4 rounded-2xl border border-[#332f2a] bg-[#171717] p-5 text-xs">
                       <div>
-                        <h4 className="font-bold text-sm text-slate-200">
+                        <h4 className="font-bold text-sm text-[#F1E9DA]">
                           Reset Root / Administrator Password
                         </h4>
-                        <p className="text-slate-400 mt-1">
+                        <p className="text-[#F1E9DA]/60 mt-1">
                           Set a secure password for SSH / RDP console access.
                         </p>
                       </div>
                       <div>
-                        <label className="block mb-2 font-bold text-slate-300">
+                        <label className="block mb-2 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                           New Password (minimum 8 characters)
                         </label>
                         <input
@@ -3239,13 +3277,13 @@ export default function Dashboard() {
                           value={newVmPassword}
                           onChange={(e) => setNewVmPassword(e.target.value)}
                           placeholder="Enter new strong password"
-                          className="w-full rounded-xl border border-blue-800 bg-[#0b1531] p-3 text-sm text-white outline-none focus:border-cyan-300"
+                          className="w-full rounded-xl border border-[#332f2a] bg-[#201d1a] p-3 text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none focus:border-[#C6A66B]"
                         />
                       </div>
                       <button
                         disabled={manageActionLoading || newVmPassword.length < 8}
                         onClick={handleChangePassword}
-                        className="rounded-xl bg-cyan-300 px-5 py-3 text-xs font-extrabold text-[#06132d] hover:brightness-110 disabled:opacity-50"
+                        className="rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition disabled:opacity-50"
                       >
                         {manageActionLoading ? "Updating..." : "Update Password"}
                       </button>
@@ -3264,13 +3302,13 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <div>
-                        <label className="block mb-2 font-bold text-slate-300">
+                        <label className="block mb-2 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
                           Select Operating System ISO
                         </label>
                         <select
                           value={selectedRebuildIso}
                           onChange={(e) => setSelectedRebuildIso(e.target.value)}
-                          className="w-full rounded-xl border border-blue-800 bg-[#07122c] p-3 text-sm text-white outline-none focus:border-cyan-300"
+                          className="w-full rounded-xl border border-[#332f2a] bg-[#201d1a] p-3 text-sm text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
                         >
                           <option value="">-- Choose an ISO --</option>
                           {(hhIsos.length > 0 ? hhIsos : [
@@ -3287,7 +3325,7 @@ export default function Dashboard() {
                       <button
                         disabled={manageActionLoading || !selectedRebuildIso}
                         onClick={handleRebuildVm}
-                        className="rounded-xl bg-red-600 px-5 py-3 text-xs font-extrabold text-white hover:bg-red-500 disabled:opacity-50"
+                        className="rounded-xl bg-red-600 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white hover:bg-red-500 transition disabled:opacity-50"
                       >
                         {manageActionLoading ? "Initiating Rebuild..." : "Erase & Rebuild Server"}
                       </button>

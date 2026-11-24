@@ -24,8 +24,6 @@ type RenewalSettings = {
   suspensionPolicy: string;
   terminationPolicy: string;
   renewalPricingModel: string;
-  hostHeavenMarkupPercent: number;
-  hostHeavenProfitMarginPercent: number | "";
 };
 
 type UpcomingRenewal = {
@@ -85,8 +83,6 @@ export default function RenewalLifecycle() {
     suspensionPolicy: "AUTO_SUSPEND_ON_EXPIRY",
     terminationPolicy: "AUTO_TERMINATE_AFTER_GRACE",
     renewalPricingModel: "PLAN_SELLING_PRICE",
-    hostHeavenMarkupPercent: 25,
-    hostHeavenProfitMarginPercent: 20,
   });
 
   const [preExpiryInput, setPreExpiryInput] = useState("7, 3, 1");
@@ -106,12 +102,6 @@ export default function RenewalLifecycle() {
         setSettings((previous) => ({
           ...previous,
           ...res.data,
-          hostHeavenProfitMarginPercent: Number(
-            res.data.hostHeavenProfitMarginPercent ?? 20,
-          ),
-          hostHeavenMarkupPercent: Number(
-            res.data.hostHeavenMarkupPercent ?? 25,
-          ),
         }));
 
         if (Array.isArray(res.data.preExpiryNotificationDays)) {
@@ -171,16 +161,6 @@ export default function RenewalLifecycle() {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      settings.hostHeavenProfitMarginPercent === "" ||
-      !Number.isFinite(Number(settings.hostHeavenProfitMarginPercent)) ||
-      Number(settings.hostHeavenProfitMarginPercent) < 0 ||
-      Number(settings.hostHeavenProfitMarginPercent) > 80
-    ) {
-      setError("HostHeaven profit margin must be between 0% and 80%.");
-      return;
-    }
-
     setLoading(true);
     setMessage("");
     setError("");
@@ -194,22 +174,14 @@ export default function RenewalLifecycle() {
         suspensionPolicy: settings.suspensionPolicy,
         terminationPolicy: settings.terminationPolicy,
         renewalPricingModel: settings.renewalPricingModel,
-        hostHeavenProfitMarginPercent: Number(settings.hostHeavenProfitMarginPercent),
-        hostHeavenMarkupPercent: Number(settings.hostHeavenMarkupPercent),
       });
 
       setSettings((previous) => ({
         ...previous,
         ...res.data,
-        hostHeavenProfitMarginPercent: Number(
-          res.data.hostHeavenProfitMarginPercent ?? 20,
-        ),
-        hostHeavenMarkupPercent: Number(
-          res.data.hostHeavenMarkupPercent ?? 25,
-        ),
       }));
 
-      setMessage("Renewal, lifecycle and HostHeaven settings updated successfully!");
+      setMessage("Renewal and lifecycle settings updated successfully!");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to save settings");
     } finally {
@@ -284,13 +256,13 @@ export default function RenewalLifecycle() {
   return (
     <div className="space-y-6">
       {/* Top Header & Execution Controls */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-800 bg-[#0d1525] p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <RefreshCw className="text-blue-400" size={22} />
+          <h2 className="font-serif text-xl font-bold text-[#F1E9DA] flex items-center gap-2.5">
+            <RefreshCw className="text-[#C6A66B]" size={20} />
             Auto-Renewal & Lifecycle Engine
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="font-sans text-xs text-[#F1E9DA]/60 mt-1">
             Scheduled wallet renewal, grace period management, provider timeouts, and customer notification tracking.
           </p>
         </div>
@@ -299,44 +271,44 @@ export default function RenewalLifecycle() {
           <button
             disabled={actionLoading !== null}
             onClick={() => handleTriggerCycle("RENEWAL")}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-blue-500 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-[#C6A66B] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d] disabled:opacity-50"
           >
-            <Play size={14} /> Run Renewal Cycle
+            <Play size={13} /> Run Renewal Cycle
           </button>
 
           <button
             disabled={actionLoading !== null}
             onClick={() => handleTriggerCycle("LIFECYCLE")}
-            className="flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-amber-500 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA] transition hover:bg-[#292521] disabled:opacity-50"
           >
-            <Clock size={14} /> Run Lifecycle Check
+            <Clock size={13} /> Lifecycle Check
           </button>
 
           <button
             disabled={actionLoading !== null}
             onClick={() => handleTriggerCycle("SCHEDULER")}
-            className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-bold text-slate-200 transition hover:bg-slate-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-50"
           >
-            <RefreshCw size={14} /> Run Full Scheduler
+            <RefreshCw size={13} /> Full Scheduler
           </button>
         </div>
       </div>
 
       {/* Alerts */}
       {message && (
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+        <div className="flex items-center gap-2 rounded-xl border border-[#C6A66B]/30 bg-[#C6A66B]/10 p-4 font-mono text-xs text-[#C6A66B]">
           <CheckCircle2 size={16} /> {message}
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-          <AlertCircle size={16} /> {error}
+        <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-950/20 p-4 font-mono text-xs text-red-300">
+          <AlertCircle size={16} className="text-red-400" /> {error}
         </div>
       )}
 
       {/* Sub Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-[#332f2a] pb-3">
         {[
           { key: "SETTINGS", label: "Settings", icon: Settings },
           { key: "UPCOMING", label: `Upcoming Renewals (${upcoming.length})`, icon: Calendar },
@@ -347,10 +319,10 @@ export default function RenewalLifecycle() {
           <button
             key={key}
             onClick={() => setTab(key as SubTab)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider transition ${
               tab === key
-                ? "bg-blue-600 text-white"
-                : "border border-slate-800 bg-[#0d1525] text-slate-400 hover:bg-slate-800 hover:text-white"
+                ? "bg-[#C6A66B] text-[#171717]"
+                : "border border-[#332f2a] bg-[#201d1a] text-[#F1E9DA]/70 hover:bg-[#292521] hover:text-[#F1E9DA]"
             }`}
           >
             <Icon size={14} /> {label}
@@ -362,16 +334,20 @@ export default function RenewalLifecycle() {
       {tab === "SETTINGS" && (
         <form
           onSubmit={handleSaveSettings}
-          className="rounded-2xl border border-slate-800 bg-[#0d1525] p-6 space-y-6"
+          className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 space-y-6"
         >
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Settings size={18} className="text-blue-400" />
-            Platform Auto-Renewal & Grace Period Configuration
-          </h3>
+          <div className="flex items-center gap-2.5 border-b border-[#332f2a] pb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-[#C6A66B]">
+              <Settings size={16} />
+            </div>
+            <h3 className="font-serif text-base font-bold text-[#F1E9DA]">
+              Platform Auto-Renewal & Grace Period Configuration
+            </h3>
+          </div>
 
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">
                 Renewal Window (Days Before Expiry)
               </label>
               <input
@@ -382,16 +358,16 @@ export default function RenewalLifecycle() {
                 onChange={(e) =>
                   setSettings({ ...settings, renewalWindowDays: Number(e.target.value) })
                 }
-                className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                className="mt-2 w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2.5 font-mono text-sm text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
                 required
               />
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                 The scheduler will attempt to renew servers that expire within this window (e.g. 7 days before expiry).
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">
                 Grace Period Duration (Days After Expiry)
               </label>
               <input
@@ -402,16 +378,16 @@ export default function RenewalLifecycle() {
                 onChange={(e) =>
                   setSettings({ ...settings, gracePeriodDays: Number(e.target.value) })
                 }
-                className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                className="mt-2 w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2.5 font-mono text-sm text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
                 required
               />
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                 Number of days an expired server is kept in stopped/suspended state before permanent termination.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">
                 Pre-Expiry Email Milestones (Days)
               </label>
               <input
@@ -419,16 +395,16 @@ export default function RenewalLifecycle() {
                 value={preExpiryInput}
                 onChange={(e) => setPreExpiryInput(e.target.value)}
                 placeholder="7, 3, 1"
-                className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                className="mt-2 w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2.5 font-mono text-sm text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
                 required
               />
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                 Comma-separated days before expiry to send reminder notifications to the customer.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">
                 Low-Balance Warning Throttle (Hours)
               </label>
               <input
@@ -439,40 +415,16 @@ export default function RenewalLifecycle() {
                 onChange={(e) =>
                   setSettings({ ...settings, lowBalanceNotificationHours: Number(e.target.value) })
                 }
-                className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                className="mt-2 w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2.5 font-mono text-sm text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
                 required
               />
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                 Minimum cooldown period before repeating low wallet balance alerts.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300">
-                HostHeaven Profit Margin (%)
-              </label>
-              <input
-                type="number"
-                min={0}
-                max={80}
-                step={1}
-                value={settings.hostHeavenProfitMarginPercent}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    hostHeavenProfitMarginPercent: e.target.value === "" ? "" : Number(e.target.value),
-                  })
-                }
-                className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
-                required
-              />
-              <p className="mt-1 text-[11px] text-slate-500">
-                Gross profit margin on provider cost. Formula: sellingPrice = providerCost / (1 - margin/100). Default: 20% (₹1,000 cost → ₹1,250 customer price).
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">
                 Suspension Policy
               </label>
               <select
@@ -480,7 +432,7 @@ export default function RenewalLifecycle() {
                 onChange={(e) =>
                   setSettings({ ...settings, suspensionPolicy: e.target.value })
                 }
-                className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                className="mt-2 w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2.5 font-mono text-xs text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
               >
                 <option value="AUTO_SUSPEND_ON_EXPIRY">
                   AUTO_SUSPEND_ON_EXPIRY (Automatically stop server upon expiry)
@@ -492,7 +444,7 @@ export default function RenewalLifecycle() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300">
+              <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">
                 Termination Policy
               </label>
               <select
@@ -500,7 +452,7 @@ export default function RenewalLifecycle() {
                 onChange={(e) =>
                   setSettings({ ...settings, terminationPolicy: e.target.value })
                 }
-                className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+                className="mt-2 w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2.5 font-mono text-xs text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
               >
                 <option value="AUTO_TERMINATE_AFTER_GRACE">
                   AUTO_TERMINATE_AFTER_GRACE (Verify provider & terminate after grace)
@@ -512,84 +464,86 @@ export default function RenewalLifecycle() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
-          >
-            <Save size={16} /> {loading ? "Saving..." : "Save Configuration"}
-          </button>
+          <div className="border-t border-[#332f2a] pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 rounded-xl bg-[#C6A66B] px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d] disabled:opacity-50"
+            >
+              <Save size={14} /> {loading ? "Saving..." : "Save Configuration"}
+            </button>
+          </div>
         </form>
       )}
 
       {/* TAB 2: UPCOMING RENEWALS */}
       {tab === "UPCOMING" && (
-        <div className="rounded-2xl border border-slate-800 bg-[#0d1525] p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-bold text-white text-sm">
+        <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+          <div className="flex items-center justify-between border-b border-[#332f2a] px-6 py-4">
+            <h3 className="font-serif text-sm font-bold text-[#F1E9DA]">
               Expiring Instances within {settings.renewalWindowDays} Days Window
             </h3>
-            <span className="text-xs text-slate-400">Total: {upcoming.length}</span>
+            <span className="font-mono text-xs text-[#F1E9DA]/50">Total: {upcoming.length}</span>
           </div>
 
           {upcoming.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-500">
+            <p className="p-12 text-center font-mono text-xs text-[#F1E9DA]/50">
               No VPS instances currently expiring in this window.
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="py-2.5">IP Address / Host</th>
-                    <th>Customer</th>
-                    <th>Expiry Date</th>
-                    <th>Auto-Renew</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th className="text-right">Actions</th>
+              <table className="w-full text-left font-sans text-sm">
+                <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
+                  <tr>
+                    <th className="px-5 py-3.5">IP Address / Host</th>
+                    <th className="px-5 py-3.5">Customer</th>
+                    <th className="px-5 py-3.5">Expiry Date</th>
+                    <th className="px-5 py-3.5">Auto-Renew</th>
+                    <th className="px-5 py-3.5">Price</th>
+                    <th className="px-5 py-3.5">Status</th>
+                    <th className="px-5 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-[#332f2a]">
                   {upcoming.map((vps) => (
-                    <tr key={vps.id} className="hover:bg-slate-800/20">
-                      <td className="py-3 font-semibold text-cyan-300">
+                    <tr key={vps.id} className="transition hover:bg-[#292521]/60">
+                      <td className="px-5 py-4 font-mono font-semibold text-[#C6A66B]">
                         {vps.ipAddress}
-                        <span className="block text-[10px] text-slate-500">
+                        <span className="block text-[11px] text-[#F1E9DA]/40">
                           {vps.hostname || "—"}
                         </span>
                       </td>
-                      <td>
-                        {vps.user.name || "Customer"}
-                        <span className="block text-[10px] text-slate-500">
+                      <td className="px-5 py-4">
+                        <span className="text-[#F1E9DA] font-medium">{vps.user.name || "Customer"}</span>
+                        <span className="block font-mono text-[11px] text-[#F1E9DA]/50">
                           {vps.user.email}
                         </span>
                       </td>
-                      <td>{new Date(vps.expiresAt).toLocaleDateString()}</td>
-                      <td>
+                      <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">{new Date(vps.expiresAt).toLocaleDateString()}</td>
+                      <td className="px-5 py-4">
                         <span
-                          className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${
                             vps.autoRenew && vps.autoRenewConsentAt
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                              : "bg-slate-700 text-slate-300"
+                              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                              : "border border-[#332f2a] bg-[#171717] text-[#F1E9DA]/50"
                           }`}
                         >
                           {vps.autoRenew && vps.autoRenewConsentAt ? "CONSENTED" : "OPTED OUT"}
                         </span>
                       </td>
-                      <td className="font-semibold text-emerald-300">
+                      <td className="px-5 py-4 font-mono text-sm font-bold text-[#C6A66B]">
                         ₹{vps.order?.plan?.price || 999}
                       </td>
-                      <td>
-                        <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-300">
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-xs text-[#F1E9DA]/60">
                           {vps.status}
                         </span>
                       </td>
-                      <td className="text-right">
+                      <td className="px-5 py-4 text-right">
                         <button
                           disabled={actionLoading === `RENEW-${vps.id}`}
                           onClick={() => handleRetryAction(vps.id, "RENEW")}
-                          className="rounded bg-blue-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-blue-500 disabled:opacity-50"
+                          className="rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs font-semibold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-50"
                         >
                           {actionLoading === `RENEW-${vps.id}` ? "Renewing…" : "Renew Now"}
                         </button>
@@ -605,14 +559,14 @@ export default function RenewalLifecycle() {
 
       {/* TAB 3: RENEWAL HISTORY */}
       {tab === "HISTORY" && (
-        <div className="rounded-2xl border border-slate-800 bg-[#0d1525] p-5 space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="font-bold text-white text-sm">
+        <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+          <div className="flex flex-col gap-3 border-b border-[#332f2a] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="font-serif text-sm font-bold text-[#F1E9DA]">
               Renewal Execution Audit Logs
             </h3>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">Filter:</span>
+              <span className="font-mono text-xs text-[#F1E9DA]/50">Filter:</span>
 
               {["ALL", "SUCCESS", "INSUFFICIENT_FUNDS", "FAILED"].map((s) => (
                 <button
@@ -621,10 +575,10 @@ export default function RenewalLifecycle() {
                     setHistoryFilter(s);
                     fetchHistory(s);
                   }}
-                  className={`rounded px-2.5 py-1 text-[11px] font-bold transition ${
+                  className={`rounded-lg px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider transition ${
                     historyFilter === s
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-800 text-slate-400 hover:text-white"
+                      ? "bg-[#C6A66B] text-[#171717]"
+                      : "border border-[#332f2a] bg-[#171717] text-[#F1E9DA]/60 hover:text-[#F1E9DA]"
                   }`}
                 >
                   {s}
@@ -634,56 +588,56 @@ export default function RenewalLifecycle() {
           </div>
 
           {history.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-500">
+            <p className="p-12 text-center font-mono text-xs text-[#F1E9DA]/50">
               No renewal attempt records found.
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="py-2.5">Date & Time</th>
-                    <th>VPS Instance</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Renewal Amount</th>
-                    <th>Wallet Balance</th>
-                    <th>Details</th>
+              <table className="w-full text-left font-sans text-sm">
+                <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
+                  <tr>
+                    <th className="px-5 py-3.5">Date & Time</th>
+                    <th className="px-5 py-3.5">VPS Instance</th>
+                    <th className="px-5 py-3.5">Customer</th>
+                    <th className="px-5 py-3.5">Status</th>
+                    <th className="px-5 py-3.5">Renewal Amount</th>
+                    <th className="px-5 py-3.5">Wallet Balance</th>
+                    <th className="px-5 py-3.5">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-[#332f2a]">
                   {history.map((att) => (
-                    <tr key={att.id} className="hover:bg-slate-800/20">
-                      <td className="py-2.5 text-slate-400">
+                    <tr key={att.id} className="transition hover:bg-[#292521]/60">
+                      <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/60">
                         {new Date(att.attemptedAt).toLocaleString()}
                       </td>
-                      <td className="font-medium text-cyan-300">
+                      <td className="px-5 py-4 font-mono font-medium text-[#C6A66B]">
                         {att.vps?.ipAddress || "—"}
-                        <span className="block text-[10px] text-slate-500">
+                        <span className="block text-[11px] text-[#F1E9DA]/40">
                           {att.vps?.hostname}
                         </span>
                       </td>
-                      <td>{att.user?.email || "—"}</td>
-                      <td>
+                      <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">{att.user?.email || "—"}</td>
+                      <td className="px-5 py-4">
                         <span
-                          className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${
                             att.status === "SUCCESS"
-                              ? "bg-emerald-500/10 text-emerald-400"
+                              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                               : att.status === "INSUFFICIENT_FUNDS"
-                              ? "bg-amber-500/10 text-amber-400"
-                              : "bg-red-500/10 text-red-400"
+                              ? "border border-amber-500/30 bg-amber-500/10 text-amber-400"
+                              : "border border-red-500/30 bg-red-500/10 text-red-400"
                           }`}
                         >
                           {att.status}
                         </span>
                       </td>
-                      <td className="font-semibold text-white">
+                      <td className="px-5 py-4 font-mono text-sm font-semibold text-[#F1E9DA]">
                         ₹{att.renewalAmount}
                       </td>
-                      <td className="text-slate-300">
+                      <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">
                         ₹{att.walletBalance ?? "—"}
                       </td>
-                      <td className="text-[11px] text-slate-400 max-w-xs truncate">
+                      <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/50 max-w-xs truncate">
                         {att.errorMessage ||
                           (att.status === "SUCCESS" ? "Renewed successfully" : "—")}
                       </td>
@@ -698,54 +652,54 @@ export default function RenewalLifecycle() {
 
       {/* TAB 4: INSUFFICIENT BALANCE CASES */}
       {tab === "INSUFFICIENT" && (
-        <div className="rounded-2xl border border-slate-800 bg-[#0d1525] p-5">
-          <div className="mb-4">
-            <h3 className="font-bold text-white text-sm">
+        <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+          <div className="border-b border-[#332f2a] p-5">
+            <h3 className="font-serif text-sm font-bold text-[#F1E9DA]">
               Failed Renewals Due to Insufficient Wallet Balance
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="font-sans text-xs text-[#F1E9DA]/50 mt-0.5">
               Customers who have auto-renewal enabled but require additional wallet funds.
             </p>
           </div>
 
           {insufficientCases.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-500">
+            <p className="p-12 text-center font-mono text-xs text-[#F1E9DA]/50">
               No insufficient wallet balance cases.
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="py-2.5">Date Attempted</th>
-                    <th>VPS IP</th>
-                    <th>Customer Email</th>
-                    <th>Required Price</th>
-                    <th>Customer Balance</th>
-                    <th>Shortfall</th>
-                    <th>Status</th>
+              <table className="w-full text-left font-sans text-sm">
+                <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
+                  <tr>
+                    <th className="px-5 py-3.5">Date Attempted</th>
+                    <th className="px-5 py-3.5">VPS IP</th>
+                    <th className="px-5 py-3.5">Customer Email</th>
+                    <th className="px-5 py-3.5">Required Price</th>
+                    <th className="px-5 py-3.5">Customer Balance</th>
+                    <th className="px-5 py-3.5">Shortfall</th>
+                    <th className="px-5 py-3.5">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-[#332f2a]">
                   {insufficientCases.map((c) => {
                     const price = Number(c.renewalAmount);
                     const bal = Number(c.walletBalance ?? 0);
                     const shortfall = Math.max(0, price - bal);
 
                     return (
-                      <tr key={c.id} className="hover:bg-slate-800/20">
-                        <td className="py-2.5 text-slate-400">
+                      <tr key={c.id} className="transition hover:bg-[#292521]/60">
+                        <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/60">
                           {new Date(c.attemptedAt).toLocaleString()}
                         </td>
-                        <td className="font-semibold text-cyan-300">
+                        <td className="px-5 py-4 font-mono font-semibold text-[#C6A66B]">
                           {c.vps?.ipAddress}
                         </td>
-                        <td>{c.user?.email}</td>
-                        <td className="font-semibold text-white">₹{price}</td>
-                        <td className="text-slate-300">₹{bal}</td>
-                        <td className="font-bold text-red-400">₹{shortfall}</td>
-                        <td>
-                          <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                        <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">{c.user?.email}</td>
+                        <td className="px-5 py-4 font-mono text-sm font-semibold text-[#F1E9DA]">₹{price}</td>
+                        <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">₹{bal}</td>
+                        <td className="px-5 py-4 font-mono text-sm font-bold text-red-400">₹{shortfall}</td>
+                        <td className="px-5 py-4">
+                          <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase text-amber-400">
                             INSUFFICIENT
                           </span>
                         </td>
@@ -761,56 +715,56 @@ export default function RenewalLifecycle() {
 
       {/* TAB 5: SUSPENDED & GRACE PERIOD */}
       {tab === "SUSPENDED" && (
-        <div className="rounded-2xl border border-slate-800 bg-[#0d1525] p-5">
-          <div className="mb-4">
-            <h3 className="font-bold text-white text-sm">
+        <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+          <div className="border-b border-[#332f2a] p-5">
+            <h3 className="font-serif text-sm font-bold text-[#F1E9DA]">
               Suspended Instances in Grace Period
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="font-sans text-xs text-[#F1E9DA]/50 mt-0.5">
               Servers suspended after expiry. Data is preserved until grace period expires.
             </p>
           </div>
 
           {suspended.length === 0 ? (
-            <p className="py-8 text-center text-xs text-slate-500">
+            <p className="p-12 text-center font-mono text-xs text-[#F1E9DA]/50">
               No instances currently suspended.
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="py-2.5">IP Address</th>
-                    <th>Customer</th>
-                    <th>Suspended At</th>
-                    <th>Grace Period Ends</th>
-                    <th>Provider Suspended</th>
-                    <th className="text-right">Actions</th>
+              <table className="w-full text-left font-sans text-sm">
+                <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
+                  <tr>
+                    <th className="px-5 py-3.5">IP Address</th>
+                    <th className="px-5 py-3.5">Customer</th>
+                    <th className="px-5 py-3.5">Suspended At</th>
+                    <th className="px-5 py-3.5">Grace Period Ends</th>
+                    <th className="px-5 py-3.5">Provider Suspended</th>
+                    <th className="px-5 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-[#332f2a]">
                   {suspended.map((vps) => {
                     const graceOver =
-                      vps.gracePeriodExpiresAt &&
+                       vps.gracePeriodExpiresAt &&
                       new Date(vps.gracePeriodExpiresAt).getTime() <= Date.now();
 
                     return (
-                      <tr key={vps.id} className="hover:bg-slate-800/20">
-                        <td className="py-3 font-semibold text-cyan-300">
+                      <tr key={vps.id} className="transition hover:bg-[#292521]/60">
+                        <td className="px-5 py-4 font-mono font-semibold text-[#C6A66B]">
                           {vps.ipAddress}
                         </td>
-                        <td>{vps.user?.email}</td>
-                        <td className="text-slate-400">
+                        <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">{vps.user?.email}</td>
+                        <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/60">
                           {vps.suspendedAt
                             ? new Date(vps.suspendedAt).toLocaleDateString()
                             : "—"}
                         </td>
-                        <td>
+                        <td className="px-5 py-4">
                           <span
-                            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
                               graceOver
-                                ? "bg-red-500/10 text-red-400 border border-red-500/20"
-                                : "bg-amber-500/10 text-amber-400"
+                                ? "border border-red-500/30 bg-red-500/10 text-red-400"
+                                : "border border-amber-500/30 bg-amber-500/10 text-amber-400"
                             }`}
                           >
                             {vps.gracePeriodExpiresAt
@@ -819,12 +773,12 @@ export default function RenewalLifecycle() {
                             {graceOver ? " (EXPIRED)" : ""}
                           </span>
                         </td>
-                        <td>
+                        <td className="px-5 py-4">
                           <span
-                            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
                               vps.providerSuspended
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-slate-700 text-slate-300"
+                                ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                                : "border border-[#332f2a] bg-[#171717] text-[#F1E9DA]/50"
                             }`}
                           >
                             {vps.providerSuspended
@@ -832,11 +786,11 @@ export default function RenewalLifecycle() {
                               : "PENDING RECONCILE"}
                           </span>
                         </td>
-                        <td className="text-right space-x-2">
+                        <td className="px-5 py-4 text-right space-x-2">
                           <button
                             disabled={actionLoading === `SUSPEND-${vps.id}`}
                             onClick={() => handleRetryAction(vps.id, "SUSPEND")}
-                            className="rounded bg-amber-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-amber-500 disabled:opacity-50"
+                            className="rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs font-semibold text-amber-400 transition hover:bg-[#292521] disabled:opacity-50"
                           >
                             Retry Stop
                           </button>
@@ -844,7 +798,7 @@ export default function RenewalLifecycle() {
                           <button
                             disabled={actionLoading === `RENEW-${vps.id}`}
                             onClick={() => handleRetryAction(vps.id, "RENEW")}
-                            className="rounded bg-blue-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-blue-500 disabled:opacity-50"
+                            className="rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs font-semibold text-[#C6A66B] transition hover:bg-[#292521] disabled:opacity-50"
                           >
                             Renew
                           </button>
@@ -853,7 +807,7 @@ export default function RenewalLifecycle() {
                             <button
                               disabled={actionLoading === `TERMINATE-${vps.id}`}
                               onClick={() => handleRetryAction(vps.id, "TERMINATE")}
-                              className="rounded bg-red-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-red-500 disabled:opacity-50"
+                              className="rounded-lg border border-red-500/30 bg-red-950/20 px-3 py-1.5 font-mono text-xs font-semibold text-red-400 transition hover:bg-red-900/30 disabled:opacity-50"
                             >
                               Terminate
                             </button>

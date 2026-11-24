@@ -269,72 +269,80 @@ export default function DedicatedIpCatalogue() {
     value ? new Date(value).toLocaleString() : "Never";
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Dedicated IP Catalogue</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Manage Nexa Dedicated IP pricing, catalogue and synchronization.
+        <h1 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">Dedicated IP Catalogue</h1>
+        <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
+          Manage Nexa Dedicated IP pricing, synchronization and client-facing availability.
         </p>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-          {error}
+        <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-950/20 p-4 font-mono text-xs text-red-300">
+          <AlertCircle size={16} className="shrink-0 text-red-400" />
+          <span>{error}</span>
         </div>
       )}
 
       {message && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
-          {message}
+        <div className="flex items-center gap-2 rounded-xl border border-[#C6A66B]/30 bg-[#C6A66B]/10 p-4 font-mono text-xs text-[#C6A66B]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#C6A66B]" />
+          <span>{message}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="rounded-xl border border-slate-700 bg-[#111a2b] p-8 text-center text-slate-400">
-          Loading Dedicated IP catalogue...
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-16 text-center font-mono text-xs text-[#F1E9DA]/50">
+          <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" size={22} />
+          Loading Dedicated IP catalogue records...
         </div>
       ) : (
         <>
-          <section className="rounded-xl border border-slate-700 bg-[#111a2b] p-5">
+          <section className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-sm">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="font-semibold text-white">
+                <h2 className="font-serif text-base font-bold text-[#F1E9DA]">
                   Customer Website Availability
                 </h2>
-                <p className="mt-1 text-sm text-slate-400">
-                  Control whether the Dedicated IP section is visible to customers.
+                <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
+                  Control whether the Dedicated IP section is visible to public and authenticated clients.
                   When enabled, synced in-stock plans appear automatically.
                 </p>
-                <p className={`mt-2 text-sm font-semibold ${
-                  dedicatedIpEnabled ? "text-emerald-400" : "text-amber-400"
-                }`}>
-                  {dedicatedIpEnabled ? "Currently ON — visible to customers" : "Currently OFF — hidden from customers"}
-                </p>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${dedicatedIpEnabled ? "bg-emerald-400" : "bg-amber-400"}`} />
+                  <p className={`font-mono text-xs font-semibold ${
+                    dedicatedIpEnabled ? "text-emerald-400" : "text-amber-400"
+                  }`}>
+                    {dedicatedIpEnabled ? "CURRENTLY ACTIVE — VISIBLE TO CLIENTS" : "CURRENTLY DISABLED — HIDDEN FROM WEBSITE"}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={handleToggleAvailability}
                 disabled={availabilitySaving}
                 aria-pressed={dedicatedIpEnabled}
-                className={`rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-50 ${
+                className={`rounded-xl px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition disabled:cursor-wait disabled:opacity-50 ${
                   dedicatedIpEnabled
-                    ? "bg-emerald-600 hover:bg-emerald-500"
-                    : "bg-slate-600 hover:bg-slate-500"
+                    ? "border border-red-500/30 bg-red-950/20 text-red-300 hover:bg-red-900/30"
+                    : "bg-[#C6A66B] text-[#171717] hover:bg-[#d8b87d]"
                 }`}
               >
                 {availabilitySaving
                   ? "Saving..."
                   : dedicatedIpEnabled
-                    ? "Turn OFF"
-                    : "Turn ON"}
+                    ? "Turn Off"
+                    : "Turn On"}
               </button>
             </div>
           </section>
 
-          <section className="rounded-xl border border-slate-700 bg-[#111a2b] p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Save size={18} className="text-blue-400" />
-              <h2 className="font-semibold text-white">Nexa Pricing Settings</h2>
+          <section className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-[#C6A66B]">
+                <Save size={16} />
+              </div>
+              <h2 className="font-serif text-base font-bold text-[#F1E9DA]">Nexa Margin Settings</h2>
             </div>
 
             <form
@@ -342,7 +350,7 @@ export default function DedicatedIpCatalogue() {
               className="flex flex-col gap-4 sm:flex-row sm:items-end"
             >
               <div className="flex-1">
-                <label className="block text-sm font-medium text-slate-300">
+                <label className="block font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/60">
                   Dedicated IP Profit Margin (%)
                 </label>
                 <input
@@ -356,73 +364,75 @@ export default function DedicatedIpCatalogue() {
                       event.target.value === "" ? "" : Number(event.target.value),
                     )
                   }
-                  className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white outline-none focus:border-blue-500"
+                  className="mt-2 w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-2.5 font-mono text-sm text-[#F1E9DA] outline-none transition focus:border-[#C6A66B] focus:ring-1 focus:ring-[#C6A66B]"
                   required
                 />
-                <p className="mt-2 text-xs text-slate-500">
-                  Selling price = Provider cost / (1 - margin / 100). Allowed range: 0–80%.
+                <p className="mt-1.5 font-mono text-[11px] text-[#F1E9DA]/40">
+                  Customer Price = Provider Cost / (1 - Margin / 100). Valid range: 0–80%.
                 </p>
               </div>
 
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d] disabled:opacity-50"
               >
-                <Save size={16} />
+                <Save size={14} />
                 {saving ? "Saving..." : "Save Margin"}
               </button>
             </form>
           </section>
 
-          <section className="rounded-xl border border-slate-700 bg-[#111a2b] p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Database size={18} className="text-violet-400" />
-              <h2 className="font-semibold text-white">Catalogue Synchronization</h2>
+          <section className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-sm">
+            <div className="mb-5 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-[#C6A66B]">
+                <Database size={16} />
+              </div>
+              <h2 className="font-serif text-base font-bold text-[#F1E9DA]">Catalogue Synchronization</h2>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg bg-slate-900 p-4">
-                <p className="text-xs text-slate-400">Sync Status</p>
-                <p className="mt-2 font-semibold text-white">
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">Sync Status</p>
+                <p className="mt-2 font-mono text-sm font-bold text-[#F1E9DA]">
                   {syncStatus?.status || "UNAVAILABLE"}
                 </p>
               </div>
-              <div className="rounded-lg bg-slate-900 p-4">
-                <p className="text-xs text-slate-400">Synced Plans</p>
-                <p className="mt-2 text-xl font-bold text-white">
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">Synced Plans</p>
+                <p className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA]">
                   {syncStatus?.syncedPlanCount ?? 0}
                 </p>
               </div>
-              <div className="rounded-lg bg-slate-900 p-4">
-                <p className="text-xs text-slate-400">Synced Pools</p>
-                <p className="mt-2 text-xl font-bold text-white">
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">Synced Pools</p>
+                <p className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA]">
                   {syncStatus?.syncedPoolCount ?? 0}
                 </p>
               </div>
-              <div className="rounded-lg bg-slate-900 p-4">
-                <p className="text-xs text-slate-400">Last Successful Sync</p>
-                <p className="mt-2 text-sm font-medium text-white">
+              <div className="rounded-xl border border-[#332f2a]/60 bg-[#171717] p-4">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">Last Successful Sync</p>
+                <p className="mt-2 font-mono text-xs font-medium text-[#F1E9DA]/70">
                   {formatDate(syncStatus?.lastSuccessAt ?? null)}
                 </p>
               </div>
             </div>
 
             {syncStatus?.lastError && (
-              <p className="mt-3 text-sm text-red-400">
+              <p className="mt-4 rounded-xl border border-red-500/30 bg-red-950/20 p-3 font-mono text-xs text-red-300">
                 Last sync error: {syncStatus.lastError}
               </p>
             )}
 
             {syncError && (
-              <p className="mt-3 flex items-center gap-2 text-sm text-amber-400">
-                <AlertCircle size={16} />
+              <p className="mt-4 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-950/20 p-3 font-mono text-xs text-amber-400">
+                <AlertCircle size={15} />
                 {syncError}
               </p>
             )}
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-slate-400">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#332f2a] pt-4">
+              <p className="font-sans text-xs text-[#F1E9DA]/50 max-w-xl">
                 {syncStatus?.migrationRequired === true
                   ? "Migration pending: Dedicated IP database tables are unavailable. Sync remains locked."
                   : !syncStatus
@@ -445,9 +455,9 @@ export default function DedicatedIpCatalogue() {
                     ? "Unavailable until the Dedicated IP database migration is applied."
                     : "Synchronize the Nexa Dedicated IP catalogue."
                 }
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#C6A66B]/50 bg-[#C6A66B]/10 px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#C6A66B] transition hover:bg-[#C6A66B]/20 disabled:cursor-not-allowed disabled:border-[#332f2a] disabled:bg-[#171717] disabled:text-[#F1E9DA]/30"
               >
-                <RefreshCw size={15} />
+                <RefreshCw size={14} className={syncing || syncStatus?.isSyncInProgress ? "animate-spin" : ""} />
                 {syncing || syncStatus?.isSyncInProgress ? "Syncing..." : "Sync Now"}
               </button>
             </div>
@@ -455,97 +465,102 @@ export default function DedicatedIpCatalogue() {
 
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Server size={18} className="text-blue-400" />
-                <h2 className="font-semibold text-white">Live Nexa Catalogue Preview</h2>
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-[#C6A66B]">
+                  <Server size={16} />
+                </div>
+                <h2 className="font-serif text-base font-bold text-[#F1E9DA]">Live Nexa Catalogue Preview</h2>
               </div>
-              <span className="text-xs text-slate-500">
+              <span className="font-mono text-xs text-[#C6A66B]">
                 {provider?.name || "Nexa VPS"}
               </span>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-slate-700 bg-[#111a2b] p-4">
-                <p className="text-xs text-slate-400">Total Live Plans</p>
-                <p className="mt-2 text-2xl font-bold text-white">{plans.length}</p>
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+                <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Total Live Plans</p>
+                <p className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">{plans.length}</p>
               </div>
-              <div className="rounded-xl border border-slate-700 bg-[#111a2b] p-4">
-                <p className="text-xs text-slate-400">In Stock</p>
-                <p className="mt-2 text-2xl font-bold text-emerald-400">{inStockCount}</p>
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+                <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">In Stock</p>
+                <p className="mt-2 font-serif text-3xl font-bold text-emerald-400">{inStockCount}</p>
               </div>
-              <div className="rounded-xl border border-slate-700 bg-[#111a2b] p-4">
-                <p className="text-xs text-slate-400">Out of Stock</p>
-                <p className="mt-2 text-2xl font-bold text-red-400">{outOfStockCount}</p>
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
+                <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">Out of Stock</p>
+                <p className="mt-2 font-serif text-3xl font-bold text-red-400">{outOfStockCount}</p>
               </div>
             </div>
 
             {catalogueError && (
-              <p className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+              <p className="rounded-xl border border-red-500/30 bg-red-950/20 p-4 font-mono text-xs text-red-300">
                 {catalogueError}
               </p>
             )}
 
             {!catalogueError && plans.length === 0 ? (
-              <div className="rounded-xl border border-slate-700 bg-[#111a2b] p-6 text-center text-sm text-slate-400">
+              <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-12 text-center font-mono text-xs text-[#F1E9DA]/50">
                 No live plans returned by Nexa.
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-slate-700">
-                <table className="w-full min-w-[850px] text-left text-sm">
-                  <thead className="bg-slate-800 text-xs uppercase text-slate-400">
-                    <tr>
-                      <th className="px-4 py-3">Plan</th>
-                      <th className="px-4 py-3">Category / Tier</th>
-                      <th className="px-4 py-3">Location</th>
-                      <th className="px-4 py-3">Duration / Speed</th>
-                      <th className="px-4 py-3">API Cost</th>
-                      <th className="px-4 py-3">Stock</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800 bg-[#111a2b]">
-                    {plans.map((plan, index) => (
-                      <tr key={String(plan.planId ?? index)}>
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-white">
-                            {plan.planName || `Plan ${index + 1}`}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            ID: {plan.planId ?? "—"}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3 text-slate-300">
-                          {plan.categoryName || "—"}
-                          <p className="text-xs text-slate-500">
-                            {plan.tierLabel || plan.tier || "—"} · {plan.controlMode || "—"}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3 text-slate-300">
-                          {[plan.location, plan.countryName].filter(Boolean).join(", ") || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-slate-300">
-                          {plan.duration ?? "—"} / {plan.speed || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-slate-300">
-                          {plan.currency || "INR"} {plan.apiPrice ?? "—"}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={
-                            plan.inStock
-                              ? "rounded-full bg-emerald-500/10 px-2 py-1 text-xs text-emerald-400"
-                              : "rounded-full bg-red-500/10 px-2 py-1 text-xs text-red-400"
-                          }>
-                            {plan.inStock ? "In Stock" : "Out of Stock"}
-                          </span>
-                          {plan.stock !== undefined && (
-                            <p className="mt-1 text-xs text-slate-500">
-                              Qty: {plan.stock}
-                            </p>
-                          )}
-                        </td>
+              <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[850px] text-left font-sans text-sm">
+                    <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
+                      <tr>
+                        <th className="px-5 py-3.5">Plan</th>
+                        <th className="px-5 py-3.5">Category / Tier</th>
+                        <th className="px-5 py-3.5">Location</th>
+                        <th className="px-5 py-3.5">Duration / Speed</th>
+                        <th className="px-5 py-3.5">API Cost</th>
+                        <th className="px-5 py-3.5">Stock</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#332f2a]">
+                      {plans.map((plan, index) => (
+                        <tr key={String(plan.planId ?? index)} className="transition hover:bg-[#292521]/60">
+                          <td className="px-5 py-4">
+                            <p className="font-medium text-[#F1E9DA]">
+                              {plan.planName || `Plan ${index + 1}`}
+                            </p>
+                            <p className="font-mono text-xs text-[#F1E9DA]/40">
+                              ID: {plan.planId ?? "—"}
+                            </p>
+                          </td>
+                          <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">
+                            {plan.categoryName || "—"}
+                            <p className="text-[#F1E9DA]/40">
+                              {plan.tierLabel || plan.tier || "—"} · {plan.controlMode || "—"}
+                            </p>
+                          </td>
+                          <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">
+                            {[plan.location, plan.countryName].filter(Boolean).join(", ") || "—"}
+                          </td>
+                          <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/70">
+                            {plan.duration ?? "—"} / {plan.speed || "—"}
+                          </td>
+                          <td className="px-5 py-4 font-mono text-sm font-semibold text-[#C6A66B]">
+                            {plan.currency || "INR"} {plan.apiPrice ?? "—"}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider ${
+                              plan.inStock
+                                ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                                : "border border-red-500/30 bg-red-500/10 text-red-400"
+                            }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${plan.inStock ? "bg-emerald-400" : "bg-red-400"}`} />
+                              {plan.inStock ? "In Stock" : "Out of Stock"}
+                            </span>
+                            {plan.stock !== undefined && (
+                              <p className="mt-1 font-mono text-[10px] text-[#F1E9DA]/40">
+                                Qty: {plan.stock}
+                              </p>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </section>

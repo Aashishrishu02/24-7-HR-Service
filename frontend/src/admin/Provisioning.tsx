@@ -110,7 +110,7 @@ const formatDate = (value?: string | null) => {
 const statusClass = (status: string) => {
   switch (status) {
     case "COMPLETED":
-      return "border-green-500/30 bg-green-500/10 text-green-400";
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
 
     case "FAILED":
       return "border-red-500/30 bg-red-500/10 text-red-400";
@@ -121,20 +121,20 @@ const statusClass = (status: string) => {
     case "PROVISIONING":
     case "PURCHASING":
     case "RETRYING":
-      return "border-yellow-500/30 bg-yellow-500/10 text-yellow-400";
+      return "border-amber-500/30 bg-amber-500/10 text-amber-400";
 
     case "CANCELLED":
-      return "border-slate-500/30 bg-slate-500/10 text-slate-400";
+      return "border-[#332f2a] bg-[#171717] text-[#F1E9DA]/40";
 
     default:
-      return "border-blue-500/30 bg-blue-500/10 text-blue-400";
+      return "border-[#C6A66B]/30 bg-[#C6A66B]/10 text-[#C6A66B]";
   }
 };
 
 function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(status)}`}
+      className={`inline-flex whitespace-nowrap rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${statusClass(status)}`}
     >
       {status.replaceAll("_", " ")}
     </span>
@@ -157,9 +157,9 @@ function InfoItem({
   }
 
   return (
-    <div className="min-w-0 rounded-lg border border-slate-800 bg-[#080e1c] p-3">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 break-all text-sm font-medium text-slate-200">
+    <div className="min-w-0 rounded-xl border border-[#332f2a]/60 bg-[#171717] p-3.5">
+      <p className="font-mono text-[10px] uppercase tracking-wider text-[#F1E9DA]/50">{label}</p>
+      <p className="mt-1 break-all font-mono text-xs font-semibold text-[#F1E9DA]">
         {displayValue}
       </p>
     </div>
@@ -181,21 +181,21 @@ function HostHeavenVerification({
   const error = data?.error;
 
   return (
-    <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 p-3">
+    <div className="rounded-xl border border-[#332f2a] bg-[#171717] p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold text-purple-300">
+        <h4 className="font-serif text-sm font-bold text-[#F1E9DA]">
           HostHeaven Provider Verification
         </h4>
 
         <span
-          className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${
+          className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${
             skipped
-              ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-300"
+              ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
               : verified
-                ? "border-green-500/30 bg-green-500/10 text-green-300"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
                 : error
                   ? "border-red-500/30 bg-red-500/10 text-red-300"
-                  : "border-slate-600 bg-slate-700/30 text-slate-300"
+                  : "border-[#332f2a] bg-[#201d1a] text-[#F1E9DA]/70"
           }`}
         >
           {skipped
@@ -209,30 +209,30 @@ function HostHeavenVerification({
       </div>
 
       {typeof data?.reason === "string" && (
-        <div className="mb-3 rounded-lg bg-[#080e1c] p-3">
-          <p className="text-xs text-slate-500">Reason</p>
-          <p className="mt-1 text-sm text-yellow-300">
+        <div className="mb-3 rounded-lg border border-amber-500/20 bg-amber-950/20 p-3">
+          <p className="font-mono text-[10px] uppercase text-[#F1E9DA]/50">Reason</p>
+          <p className="mt-1 font-mono text-xs text-amber-300">
             {data.reason}
           </p>
         </div>
       )}
 
       {typeof error === "string" && (
-        <div className="mb-3 rounded-lg bg-[#080e1c] p-3">
-          <p className="text-xs text-slate-500">Lookup Error</p>
-          <p className="mt-1 break-words text-sm text-red-300">
+        <div className="mb-3 rounded-lg border border-red-500/20 bg-red-950/20 p-3">
+          <p className="font-mono text-[10px] uppercase text-[#F1E9DA]/50">Lookup Error</p>
+          <p className="mt-1 break-words font-mono text-xs text-red-300">
             {error}
           </p>
         </div>
       )}
 
-      <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-[#080e1c] p-3 text-xs text-slate-300">
+      <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[#332f2a] bg-[#201d1a] p-3.5 font-mono text-xs text-[#F1E9DA]/70">
         {typeof result === "string"
           ? result
           : JSON.stringify(result, null, 2)}
       </pre>
 
-      <p className="mt-3 text-xs text-slate-500">
+      <p className="mt-3 font-mono text-[11px] text-[#F1E9DA]/40">
         A provider response or skipped lookup does not by itself prove
         that a VPS was successfully created. Verify the actual provider
         VM record before taking action.
@@ -442,26 +442,25 @@ export default function Provisioning() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <div className="flex items-center gap-2">
-            <Activity className="text-blue-400" size={22} />
-
-            <h1 className="text-2xl font-bold">
+          <div className="flex items-center gap-2.5">
+            <Activity className="text-[#C6A66B]" size={22} />
+            <h1 className="font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">
               Provisioning Management
             </h1>
           </div>
 
-          <p className="mt-1 text-sm text-slate-400">
-            Monitor VPS allocation jobs, provider assignments and failures.
+          <p className="mt-1 font-sans text-xs text-[#F1E9DA]/60">
+            Monitor VPS allocation jobs, provider assignments, and reconciliation audits.
           </p>
         </div>
 
         <button
           onClick={() => void loadJobs(true)}
           disabled={refreshing || loading}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-2 font-mono text-xs font-bold text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521] disabled:opacity-50"
         >
           <RefreshCw
-            size={16}
+            size={14}
             className={refreshing ? "animate-spin" : ""}
           />
           Refresh Jobs
@@ -469,14 +468,15 @@ export default function Provisioning() {
       </div>
 
       {error && (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-950/20 p-4 font-mono text-xs text-red-300">
           <span>{error}</span>
 
           <button
             onClick={() => setError("")}
             aria-label="Dismiss error"
+            className="rounded p-1 text-[#F1E9DA]/50 hover:text-[#F1E9DA]"
           >
-            <X size={17} />
+            <X size={16} />
           </button>
         </div>
       )}
@@ -487,19 +487,19 @@ export default function Provisioning() {
             label: "Total Jobs",
             value: counts.total,
             icon: Activity,
-            color: "text-blue-400",
+            color: "text-[#C6A66B]",
           },
           {
             label: "Completed",
             value: counts.completed,
             icon: CheckCircle2,
-            color: "text-green-400",
+            color: "text-emerald-400",
           },
           {
             label: "In Progress",
             value: counts.pending,
             icon: Clock3,
-            color: "text-yellow-400",
+            color: "text-amber-400",
           },
           {
             label: "Failed",
@@ -513,21 +513,21 @@ export default function Provisioning() {
           return (
             <div
               key={card.label}
-              className="rounded-xl border border-slate-800 bg-[#111a2b] p-5"
+              className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5 shadow-sm"
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm text-slate-400">
+                <p className="font-mono text-xs uppercase tracking-wider text-[#F1E9DA]/50">
                   {card.label}
                 </p>
 
-                <Icon size={20} className={card.color} />
+                <Icon size={18} className={card.color} />
               </div>
 
-              <p className="mt-4 text-3xl font-bold">
+              <p className="mt-4 font-serif text-3xl font-bold text-[#F1E9DA]">
                 {loading ? "—" : card.value}
               </p>
 
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 font-mono text-[11px] text-[#F1E9DA]/40">
                 Provisioning records
               </p>
             </div>
@@ -535,7 +535,7 @@ export default function Provisioning() {
         })}
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
+      <div className="flex flex-wrap gap-2 border-b border-[#332f2a] pb-3">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -548,21 +548,21 @@ export default function Provisioning() {
                 setStatusFilter("ALL");
                 setSearch("");
               }}
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider transition ${
                 active
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-                  : "border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "bg-[#C6A66B] text-[#171717] shadow-sm"
+                  : "border border-[#332f2a] bg-[#201d1a] text-[#F1E9DA]/70 hover:bg-[#292521] hover:text-[#F1E9DA]"
               }`}
             >
-              <Icon size={16} />
+              <Icon size={14} />
               {tab.label}
 
               {tab.count !== undefined && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs ${
+                  className={`rounded-full px-2 py-0.5 text-[10px] ${
                     active
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-700 text-slate-300"
+                      ? "bg-[#171717]/20 text-[#171717]"
+                      : "bg-[#171717] text-[#F1E9DA]/60"
                   }`}
                 >
                   {tab.count}
@@ -575,98 +575,99 @@ export default function Provisioning() {
 
       {activeTab === "OVERVIEW" && (
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
+          <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
             <div className="flex items-center gap-3">
-              <Server className="text-blue-400" size={22} />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-[#C6A66B]">
+                <Server size={16} />
+              </div>
 
               <div>
-                <h3 className="font-semibold">
-                  VPS Allocation
+                <h3 className="font-serif text-sm font-bold text-[#F1E9DA]">
+                  VPS Allocation Engine
                 </h3>
 
-                <p className="text-xs text-slate-500">
-                  Inventory-first provisioning
+                <p className="font-mono text-xs text-[#F1E9DA]/50">
+                  Inventory-first provisioning architecture
                 </p>
               </div>
             </div>
 
-            <p className="mt-4 text-sm leading-6 text-slate-400">
-              Paid orders are checked against available VPS inventory.
-              Matching inventory can be reserved for allocation.
+            <p className="mt-3 font-sans text-xs leading-5 text-[#F1E9DA]/60">
+              Paid customer orders are matched against available pre-configured VPS inventory.
+              Allocated servers are provisioned securely and verified before customer handoff.
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-[#111a2b] p-5">
+          <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="text-green-400" size={22} />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-emerald-400">
+                <ShieldCheck size={16} />
+              </div>
 
               <div>
-                <h3 className="font-semibold">
+                <h3 className="font-serif text-sm font-bold text-[#F1E9DA]">
                   Safe Reconciliation
                 </h3>
 
-                <p className="text-xs text-slate-500">
-                  Read-only inspection
+                <p className="font-mono text-xs text-[#F1E9DA]/50">
+                  Read-only discrepancy audit
                 </p>
               </div>
             </div>
 
-            <p className="mt-4 text-sm leading-6 text-slate-400">
-              Inspect order, VPS and inventory records to identify
-              inconsistent provisioning states without changing records.
+            <p className="mt-3 font-sans text-xs leading-5 text-[#F1E9DA]/60">
+              Inspect order, VPS and inventory records to verify configuration consistency
+              without taking mutating actions against production servers.
             </p>
           </div>
         </div>
       )}
 
       {activeTab === "RECONCILIATION" && (
-        <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5">
+        <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5">
           <div className="flex items-start gap-3">
-            <ShieldCheck
-              className="mt-0.5 text-blue-400"
-              size={22}
-            />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#332f2a] bg-[#171717] text-[#C6A66B]">
+              <ShieldCheck size={16} />
+            </div>
 
             <div>
-              <h3 className="font-semibold">
-                Reconciliation Inspection
+              <h3 className="font-serif text-sm font-bold text-[#F1E9DA]">
+                Reconciliation Inspection Mode
               </h3>
 
-              <p className="mt-1 text-sm leading-6 text-slate-400">
-                Select a provisioning job, open its details and click
-                Inspect Job. The system compares order, inventory,
-                VPS and available provider records.
+              <p className="mt-1 font-sans text-xs leading-5 text-[#F1E9DA]/60">
+                Select a provisioning job, open its details and click Inspect Job.
+                The system audits order, inventory, VPS and live provider records.
               </p>
 
-              <p className="mt-2 text-xs text-green-400">
-                This operation is read-only. It does not retry jobs,
-                purchase VPS servers or modify inventory.
+              <p className="mt-2 font-mono text-xs text-emerald-400">
+                This operation is read-only. It does not re-purchase servers or mutate database records.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#111a2b]">
-        <div className="flex flex-col gap-3 border-b border-slate-800 p-4 lg:flex-row lg:items-center">
+      <div className="overflow-hidden rounded-2xl border border-[#332f2a] bg-[#201d1a]">
+        <div className="flex flex-col gap-3 border-b border-[#332f2a] p-4 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <Search
-              size={17}
-              className="absolute left-3 top-3.5 text-slate-500"
+              size={16}
+              className="absolute left-3.5 top-3.5 text-[#F1E9DA]/40"
             />
 
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search job ID, order, provider or IP..."
-              className="w-full rounded-lg border border-slate-700 bg-[#080e1c] py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-[#332f2a] bg-[#171717] py-3 pl-10 pr-4 font-sans text-sm text-[#F1E9DA] placeholder-[#F1E9DA]/30 outline-none transition focus:border-[#C6A66B]"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="rounded-lg border border-slate-700 bg-[#080e1c] p-3 text-sm outline-none focus:border-blue-500"
+            className="rounded-xl border border-[#332f2a] bg-[#171717] p-3 font-mono text-xs text-[#F1E9DA] outline-none transition focus:border-[#C6A66B]"
           >
             <option value="ALL">All statuses</option>
             <option value="PENDING">Pending</option>
@@ -681,36 +682,36 @@ export default function Provisioning() {
           </select>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
-          <h2 className="font-semibold">{tableTitle}</h2>
+        <div className="flex items-center justify-between gap-3 border-b border-[#332f2a] px-6 py-3.5">
+          <h2 className="font-serif text-sm font-bold text-[#F1E9DA]">{tableTitle}</h2>
 
-          <span className="text-xs text-slate-500">
+          <span className="font-mono text-xs text-[#F1E9DA]/50">
             {displayedJobs.length} of {jobs.length} jobs
           </span>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-slate-400">
+          <div className="p-16 text-center font-mono text-xs text-[#F1E9DA]/50">
             <RefreshCw
-              className="mx-auto mb-3 animate-spin"
-              size={25}
+              className="mx-auto mb-3 animate-spin text-[#C6A66B]"
+              size={22}
             />
             Loading provisioning jobs...
           </div>
         ) : displayedJobs.length === 0 ? (
-          <div className="p-12 text-center">
+          <div className="p-16 text-center">
             <Activity
-              className="mx-auto mb-3 text-slate-500"
+              className="mx-auto mb-3 text-[#F1E9DA]/30"
               size={36}
             />
 
-            <p className="font-medium text-slate-300">
+            <p className="font-serif text-sm font-bold text-[#F1E9DA]">
               {activeTab === "FAILED"
                 ? "No failed jobs found"
                 : "No provisioning jobs found"}
             </p>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 font-sans text-xs text-[#F1E9DA]/50">
               {search || statusFilter !== "ALL"
                 ? "Try changing your search or status filter."
                 : "Jobs will appear here when an order enters the provisioning flow."}
@@ -718,66 +719,66 @@ export default function Provisioning() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[950px] text-left text-sm">
-              <thead className="bg-[#0d1525] text-xs uppercase text-slate-500">
+            <table className="w-full min-w-[950px] text-left font-sans text-sm">
+              <thead className="border-b border-[#332f2a] bg-[#171717] font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50">
                 <tr>
-                  <th className="px-4 py-4">Job / Order</th>
-                  <th className="px-4 py-4">Provider</th>
-                  <th className="px-4 py-4">Source</th>
-                  <th className="px-4 py-4">Status</th>
-                  <th className="px-4 py-4">Attempt</th>
-                  <th className="px-4 py-4">Created</th>
-                  <th className="px-4 py-4">Action</th>
+                  <th className="px-5 py-3.5">Job / Order</th>
+                  <th className="px-5 py-3.5">Provider</th>
+                  <th className="px-5 py-3.5">Source</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5">Attempt</th>
+                  <th className="px-5 py-3.5">Created</th>
+                  <th className="px-5 py-3.5">Action</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-[#332f2a]">
                 {displayedJobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-slate-800/30">
-                    <td className="px-4 py-4">
-                      <p className="font-mono text-xs text-slate-300">
+                  <tr key={job.id} className="transition hover:bg-[#292521]/60">
+                    <td className="px-5 py-4">
+                      <p className="font-mono text-xs font-semibold text-[#C6A66B]">
                         {job.id.slice(0, 12)}...
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-0.5 font-mono text-xs text-[#F1E9DA]/50">
                         {job.order?.orderNumber || job.orderId}
                       </p>
                     </td>
 
-                    <td className="px-4 py-4">
-                      <p className="font-medium">
+                    <td className="px-5 py-4">
+                      <p className="font-medium text-[#F1E9DA]">
                         {job.provider?.name || "—"}
                       </p>
 
-                      <p className="text-xs text-slate-500">
+                      <p className="font-mono text-xs text-[#F1E9DA]/40">
                         {job.provider?.code || "Not assigned"}
                       </p>
                     </td>
 
-                    <td className="px-4 py-4">
-                      <span className="rounded-md bg-slate-700/50 px-2 py-1 text-xs">
+                    <td className="px-5 py-4">
+                      <span className="rounded-md border border-[#332f2a] bg-[#171717] px-2 py-0.5 font-mono text-[11px] text-[#F1E9DA]/70">
                         {job.source.replaceAll("_", " ")}
                       </span>
                     </td>
 
-                    <td className="px-4 py-4">
+                    <td className="px-5 py-4">
                       <StatusBadge status={job.status} />
                     </td>
 
-                    <td className="px-4 py-4">
-                      {job.attemptNumber}
+                    <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]">
+                      #{job.attemptNumber}
                     </td>
 
-                    <td className="px-4 py-4 text-xs text-slate-400">
+                    <td className="px-5 py-4 font-mono text-xs text-[#F1E9DA]/60">
                       {formatDate(job.createdAt)}
                     </td>
 
-                    <td className="px-4 py-4">
+                    <td className="px-5 py-4">
                       <button
                         onClick={() => void openJob(job.id)}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs text-blue-400 hover:bg-slate-700"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#332f2a] bg-[#171717] px-3 py-1.5 font-mono text-xs text-[#C6A66B] transition hover:border-[#C6A66B]/50 hover:bg-[#292521]"
                       >
-                        <Eye size={14} />
+                        <Eye size={13} />
                         Details
                       </button>
                     </td>
@@ -790,9 +791,9 @@ export default function Provisioning() {
       </div>
 
       {detailLoading && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70">
-          <div className="flex items-center gap-3 rounded-xl border border-slate-700 bg-[#111a2b] px-6 py-4 text-sm">
-            <RefreshCw className="animate-spin" size={18} />
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-2xl border border-[#332f2a] bg-[#201d1a] px-6 py-4 font-mono text-xs text-[#F1E9DA]">
+            <RefreshCw className="animate-spin text-[#C6A66B]" size={16} />
             Loading job details...
           </div>
         </div>
@@ -800,48 +801,48 @@ export default function Provisioning() {
 
       {selectedJob && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-4"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={closeModal}
         >
           <div
-            className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-700 bg-[#111a2b] p-5 sm:p-7"
+            className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-2xl sm:p-7"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-6 flex items-start justify-between gap-3">
+            <div className="mb-6 flex items-start justify-between gap-3 border-b border-[#332f2a] pb-4">
               <div>
-                <h2 className="text-xl font-bold">
+                <h2 className="font-serif text-xl font-bold text-[#F1E9DA]">
                   Provisioning Job Details
                 </h2>
 
-                <p className="mt-1 break-all font-mono text-xs text-slate-500">
+                <p className="mt-1 break-all font-mono text-xs text-[#C6A66B]">
                   {selectedJob.id}
                 </p>
               </div>
 
               <button
                 onClick={closeModal}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-800"
+                className="rounded-lg p-1.5 text-[#F1E9DA]/50 hover:bg-[#171717] hover:text-[#F1E9DA]"
                 aria-label="Close details"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             <div className="mb-6 flex flex-wrap items-center gap-3">
               <StatusBadge status={selectedJob.status} />
 
-              <span className="text-xs text-slate-500">
+              <span className="font-mono text-xs text-[#F1E9DA]/50">
                 Attempt #{selectedJob.attemptNumber}
               </span>
 
-              <span className="text-xs text-slate-500">
+              <span className="font-mono text-xs text-[#F1E9DA]/50">
                 Source: {selectedJob.source}
               </span>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-6">
               <section>
-                <h3 className="mb-3 text-sm font-semibold text-slate-300">
+                <h3 className="mb-3 font-serif text-sm font-bold text-[#F1E9DA]">
                   Job Information
                 </h3>
 
@@ -877,7 +878,7 @@ export default function Provisioning() {
               </section>
 
               <section>
-                <h3 className="mb-3 text-sm font-semibold text-slate-300">
+                <h3 className="mb-3 font-serif text-sm font-bold text-[#F1E9DA]">
                   Order Information
                 </h3>
 
@@ -910,7 +911,7 @@ export default function Provisioning() {
               </section>
 
               <section>
-                <h3 className="mb-3 text-sm font-semibold text-slate-300">
+                <h3 className="mb-3 font-serif text-sm font-bold text-[#F1E9DA]">
                   VPS Information
                 </h3>
 
@@ -949,7 +950,7 @@ export default function Provisioning() {
               </section>
 
               <section>
-                <h3 className="mb-3 text-sm font-semibold text-slate-300">
+                <h3 className="mb-3 font-serif text-sm font-bold text-[#F1E9DA]">
                   Provider & Inventory
                 </h3>
 
@@ -998,46 +999,46 @@ export default function Provisioning() {
               </section>
 
               {selectedJob.errorMessage && (
-                <section className="rounded-lg border border-red-500/30 bg-red-500/5 p-4">
-                  <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-red-400">
-                    <AlertCircle size={16} />
+                <section className="rounded-xl border border-red-500/30 bg-red-950/20 p-4">
+                  <h3 className="mb-2 flex items-center gap-2 font-serif text-sm font-bold text-red-400">
+                    <AlertCircle size={15} />
                     Failure Information
                   </h3>
 
-                  <p className="text-xs text-slate-400">
+                  <p className="font-mono text-xs text-[#F1E9DA]/50">
                     Code: {selectedJob.errorCode || "—"}
                   </p>
 
-                  <p className="mt-2 break-words text-sm text-red-300">
+                  <p className="mt-2 break-words font-mono text-xs text-red-300">
                     {selectedJob.errorMessage}
                   </p>
                 </section>
               )}
 
-              <section className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4">
+              <section className="rounded-2xl border border-[#332f2a] bg-[#171717] p-5">
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <div>
-                    <h3 className="flex items-center gap-2 font-semibold">
+                    <h3 className="flex items-center gap-2 font-serif text-sm font-bold text-[#F1E9DA]">
                       <ShieldCheck
-                        size={18}
-                        className="text-blue-400"
+                        size={16}
+                        className="text-[#C6A66B]"
                       />
                       Reconciliation Inspection
                     </h3>
 
-                    <p className="mt-1 text-xs text-slate-400">
-                      Inspect database and available provider information
-                      without changing VPS or inventory records.
+                    <p className="mt-1 font-sans text-xs text-[#F1E9DA]/50">
+                      Audit database and available provider state
+                      without altering VPS or inventory records.
                     </p>
                   </div>
 
                   <button
                     onClick={() => void inspectJob()}
                     disabled={reconciling}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold hover:bg-blue-500 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8b87d] disabled:opacity-50"
                   >
                     <RefreshCw
-                      size={15}
+                      size={14}
                       className={reconciling ? "animate-spin" : ""}
                     />
                     {reconciling ? "Inspecting..." : "Inspect Job"}
@@ -1045,23 +1046,23 @@ export default function Provisioning() {
                 </div>
 
                 {reconciliation && (
-                  <div className="mt-5 space-y-4 border-t border-slate-700/70 pt-4">
+                  <div className="mt-5 space-y-4 border-t border-[#332f2a] pt-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">
+                      <p className="font-serif text-sm font-bold text-[#F1E9DA]">
                         Assessment
                       </p>
 
-                      <span className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
+                      <span className="rounded-full border border-[#C6A66B]/30 bg-[#C6A66B]/10 px-3 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
                         {reconciliation.assessment.replaceAll("_", " ")}
                       </span>
                     </div>
 
-                    <div className="rounded-lg bg-[#080e1c] p-3">
-                      <p className="text-xs text-slate-500">
+                    <div className="rounded-xl border border-[#332f2a] bg-[#201d1a] p-3.5">
+                      <p className="font-mono text-[10px] uppercase text-[#F1E9DA]/50">
                         Recommendation
                       </p>
 
-                      <p className="mt-1 text-sm text-slate-200">
+                      <p className="mt-1 font-sans text-xs text-[#F1E9DA]">
                         {reconciliation.recommendation}
                       </p>
                     </div>
@@ -1085,8 +1086,8 @@ export default function Provisioning() {
                         />
                       )}
 
-                    <p className="flex items-center gap-2 text-xs text-green-400">
-                      <ShieldCheck size={15} />
+                    <p className="flex items-center gap-2 font-mono text-xs text-emerald-400">
+                      <ShieldCheck size={14} />
                       Read-only inspection completed. No records were modified.
                     </p>
                   </div>
