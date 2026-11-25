@@ -2,6 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UpdateRenewalSettingsDto } from './dto/update-settings.dto.js';
+import { UpdateSupportContactDto } from './dto/update-support-contact.dto.js';
 
 export interface RenewalSettings {
   renewalWindowDays: number;
@@ -287,4 +288,72 @@ export class AdminSettingsService {
 
     return this.getSettings();
   }
+
+  async getSupportContactSettings() {
+    const keys = {
+      email: 'SUPPORT_CONTACT_EMAIL',
+      phone: 'SUPPORT_CONTACT_PHONE',
+      whatsappUrl: 'SUPPORT_CONTACT_WHATSAPP_URL',
+      instagramUrl: 'SUPPORT_CONTACT_INSTAGRAM_URL',
+      facebookUrl: 'SUPPORT_CONTACT_FACEBOOK_URL',
+      youtubeUrl: 'SUPPORT_CONTACT_YOUTUBE_URL',
+      telegramUrl: 'SUPPORT_CONTACT_TELEGRAM_URL',
+    };
+
+    const rows = await this.prisma.systemSetting.findMany({
+      where: { key: { in: Object.values(keys) } },
+    });
+
+    const values = new Map(rows.map((row) => [row.key, row.value]));
+
+    return Object.fromEntries(
+      Object.entries(keys).map(([field, key]) => [
+        field,
+        values.get(key) ?? '',
+      ]),
+    ) as {
+      email: string;
+      phone: string;
+      whatsappUrl: string;
+      instagramUrl: string;
+      facebookUrl: string;
+      youtubeUrl: string;
+      telegramUrl: string;
+    };
+  }
+
+  async updateSupportContactSettings(dto: UpdateSupportContactDto) {
+    const fields = [
+      { field: 'email', key: 'SUPPORT_CONTACT_EMAIL', description: 'Customer support email address' },
+      { field: 'phone', key: 'SUPPORT_CONTACT_PHONE', description: 'Customer support phone number' },
+      { field: 'whatsappUrl', key: 'SUPPORT_CONTACT_WHATSAPP_URL', description: 'Customer support WhatsApp URL' },
+      { field: 'instagramUrl', key: 'SUPPORT_CONTACT_INSTAGRAM_URL', description: 'Customer support Instagram URL' },
+      { field: 'facebookUrl', key: 'SUPPORT_CONTACT_FACEBOOK_URL', description: 'Customer support Facebook URL' },
+      { field: 'youtubeUrl', key: 'SUPPORT_CONTACT_YOUTUBE_URL', description: 'Customer support YouTube URL' },
+      { field: 'telegramUrl', key: 'SUPPORT_CONTACT_TELEGRAM_URL', description: 'Customer support Telegram URL' },
+    ] as const;
+
+    for (const item of fields) {
+      const value = dto[item.field];
+
+      if (value !== undefined) {
+        await this.prisma.systemSetting.upsert({
+          where: { key: item.key },
+          create: {
+            key: item.key,
+            value: value.trim(),
+            description: item.description,
+          },
+          update: {
+            value: value.trim(),
+            description: item.description,
+          },
+        });
+      }
+    }
+
+    this.logger.log('Updated support contact settings');
+    return this.getSupportContactSettings();
+  }
+
 }

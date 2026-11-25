@@ -14,6 +14,7 @@ import RenewalLifecycle from "./admin/RenewalLifecycle";
 import HostHeavenMapping from "./admin/HostHeavenMapping";
 import DedicatedIpCatalogue from "./admin/DedicatedIpCatalogue";
 import AdminSupportDesk from "./admin/AdminSupportDesk";
+import SupportContact from "./admin/SupportContact";
 
 type Stats = {
   totalCustomers: number;
@@ -368,6 +369,7 @@ export default function AdminPanel() {
     ["Provisioning", Activity],
     ["Auto-Renewal & Lifecycle", RefreshCw],
     ["Plans", Package],
+    ["Support & Contact", Headphones],
   ] as const;
 
   const cards = [
@@ -842,6 +844,7 @@ export default function AdminPanel() {
           <div style={{ display: page === "Plan Provider Mapping" ? "block" : "none" }}><PlanProviderMapping /></div>
           <div style={{ display: page === "Provisioning" ? "block" : "none" }}><Provisioning /></div>
           <div style={{ display: page === "Auto-Renewal & Lifecycle" ? "block" : "none" }}><RenewalLifecycle /></div>
+          <div style={{ display: page === "Support & Contact" ? "block" : "none" }}><SupportContact /></div>
         </section>
       </main>
 

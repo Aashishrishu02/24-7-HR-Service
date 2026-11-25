@@ -3,8 +3,10 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import Razorpay from 'razorpay';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { InventoryAllocatorService } from '../provisioning/inventory-allocator.service.js';
@@ -17,9 +19,13 @@ import {
 import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
 import { HostHeavenDirectCatalogueService } from '../hostheaven/hostheaven-direct-catalogue.service.js';
 import { DirectHostHeavenCheckoutDto } from '../hostheaven/dto/direct-checkout.dto.js';
+import { VerifyVpsPaymentDto } from './dto/verify-vps-payment.dto.js';
 
 @Injectable()
 export class CheckoutService {
+  private readonly razorpay: Razorpay | null;
+  private readonly razorpayKeyId: string | null;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly inventoryAllocator: InventoryAllocatorService,
@@ -27,13 +33,21 @@ export class CheckoutService {
     private readonly adminSettingsService: AdminSettingsService,
     private readonly hostheavenService?: HostHeavenService,
     private readonly hostheavenDirectCatalogueService?: HostHeavenDirectCatalogueService,
-  ) {}
+  ) {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-  /**
-   * Calculates the authoritative server-side selling price for an order,
-   * guaranteeing that checkout uses the identical 20% margin calculation as PublicPlansController.
-   * Frontend-submitted prices are NEVER trusted or accepted.
-   */
+    this.razorpayKeyId = keyId || null;
+    this.razorpay =
+      keyId && keySecret
+        ? new Razorpay({
+            key_id: keyId,
+            key_secret: keySecret,
+          })
+        : null;
+  }
+
+
   async calculateServerSellingPrice(
     plan: {
       price: Prisma.Decimal;
@@ -62,6 +76,282 @@ export class CheckoutService {
       return new Prisma.Decimal(calculatedSellingPrice.toFixed(2));
     }
     return plan.price;
+  }
+
+    async createRazorpayOrder(userId: string, orderId: string) {
+    if (!this.razorpay || !this.razorpayKeyId) {
+      throw new ServiceUnavailableException(
+        'Razorpay is not configured on the server',
+      );
+    }
+
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: {
+        plan: {
+          include: {
+            hostHeavenMapping: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status !== 'PENDING') {
+      throw new ConflictException(
+        `Order cannot be paid because its status is ${order.status}`,
+      );
+    }
+
+    if (
+      order.currency !== 'INR' ||
+      !order.plan.isActive ||
+      order.plan.hostHeavenMapping ||
+      order.planId.startsWith('hh:')
+    ) {
+      throw new BadRequestException(
+        'This order is not eligible for standard Razorpay checkout',
+      );
+    }
+
+    const availableInventory =
+      await this.prisma.providerInventory.findFirst({
+        where: {
+          status: 'AVAILABLE',
+          ipAddress: { not: null },
+          cpuCores: { gte: order.plan.cpuCores },
+          ramGb: { gte: order.plan.ramGb },
+          storageGb: { gte: order.plan.storageGb },
+          currency: 'INR',
+          provider: { isActive: true },
+        },
+      });
+
+    if (!availableInventory) {
+      throw new BadRequestException(
+        'No available VPS inventory found for this plan',
+      );
+    }
+
+    const existingPayment = await this.prisma.payment.findFirst({
+      where: {
+        orderId: order.id,
+        userId,
+        purpose: 'VPS_ORDER',
+        provider: 'RAZORPAY',
+        status: 'CREATED',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (existingPayment?.razorpayOrderId) {
+      return {
+        paymentId: existingPayment.id,
+        razorpayOrderId: existingPayment.razorpayOrderId,
+        amount: Math.round(Number(order.amount) * 100),
+        currency: 'INR',
+        keyId: this.razorpayKeyId,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+      };
+    }
+
+    const amount = Math.round(Number(order.amount) * 100);
+
+    const razorpayOrder = await this.razorpay.orders.create({
+      amount,
+      currency: 'INR',
+      receipt: `vps_${order.orderNumber}`,
+      notes: {
+        userId,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        purpose: 'VPS_ORDER',
+      },
+    });
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        userId,
+        orderId: order.id,
+        purpose: 'VPS_ORDER',
+        provider: 'RAZORPAY',
+        razorpayOrderId: razorpayOrder.id,
+        amount: order.amount,
+        currency: 'INR',
+        status: 'CREATED',
+      },
+    });
+
+    return {
+      paymentId: payment.id,
+      razorpayOrderId: razorpayOrder.id,
+      amount,
+      currency: 'INR',
+      keyId: this.razorpayKeyId,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+    };
+  }
+
+
+
+  async verifyRazorpayPayment(
+    userId: string,
+    orderId: string,
+    dto: VerifyVpsPaymentDto,
+  ) {
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!this.razorpay || !keySecret) {
+      throw new ServiceUnavailableException(
+        'Razorpay is not configured on the server',
+      );
+    }
+
+    const payment = await this.prisma.payment.findFirst({
+      where: {
+        userId,
+        orderId,
+        purpose: 'VPS_ORDER',
+        provider: 'RAZORPAY',
+        razorpayOrderId: dto.razorpay_order_id,
+      },
+      include: { order: true },
+    });
+
+    if (!payment || !payment.order) {
+      throw new NotFoundException('Razorpay VPS payment not found');
+    }
+
+    if (payment.status === 'CAPTURED') {
+      return {
+        success: true,
+        status: payment.order.status,
+        message: 'Payment was already verified',
+        orderNumber: payment.order.orderNumber,
+      };
+    }
+
+    if (
+      payment.status !== 'CREATED' ||
+      payment.order.status !== 'PENDING'
+    ) {
+      throw new ConflictException(
+        'This payment or order can no longer be processed',
+      );
+    }
+
+    if (!/^[a-fA-F0-9]{64}$/.test(dto.razorpay_signature)) {
+      throw new BadRequestException('Invalid Razorpay signature');
+    }
+
+    const expectedSignature = createHmac('sha256', keySecret)
+      .update(`${dto.razorpay_order_id}|${dto.razorpay_payment_id}`)
+      .digest('hex');
+
+    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+    const receivedBuffer = Buffer.from(dto.razorpay_signature, 'hex');
+
+    if (
+      expectedBuffer.length !== receivedBuffer.length ||
+      !timingSafeEqual(expectedBuffer, receivedBuffer)
+    ) {
+      throw new BadRequestException(
+        'Razorpay signature verification failed',
+      );
+    }
+
+    const razorpayPayment = await this.razorpay.payments.fetch(
+      dto.razorpay_payment_id,
+    );
+
+    if (
+      razorpayPayment.id !== dto.razorpay_payment_id ||
+      razorpayPayment.order_id !== dto.razorpay_order_id ||
+      razorpayPayment.status !== 'captured' ||
+      Number(razorpayPayment.amount) !==
+        Math.round(Number(payment.amount) * 100) ||
+      razorpayPayment.currency !== 'INR'
+    ) {
+      throw new BadRequestException(
+        'Razorpay payment details could not be verified',
+      );
+    }
+
+    await this.prisma.$transaction(
+      async (tx) => {
+        const orderUpdate = await tx.order.updateMany({
+          where: {
+            id: orderId,
+            userId,
+            status: 'PENDING',
+          },
+          data: { status: 'PAID' },
+        });
+
+        if (orderUpdate.count !== 1) {
+          throw new ConflictException(
+            'Order has already been processed',
+          );
+        }
+
+        const paymentUpdate = await tx.payment.updateMany({
+          where: {
+            id: payment.id,
+            status: 'CREATED',
+            razorpayPaymentId: null,
+          },
+          data: {
+            status: 'CAPTURED',
+            razorpayPaymentId: dto.razorpay_payment_id,
+            razorpaySignature: dto.razorpay_signature,
+          },
+        });
+
+        if (paymentUpdate.count !== 1) {
+          throw new ConflictException(
+            'Payment has already been processed',
+          );
+        }
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
+
+    try {
+      const provisionResult =
+        await this.provisioningService.provisionOrder(orderId);
+
+      return {
+        success: true,
+        status: provisionResult?.job?.status || 'PAID',
+        message: 'Payment verified and VPS provisioning started',
+        orderNumber: payment.order.orderNumber,
+      };
+    } catch (error) {
+      await this.prisma.order.updateMany({
+        where: {
+          id: orderId,
+          userId,
+          status: 'PAID',
+        },
+        data: { status: 'PROVISIONING' },
+      });
+
+      return {
+        success: true,
+        status: 'PROVISIONING',
+        requiresReconciliation: true,
+        message:
+          'Payment captured successfully. VPS provisioning needs reconciliation.',
+        orderNumber: payment.order.orderNumber,
+      };
+    }
   }
 
   async createOrder(

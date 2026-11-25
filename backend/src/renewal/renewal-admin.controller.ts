@@ -15,6 +15,7 @@ import { RenewalService } from './renewal.service.js';
 import { LifecycleService } from './lifecycle.service.js';
 import { RenewalSchedulerService } from './renewal-scheduler.service.js';
 import { UpdateRenewalSettingsDto } from './dto/update-settings.dto.js';
+import { UpdateSupportContactDto } from './dto/update-support-contact.dto.js';
 
 @Controller('admin/vps')
 @UseGuards(AdminAuthGuard)
@@ -38,6 +39,16 @@ export class RenewalAdminController {
   @Put('renewal/settings')
   updateSettings(@Body() dto: UpdateRenewalSettingsDto) {
     return this.adminSettings.updateSettings(dto);
+  }
+
+  @Get('support/contact-settings')
+  getSupportContactSettings() {
+    return this.adminSettings.getSupportContactSettings();
+  }
+
+  @Put('support/contact-settings')
+  updateSupportContactSettings(@Body() dto: UpdateSupportContactDto) {
+    return this.adminSettings.updateSupportContactSettings(dto);
   }
 
   // ==========================================

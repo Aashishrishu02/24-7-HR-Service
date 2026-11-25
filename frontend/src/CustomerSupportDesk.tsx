@@ -73,6 +73,7 @@ interface EligibilityData {
 interface CustomerSupportDeskProps {
   user: any;
   onGoToPlans?: () => void;
+  supportContact?: Record<string, string>;
 }
 
 export const CATEGORY_LABELS: Record<TicketCategory, { label: string; icon: string }> = {
@@ -97,7 +98,7 @@ export const STATUS_STYLES: Record<TicketStatus, { label: string; badge: string 
   CLOSED: { label: "Closed", badge: "bg-neutral-800 text-neutral-400 border-neutral-700" },
 };
 
-export default function CustomerSupportDesk({ user: _user, onGoToPlans }: CustomerSupportDeskProps) {
+export default function CustomerSupportDesk({ user: _user, onGoToPlans, supportContact }: CustomerSupportDeskProps) {
   const [eligibility, setEligibility] = useState<EligibilityData | null>(null);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [counts, setCounts] = useState({ total: 0, open: 0, resolved: 0 });
@@ -646,8 +647,18 @@ export default function CustomerSupportDesk({ user: _user, onGoToPlans }: Custom
                   Browse VPS Plans <ArrowRight size={14} />
                 </button>
               )}
+              {supportContact?.whatsappUrl && (
+                <a
+                  href={supportContact.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#C6A66B] bg-[#C6A66B]/10 px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#C6A66B] hover:bg-[#C6A66B]/20 transition"
+                >
+                  WhatsApp
+                </a>
+              )}
               <a
-                href="mailto:sales@247hrservice.com"
+                href={supportContact?.email ? `mailto:${supportContact.email}` : "mailto:sales@247hrservice.com"}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-[#332f2a] bg-[#201d1a] px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80 hover:text-[#F1E9DA] transition"
               >
                 Pre-Sales Inquiry

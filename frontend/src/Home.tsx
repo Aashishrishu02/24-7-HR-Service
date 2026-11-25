@@ -19,6 +19,11 @@ import {
   HardDrive,
   RefreshCw,
   Loader2,
+  Camera,
+  Users,
+  MessageCircle,
+  Video,
+  Send,
 } from "lucide-react";
 import logo from "./assets/247-logo.png";
 import api from "./api";
@@ -51,6 +56,7 @@ export default function Home() {
   const [dedicatedIpAvailable, setDedicatedIpAvailable] = useState(true);
   const [selectedHeroIndex, setSelectedHeroIndex] = useState<number>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [supportContact, setSupportContact] = useState<Record<string, string>>({});
 
   const closeMenu = () => setMobileMenuOpen(false);
 
@@ -88,10 +94,20 @@ export default function Home() {
     }
   }, []);
 
+  const fetchSupportContact = useCallback(async () => {
+    try {
+      const response = await api.get("/plans/contact-settings");
+      setSupportContact(response.data ?? {});
+    } catch {
+      setSupportContact({});
+    }
+  }, []);
+
   useEffect(() => {
     void fetchPlans();
     void fetchDedicatedIpStatus();
-  }, [fetchPlans, fetchDedicatedIpStatus]);
+    void fetchSupportContact();
+  }, [fetchPlans, fetchDedicatedIpStatus, fetchSupportContact]);
 
   // Representative dynamic plans directly from backend (No hardcoded fallback plans)
   const pricingPlans = useMemo(() => {
@@ -1333,6 +1349,43 @@ export default function Home() {
               </ul>
             </div>
           </div>
+
+          {/* Configured Social Links */}
+          {(supportContact.instagramUrl || supportContact.facebookUrl ||
+            supportContact.whatsappUrl || supportContact.youtubeUrl || supportContact.telegramUrl) && (
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3 border-t border-[#292521] pt-6 sm:justify-end">
+              {supportContact.instagramUrl && (
+                <a href={supportContact.instagramUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#332f2a] px-3 py-2 text-xs text-[#F1E9DA]/75 transition hover:border-[#C6A66B] hover:text-[#C6A66B]">
+                  <Camera size={15} /> Instagram
+                </a>
+              )}
+              {supportContact.facebookUrl && (
+                <a href={supportContact.facebookUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#332f2a] px-3 py-2 text-xs text-[#F1E9DA]/75 transition hover:border-[#C6A66B] hover:text-[#C6A66B]">
+                  <Users size={15} /> Facebook
+                </a>
+              )}
+              {supportContact.whatsappUrl && (
+                <a href={supportContact.whatsappUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#332f2a] px-3 py-2 text-xs text-[#F1E9DA]/75 transition hover:border-[#C6A66B] hover:text-[#C6A66B]">
+                  <MessageCircle size={15} /> WhatsApp
+                </a>
+              )}
+              {supportContact.youtubeUrl && (
+                <a href={supportContact.youtubeUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#332f2a] px-3 py-2 text-xs text-[#F1E9DA]/75 transition hover:border-[#C6A66B] hover:text-[#C6A66B]">
+                  <Video size={15} /> YouTube
+                </a>
+              )}
+              {supportContact.telegramUrl && (
+                <a href={supportContact.telegramUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#332f2a] px-3 py-2 text-xs text-[#F1E9DA]/75 transition hover:border-[#C6A66B] hover:text-[#C6A66B]">
+                  <Send size={15} /> Telegram
+                </a>
+              )}
+            </div>
+          )}
 
           {/* Bottom Bar */}
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[#292521] pt-6 sm:flex-row">
