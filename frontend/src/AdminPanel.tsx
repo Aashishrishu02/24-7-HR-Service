@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, Server,
   ShieldCheck, LogOut, RefreshCw, Menu, X,
   Search, ChevronLeft, ChevronRight, Eye, EyeOff, Power, Mail, Calendar, Package,
-  Network, Activity, Cloud,
+  Network, Activity, Cloud, Headphones,
 } from "lucide-react";
 import adminApi from "./adminApi";
 import AdminPlans from "./AdminPlans";
@@ -13,6 +13,7 @@ import Provisioning from "./admin/Provisioning";
 import RenewalLifecycle from "./admin/RenewalLifecycle";
 import HostHeavenMapping from "./admin/HostHeavenMapping";
 import DedicatedIpCatalogue from "./admin/DedicatedIpCatalogue";
+import SupportContact from "./admin/SupportContact";
 
 type Stats = {
   totalCustomers: number;
@@ -366,6 +367,7 @@ export default function AdminPanel() {
     ["Provisioning", Activity],
     ["Auto-Renewal & Lifecycle", RefreshCw],
     ["Plans", Package],
+    ["Support & Contact", Headphones],
   ] as const;
 
   const cards = [
@@ -839,6 +841,7 @@ export default function AdminPanel() {
           <div style={{ display: page === "Plan Provider Mapping" ? "block" : "none" }}><PlanProviderMapping /></div>
           <div style={{ display: page === "Provisioning" ? "block" : "none" }}><Provisioning /></div>
           <div style={{ display: page === "Auto-Renewal & Lifecycle" ? "block" : "none" }}><RenewalLifecycle /></div>
+          <div style={{ display: page === "Support & Contact" ? "block" : "none" }}><SupportContact /></div>
         </section>
       </main>
 

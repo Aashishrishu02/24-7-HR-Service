@@ -74,6 +74,68 @@ describe('PublicPlansController — Monthly Pricing Display & Privacy Verificati
     });
   });
 
+  describe('HostHeaven checkout configuration in public plans', () => {
+    it('returns all provider configuration IDs for database-mapped plans', async () => {
+      mockPrisma.vPSPlan.findMany.mockResolvedValue([
+        {
+          id: 'plan-hh-checkout-config',
+          name: 'HostHeaven Checkout VPS',
+          productType: 'VPS_HOSTING',
+          description: 'HostHeaven checkout regression test',
+          cpuCores: 2,
+          ramGb: 4,
+          storageGb: 80,
+          bandwidthGb: 1000,
+          price: new Prisma.Decimal('1250.00'),
+          currency: 'INR',
+          durationDays: 30,
+          supportedOS: ['Ubuntu 22.04 LTS'],
+          isActive: true,
+          sortOrder: 1,
+          hostHeavenMapping: {
+            id: 'map-hh-checkout-config',
+            zoneId: 'zone-delhi',
+            zoneName: 'Delhi NCR',
+            zoneIsoId: 'iso-ubuntu-22',
+            isoName: 'Ubuntu 22.04 LTS',
+            planType: 'SHARED',
+            cpuPricingId: 'cpu-price-id',
+            cpuName: '2 vCPU',
+            ramPricingId: 'ram-price-id',
+            ramName: '4 GB RAM',
+            diskPricingId: 'disk-price-id',
+            diskName: '80 GB SSD',
+            bandwidthPricingId: 'bandwidth-price-id',
+            bandwidthName: '1 TB Bandwidth',
+            providerCost: new Prisma.Decimal('1000.00'),
+            isCostVerified: true,
+            costStatus: 'VERIFIED',
+            isActive: true,
+          },
+        },
+      ]);
+
+      const result = await controller.findActivePlans();
+
+      expect(result.plans).toHaveLength(1);
+      expect(result.plans[0]).toMatchObject({
+        id: 'plan-hh-checkout-config',
+        isHostHeaven: true,
+        providerConfig: {
+          zoneId: 'zone-delhi',
+          zoneIsoId: 'iso-ubuntu-22',
+          planType: 'SHARED',
+          cpuPriceId: 'cpu-price-id',
+          ramPriceId: 'ram-price-id',
+          diskPriceId: 'disk-price-id',
+          bandwidthPriceId: 'bandwidth-price-id',
+        },
+      });
+      expect((result.plans[0] as any).hostHeavenMapping).toBeUndefined();
+      expect((result.plans[0] as any).providerCost).toBeUndefined();
+    });
+  });
+
   describe('Business Requirement: 20% Gross Profit Margin on Monthly Provider Cost', () => {
     it('verifies monthly provider price ₹644.69 produces customer price ₹805.86', async () => {
       mockPrisma.vPSPlan.findMany.mockResolvedValue([

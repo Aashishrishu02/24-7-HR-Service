@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
@@ -13,6 +14,7 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 
 @Injectable()
 export class WalletService {
+  private readonly logger = new Logger(WalletService.name);
   private readonly razorpay: Razorpay | null;
   private readonly keyId: string | undefined;
   private readonly keySecret: string | undefined;
@@ -157,7 +159,23 @@ export class WalletService {
         },
       });
       razorpayOrderId = razorpayOrder.id;
-    } catch {
+    } catch (error: unknown) {
+      const err = error as any;
+      const gatewayError = err?.error ?? err?.response?.data?.error ?? {};
+
+      this.logger.error(
+        'Razorpay wallet top-up order creation failed',
+        JSON.stringify({
+          statusCode: err?.statusCode ?? err?.response?.status ?? null,
+          code: gatewayError?.code ?? err?.code ?? null,
+          description: gatewayError?.description ?? err?.description ?? null,
+          reason: gatewayError?.reason ?? err?.reason ?? null,
+          message: typeof err?.message === 'string'
+            ? err.message.slice(0, 300)
+            : null,
+        }),
+      );
+
       throw new InternalServerErrorException('Unable to create Razorpay order');
     }
 

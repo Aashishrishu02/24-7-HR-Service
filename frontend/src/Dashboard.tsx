@@ -25,6 +25,8 @@ import {
   KeyRound,
   RotateCcw,
   Power,
+  Mail,
+  MessageCircle,
 } from "lucide-react";
 import api from "./api";
 import logo from "./assets/247-logo.png";
@@ -243,6 +245,7 @@ export default function Dashboard() {
   const [dedicatedIpStatusLoaded, setDedicatedIpStatusLoaded] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [supportContact, setSupportContact] = useState<Record<string, string>>({});
   const [vpsList, setVpsList] = useState<VPSInstance[]>([]);
   const [plans, setPlans] = useState<VPSPlan[]>([]);
   const [wallet, setWallet] = useState<WalletData | null>(null);
@@ -367,6 +370,15 @@ export default function Dashboard() {
       );
     } finally {
       setPlansLoading(false);
+    }
+  }, []);
+
+  const fetchSupportContact = useCallback(async () => {
+    try {
+      const response = await api.get("/plans/contact-settings");
+      setSupportContact(response.data ?? {});
+    } catch {
+      setSupportContact({});
     }
   }, []);
 
@@ -557,6 +569,7 @@ export default function Dashboard() {
     void fetchProfile();
     void fetchVps();
     void fetchPlans();
+    void fetchSupportContact();
     void fetchWallet();
     void fetchTransactions();
     void fetchOrders();
@@ -565,6 +578,7 @@ export default function Dashboard() {
     fetchProfile,
     fetchVps,
     fetchPlans,
+    fetchSupportContact,
     fetchWallet,
     fetchTransactions,
     fetchOrders,
@@ -786,7 +800,7 @@ export default function Dashboard() {
       if (Razorpay && data.keyId) {
         const options = {
           key: data.keyId,
-          amount: data.amount * 100,
+          amount: data.amount,
           currency: data.currency || "INR",
           name: "24/7 HR Service",
           description: "Wallet Balance Top-Up",
@@ -844,24 +858,44 @@ export default function Dashboard() {
 
     try {
       if (selectedPlan.isHostHeaven || selectedPlan.providerConfig) {
-        // Direct HostHeaven live provisioning
         const config = selectedPlan.providerConfig;
+        const requiredConfigValues = [
+          config?.zoneId,
+          config?.zoneIsoId,
+          config?.planType,
+          config?.cpuPriceId,
+          config?.ramPriceId,
+          config?.diskPriceId,
+          config?.bandwidthPriceId,
+        ];
+
+        if (
+          !config ||
+          requiredConfigValues.some(
+            (value) => typeof value !== "string" || value.trim() === "",
+          )
+        ) {
+          throw new Error(
+            "HostHeaven plan configuration is incomplete. Please refresh the VPS plans and try again.",
+          );
+        }
+
         const matchingIso = hhIsos.find(
           (i) => i.isoName === selectedOS || i.id === selectedOS,
         );
 
         const res = await api.post("/hostheaven/checkout", {
-          zoneId: selectedZoneId || config?.zoneId,
-          zoneIsoId: matchingIso?.id || config?.zoneIsoId || "default-iso",
+          zoneId: selectedZoneId || config.zoneId,
+          zoneIsoId: matchingIso?.id || config.zoneIsoId,
           planType:
             config?.planType ||
             (selectedPlan.tier?.toLowerCase().includes("dedicated")
               ? "DEDICATED"
               : "SHARED"),
-          cpuPriceId: config?.cpuPriceId,
-          ramPriceId: config?.ramPriceId,
-          diskPriceId: config?.diskPriceId,
-          bandwidthPriceId: config?.bandwidthPriceId,
+          cpuPriceId: config.cpuPriceId,
+          ramPriceId: config.ramPriceId,
+          diskPriceId: config.diskPriceId,
+          bandwidthPriceId: config.bandwidthPriceId,
           months: selectedMonths || 1,
           operatingSystem: selectedOS,
           hostname: customHostname.trim() || undefined,
@@ -884,7 +918,6 @@ export default function Dashboard() {
         return;
       }
 
-      // Non-HostHeaven order path
       const orderRes = await api.post("/checkout/orders", {
         planId: selectedPlan.id,
         operatingSystem: selectedOS,
@@ -896,15 +929,14 @@ export default function Dashboard() {
       }
 
       if (paymentMethod === "WALLET") {
-        // Step 2: Pay with Wallet balance
         const payRes = await api.post(
           `/checkout/orders/${order.id}/pay-wallet`,
         );
 
-        if (payRes.data?.status === 'REFUNDED') {
+        if (payRes.data?.status === "REFUNDED") {
           setError(
             payRes.data?.message ||
-              'VPS provisioning could not be completed. Your wallet balance has been refunded in full.',
+              "VPS provisioning could not be completed. Your wallet balance has been refunded in full.",
           );
         } else {
           setNotice(
@@ -915,23 +947,103 @@ export default function Dashboard() {
           go("My VPS");
         }
 
-        // Refresh all relevant states
         await Promise.all([
           fetchWallet(),
           fetchTransactions(),
           fetchOrders(),
           fetchVps(),
         ]);
-      } else {
-        // Direct Razorpay payment for orders
-        setCheckoutError(
-          "Direct Razorpay checkout is in progress. Please use Wallet Pay for instant deployment.",
+        return;
+      }
+
+      const razorpayRes = await api.post(
+        `/checkout/orders/${order.id}/razorpay/create`,
+      );
+      const checkout = razorpayRes.data;
+      const RazorpayConstructor = (window as any).Razorpay;
+
+      if (!RazorpayConstructor) {
+        throw new Error(
+          "Razorpay Checkout did not load. Please refresh the page and try again.",
         );
       }
+
+      if (
+        !checkout?.keyId ||
+        !checkout?.razorpayOrderId ||
+        !checkout?.amount ||
+        !checkout?.currency
+      ) {
+        throw new Error("The server returned incomplete Razorpay checkout details.");
+      }
+
+      let verificationStarted = false;
+
+      const razorpay = new RazorpayConstructor({
+        key: checkout.keyId,
+        amount: checkout.amount,
+        currency: checkout.currency,
+        name: "247HR Service",
+        description: `VPS Order ${checkout.orderNumber || order.orderNumber}`,
+        order_id: checkout.razorpayOrderId,
+
+        handler: async (response: any) => {
+          verificationStarted = true;
+          setCheckoutLoading(true);
+          setCheckoutError("");
+
+          try {
+            const verifyRes = await api.post(
+              `/checkout/orders/${order.id}/razorpay/verify`,
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+            );
+
+            setNotice(
+              verifyRes.data?.message ||
+                `Payment verified successfully. Order #${order.orderNumber}`,
+            );
+            setSelectedPlan(null);
+            go("My VPS");
+
+            await Promise.all([
+              fetchWallet(),
+              fetchTransactions(),
+              fetchOrders(),
+              fetchVps(),
+            ]);
+          } catch (verifyErr: any) {
+            setCheckoutError(
+              verifyErr.response?.data?.message ||
+                "Payment verification could not be completed. Please check your order status before trying another payment.",
+            );
+            await Promise.all([fetchOrders(), fetchVps()]);
+          } finally {
+            setCheckoutLoading(false);
+          }
+        },
+
+        modal: {
+          ondismiss: () => {
+            if (!verificationStarted) {
+              setCheckoutError(
+                "Payment was cancelled. Your VPS order has not been marked as paid.",
+              );
+            }
+            setCheckoutLoading(false);
+          },
+        },
+      });
+
+      razorpay.open();
     } catch (err: any) {
       setCheckoutError(
         err.response?.data?.message ||
-          "Failed to complete checkout. Please verify your balance and try again.",
+          err.message ||
+          "Failed to complete checkout. Please try again.",
       );
     } finally {
       setCheckoutLoading(false);
@@ -2305,12 +2417,31 @@ export default function Dashboard() {
                 Contact our support team for assistance with orders, wallet
                 deposits, billing invoices and server operational management.
               </p>
-              <a
-                href="mailto:support@247hrservice.com"
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition"
-              >
-                Contact Support <ArrowUpRight size={16} />
-              </a>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {supportContact.email && (
+                  <a
+                    href={`mailto:${supportContact.email}`}
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:bg-[#d8ba82]"
+                  >
+                    <Mail size={16} /> Email Support
+                  </a>
+                )}
+                {supportContact.whatsappUrl && (
+                  <a
+                    href={supportContact.whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#C6A66B] transition hover:bg-[#C6A66B]/10"
+                  >
+                    <MessageCircle size={16} /> WhatsApp Support
+                  </a>
+                )}
+                {!supportContact.email && !supportContact.whatsappUrl && (
+                  <p className="text-sm text-[#F1E9DA]/50">
+                    Support contact details are currently being updated. Please check back soon.
+                  </p>
+                )}
+              </div>
             </div>
           </section>
         )}

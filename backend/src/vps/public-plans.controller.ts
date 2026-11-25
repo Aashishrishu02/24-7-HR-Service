@@ -16,6 +16,25 @@ export class PublicPlansController {
   ) { }
 
   /**
+   * Public, read-only customer support contact details.
+   * Returns only configured contact fields.
+   */
+  @Get('contact-settings')
+  async getPublicSupportContactSettings() {
+    try {
+      const settings = await this.adminSettingsService.getSupportContactSettings();
+
+      return Object.fromEntries(
+        Object.entries(settings).filter(
+          ([, value]) => typeof value === 'string' && value.trim() !== '',
+        ),
+      );
+    } catch {
+      return {};
+    }
+  }
+
+  /**
    * Public, read-only Nexa Dedicated IP catalogue.
    * Reads only successfully synced, active and in-stock database plans.
    * Only customer-facing prices and safe plan details are returned.
@@ -307,6 +326,20 @@ export class PublicPlansController {
         isActive: plan.isActive,
         sortOrder: plan.sortOrder,
         isHostHeaven: Boolean(plan.hostHeavenMapping),
+        providerConfig: plan.hostHeavenMapping
+          ? {
+              zoneId: plan.hostHeavenMapping.zoneId,
+              zoneIsoId: plan.hostHeavenMapping.zoneIsoId,
+              planType:
+                plan.hostHeavenMapping.planType === 'DEDICATED'
+                  ? 'DEDICATED'
+                  : 'SHARED',
+              cpuPriceId: plan.hostHeavenMapping.cpuPricingId,
+              ramPriceId: plan.hostHeavenMapping.ramPricingId,
+              diskPriceId: plan.hostHeavenMapping.diskPricingId,
+              bandwidthPriceId: plan.hostHeavenMapping.bandwidthPricingId,
+            }
+          : undefined,
       };
     });
 

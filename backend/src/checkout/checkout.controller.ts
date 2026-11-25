@@ -13,6 +13,7 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { CheckoutService } from './checkout.service.js';
 import { CreateCheckoutOrderDto } from './dto/create-checkout-order.dto.js';
+import { VerifyVpsPaymentDto } from './dto/verify-vps-payment.dto.js';
 import { DirectHostHeavenCheckoutDto } from '../hostheaven/dto/direct-checkout.dto.js';
 
 interface AuthenticatedRequest extends Request {
@@ -37,6 +38,30 @@ export class CheckoutController {
       req.user.sub,
       dto.planId,
       dto.operatingSystem,
+    );
+  }
+
+  @Post('orders/:orderId/razorpay/create')
+  async createRazorpayOrder(
+    @Req() req: AuthenticatedRequest,
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+  ) {
+    return this.checkoutService.createRazorpayOrder(
+      req.user.sub,
+      orderId,
+    );
+  }
+
+  @Post('orders/:orderId/razorpay/verify')
+  async verifyRazorpayPayment(
+    @Req() req: AuthenticatedRequest,
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+    @Body() dto: VerifyVpsPaymentDto,
+  ) {
+    return this.checkoutService.verifyRazorpayPayment(
+      req.user.sub,
+      orderId,
+      dto,
     );
   }
 
