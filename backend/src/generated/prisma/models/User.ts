@@ -223,6 +223,7 @@ export type UserWhereInput = {
   consentAudits?: Prisma.VPSConsentAuditListRelationFilter
   renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
   notifications?: Prisma.NotificationLogListRelationFilter
+  supportTickets?: Prisma.SupportTicketListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -244,6 +245,7 @@ export type UserOrderByWithRelationInput = {
   consentAudits?: Prisma.VPSConsentAuditOrderByRelationAggregateInput
   renewalAttempts?: Prisma.RenewalAttemptOrderByRelationAggregateInput
   notifications?: Prisma.NotificationLogOrderByRelationAggregateInput
+  supportTickets?: Prisma.SupportTicketOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -268,6 +270,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   consentAudits?: Prisma.VPSConsentAuditListRelationFilter
   renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
   notifications?: Prisma.NotificationLogListRelationFilter
+  supportTickets?: Prisma.SupportTicketListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -319,6 +322,7 @@ export type UserCreateInput = {
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -340,6 +344,7 @@ export type UserUncheckedCreateInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -361,6 +366,7 @@ export type UserUpdateInput = {
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -382,6 +388,7 @@ export type UserUncheckedUpdateInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -611,6 +618,20 @@ export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type UserCreateNestedOneWithoutSupportTicketsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupportTicketsInput, Prisma.UserUncheckedCreateWithoutSupportTicketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupportTicketsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSupportTicketsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSupportTicketsInput, Prisma.UserUncheckedCreateWithoutSupportTicketsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupportTicketsInput
+  upsert?: Prisma.UserUpsertWithoutSupportTicketsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSupportTicketsInput, Prisma.UserUpdateWithoutSupportTicketsInput>, Prisma.UserUncheckedUpdateWithoutSupportTicketsInput>
+}
+
 export type UserCreateWithoutEmailOtpsInput = {
   id?: string
   name?: string | null
@@ -629,6 +650,7 @@ export type UserCreateWithoutEmailOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEmailOtpsInput = {
@@ -649,6 +671,7 @@ export type UserUncheckedCreateWithoutEmailOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEmailOtpsInput = {
@@ -685,6 +708,7 @@ export type UserUpdateWithoutEmailOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmailOtpsInput = {
@@ -705,6 +729,7 @@ export type UserUncheckedUpdateWithoutEmailOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPasswordOtpsInput = {
@@ -725,6 +750,7 @@ export type UserCreateWithoutPasswordOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPasswordOtpsInput = {
@@ -745,6 +771,7 @@ export type UserUncheckedCreateWithoutPasswordOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPasswordOtpsInput = {
@@ -781,6 +808,7 @@ export type UserUpdateWithoutPasswordOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPasswordOtpsInput = {
@@ -801,6 +829,7 @@ export type UserUncheckedUpdateWithoutPasswordOtpsInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutWalletInput = {
@@ -821,6 +850,7 @@ export type UserCreateWithoutWalletInput = {
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutWalletInput = {
@@ -841,6 +871,7 @@ export type UserUncheckedCreateWithoutWalletInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutWalletInput = {
@@ -877,6 +908,7 @@ export type UserUpdateWithoutWalletInput = {
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWalletInput = {
@@ -897,6 +929,7 @@ export type UserUncheckedUpdateWithoutWalletInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrdersInput = {
@@ -917,6 +950,7 @@ export type UserCreateWithoutOrdersInput = {
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrdersInput = {
@@ -937,6 +971,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrdersInput = {
@@ -973,6 +1008,7 @@ export type UserUpdateWithoutOrdersInput = {
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -993,6 +1029,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPaymentsInput = {
@@ -1013,6 +1050,7 @@ export type UserCreateWithoutPaymentsInput = {
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPaymentsInput = {
@@ -1033,6 +1071,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPaymentsInput = {
@@ -1069,6 +1108,7 @@ export type UserUpdateWithoutPaymentsInput = {
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentsInput = {
@@ -1089,6 +1129,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutVpsInstancesInput = {
@@ -1109,6 +1150,7 @@ export type UserCreateWithoutVpsInstancesInput = {
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutVpsInstancesInput = {
@@ -1129,6 +1171,7 @@ export type UserUncheckedCreateWithoutVpsInstancesInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutVpsInstancesInput = {
@@ -1165,6 +1208,7 @@ export type UserUpdateWithoutVpsInstancesInput = {
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVpsInstancesInput = {
@@ -1185,6 +1229,7 @@ export type UserUncheckedUpdateWithoutVpsInstancesInput = {
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutConsentAuditsInput = {
@@ -1205,6 +1250,7 @@ export type UserCreateWithoutConsentAuditsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutConsentAuditsInput = {
@@ -1225,6 +1271,7 @@ export type UserUncheckedCreateWithoutConsentAuditsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutConsentAuditsInput = {
@@ -1261,6 +1308,7 @@ export type UserUpdateWithoutConsentAuditsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConsentAuditsInput = {
@@ -1281,6 +1329,7 @@ export type UserUncheckedUpdateWithoutConsentAuditsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRenewalAttemptsInput = {
@@ -1301,6 +1350,7 @@ export type UserCreateWithoutRenewalAttemptsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRenewalAttemptsInput = {
@@ -1321,6 +1371,7 @@ export type UserUncheckedCreateWithoutRenewalAttemptsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRenewalAttemptsInput = {
@@ -1357,6 +1408,7 @@ export type UserUpdateWithoutRenewalAttemptsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRenewalAttemptsInput = {
@@ -1377,6 +1429,7 @@ export type UserUncheckedUpdateWithoutRenewalAttemptsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -1397,6 +1450,7 @@ export type UserCreateWithoutNotificationsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -1417,6 +1471,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -1453,6 +1508,7 @@ export type UserUpdateWithoutNotificationsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -1473,6 +1529,107 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutSupportTicketsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutSupportTicketsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutSupportTicketsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupportTicketsInput, Prisma.UserUncheckedCreateWithoutSupportTicketsInput>
+}
+
+export type UserUpsertWithoutSupportTicketsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSupportTicketsInput, Prisma.UserUncheckedUpdateWithoutSupportTicketsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSupportTicketsInput, Prisma.UserUncheckedCreateWithoutSupportTicketsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSupportTicketsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSupportTicketsInput, Prisma.UserUncheckedUpdateWithoutSupportTicketsInput>
+}
+
+export type UserUpdateWithoutSupportTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSupportTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1489,6 +1646,7 @@ export type UserCountOutputType = {
   consentAudits: number
   renewalAttempts: number
   notifications: number
+  supportTickets: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1500,6 +1658,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   consentAudits?: boolean | UserCountOutputTypeCountConsentAuditsArgs
   renewalAttempts?: boolean | UserCountOutputTypeCountRenewalAttemptsArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
+  supportTickets?: boolean | UserCountOutputTypeCountSupportTicketsArgs
 }
 
 /**
@@ -1568,6 +1727,13 @@ export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.NotificationLogWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSupportTicketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SupportTicketWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1588,6 +1754,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   consentAudits?: boolean | Prisma.User$consentAuditsArgs<ExtArgs>
   renewalAttempts?: boolean | Prisma.User$renewalAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  supportTickets?: boolean | Prisma.User$supportTicketsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1638,6 +1805,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   consentAudits?: boolean | Prisma.User$consentAuditsArgs<ExtArgs>
   renewalAttempts?: boolean | Prisma.User$renewalAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  supportTickets?: boolean | Prisma.User$supportTicketsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1655,6 +1823,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     consentAudits: Prisma.$VPSConsentAuditPayload<ExtArgs>[]
     renewalAttempts: Prisma.$RenewalAttemptPayload<ExtArgs>[]
     notifications: Prisma.$NotificationLogPayload<ExtArgs>[]
+    supportTickets: Prisma.$SupportTicketPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2069,6 +2238,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   consentAudits<T extends Prisma.User$consentAuditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$consentAuditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VPSConsentAuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   renewalAttempts<T extends Prisma.User$renewalAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$renewalAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RenewalAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  supportTickets<T extends Prisma.User$supportTicketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supportTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2708,6 +2878,30 @@ export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.NotificationLogScalarFieldEnum | Prisma.NotificationLogScalarFieldEnum[]
+}
+
+/**
+ * User.supportTickets
+ */
+export type User$supportTicketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SupportTicket
+   */
+  select?: Prisma.SupportTicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SupportTicket
+   */
+  omit?: Prisma.SupportTicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupportTicketInclude<ExtArgs> | null
+  where?: Prisma.SupportTicketWhereInput
+  orderBy?: Prisma.SupportTicketOrderByWithRelationInput | Prisma.SupportTicketOrderByWithRelationInput[]
+  cursor?: Prisma.SupportTicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SupportTicketScalarFieldEnum | Prisma.SupportTicketScalarFieldEnum[]
 }
 
 /**

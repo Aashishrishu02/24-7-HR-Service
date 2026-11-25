@@ -130,3 +130,34 @@ export const ProvisioningSource = {
 } as const
 
 export type ProvisioningSource = (typeof ProvisioningSource)[keyof typeof ProvisioningSource]
+
+
+export const TicketStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  AWAITING_CUSTOMER: 'AWAITING_CUSTOMER',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus]
+
+
+export const TicketPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT'
+} as const
+
+export type TicketPriority = (typeof TicketPriority)[keyof typeof TicketPriority]
+
+
+export const TicketCategory = {
+  VPS_TECHNICAL: 'VPS_TECHNICAL',
+  BILLING_WALLET: 'BILLING_WALLET',
+  DEDICATED_IP: 'DEDICATED_IP',
+  ACCOUNT_GENERAL: 'ACCOUNT_GENERAL'
+} as const
+
+export type TicketCategory = (typeof TicketCategory)[keyof typeof TicketCategory]

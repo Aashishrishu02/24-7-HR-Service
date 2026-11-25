@@ -6,7 +6,6 @@ import {
   Cpu,
   CreditCard,
   HardDrive,
-  Headphones,
   History,
   Menu,
   Monitor,
@@ -29,6 +28,7 @@ import {
 import api from "./api";
 import logo from "./assets/247-logo.png";
 import BuyLinuxIP from "./BuyLinuxIP";
+import CustomerSupportDesk from "./CustomerSupportDesk";
 
 type UserProfile = {
   id: string;
@@ -2291,28 +2291,10 @@ export default function Dashboard() {
 
         {/* Support Page */}
         {page === "Support" && (
-          <section className="mx-auto max-w-3xl pt-12">
-            <p className="font-mono text-xs font-bold uppercase tracking-[.22em] text-[#C6A66B]">
-              We are here to help
-            </p>
-            <h1 className="mt-2 font-serif text-3xl font-bold text-[#F1E9DA]">24/7 Customer Support</h1>
-            <div className="mt-7 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-7 text-[#F1E9DA]">
-              <Headphones className="text-[#C6A66B]" size={30} />
-              <h3 className="mt-4 font-serif text-lg font-bold">
-                Need help with your VPS or Wallet?
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-[#F1E9DA]/60">
-                Contact our support team for assistance with orders, wallet
-                deposits, billing invoices and server operational management.
-              </p>
-              <a
-                href="mailto:support@247hrservice.com"
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82] transition"
-              >
-                Contact Support <ArrowUpRight size={16} />
-              </a>
-            </div>
-          </section>
+          <CustomerSupportDesk
+            user={profile}
+            onGoToPlans={() => go("Windows VPS")}
+          />
         )}
       </main>
 

@@ -21,6 +21,7 @@ import { CheckoutModule } from './checkout/checkout.module.js';
 import { RenewalModule } from './renewal/renewal.module.js';
 import { HostHeavenModule } from './hostheaven/hostheaven.module.js';
 import { AdminHostHeavenMappingsModule } from './admin-hostheaven-mappings/admin-hostheaven-mappings.module.js';
+import { SupportModule } from './support/support.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -45,6 +46,7 @@ import { AdminHostHeavenMappingsModule } from './admin-hostheaven-mappings/admin
     RenewalModule,
     HostHeavenModule,
     AdminHostHeavenMappingsModule,
+    SupportModule,
   ],
   
 })

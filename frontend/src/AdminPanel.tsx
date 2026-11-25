@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, Server,
   ShieldCheck, LogOut, RefreshCw, Menu, X,
   Search, ChevronLeft, ChevronRight, Eye, EyeOff, Power, Mail, Calendar, Package,
-  Network, Activity, Cloud,
+  Network, Activity, Cloud, Headphones,
 } from "lucide-react";
 import adminApi from "./adminApi";
 import AdminPlans from "./AdminPlans";
@@ -13,6 +13,7 @@ import Provisioning from "./admin/Provisioning";
 import RenewalLifecycle from "./admin/RenewalLifecycle";
 import HostHeavenMapping from "./admin/HostHeavenMapping";
 import DedicatedIpCatalogue from "./admin/DedicatedIpCatalogue";
+import AdminSupportDesk from "./admin/AdminSupportDesk";
 
 type Stats = {
   totalCustomers: number;
@@ -359,6 +360,7 @@ export default function AdminPanel() {
     ["Dashboard", LayoutDashboard],
     ["Customers", Users],
     ["VPS Management", Server],
+    ["Support Desk", Headphones],
     ["Providers", Network],
     ["Dedicated IP Catalogue", Package],
     ["HostHeaven Mappings", Cloud],
@@ -832,6 +834,7 @@ export default function AdminPanel() {
             </div>
           )}
 
+          <div style={{ display: page === "Support Desk" ? "block" : "none" }}><AdminSupportDesk /></div>
           <div style={{ display: page === "Plans" ? "block" : "none" }}><AdminPlans /></div>
           <div style={{ display: page === "Providers" ? "block" : "none" }}><Providers /></div>
           <div style={{ display: page === "Dedicated IP Catalogue" ? "block" : "none" }}><DedicatedIpCatalogue /></div>
