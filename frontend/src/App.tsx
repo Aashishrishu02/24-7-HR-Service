@@ -20,7 +20,7 @@ import Home from "./Home";
 import AdminPanel from "./AdminPanel";
 import BuyLinuxIP from "./BuyLinuxIP";
 
-type Screen = "login" | "register" | "verify";
+type Screen = "login" | "register" | "verify" | "forgot" | "reset";
 
 function App() {
   const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
@@ -129,11 +129,6 @@ function AuthApp() {
     e.preventDefault();
     resetMessages();
 
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -150,8 +145,6 @@ function AuthApp() {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
-        password: form.password,
-        confirmPassword: form.confirmPassword,
       });
 
       setScreen("verify");
@@ -176,7 +169,7 @@ function AuthApp() {
         otp: form.otp,
       });
 
-      setMessage("Account created successfully. Please login.");
+      setMessage("Email verified! Your temporary login password has been sent to your email.");
       setScreen("login");
 
       update("password", "");
@@ -200,10 +193,86 @@ function AuthApp() {
         email: form.email,
       });
 
-      setMessage("A new OTP has been sent.");
+      setMessage("A new verification OTP has been sent.");
     } catch (err: any) {
       setError(
         err.response?.data?.message || "Unable to resend OTP."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const requestPasswordOtp = async (e?: FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+    resetMessages();
+    setLoading(true);
+
+    try {
+      await api.post("/password/forgot", {
+        email: form.email,
+      });
+
+      setScreen("reset");
+      update("otp", "");
+      setMessage("If an account exists, a password reset OTP has been sent to your email.");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || "Unable to request password reset."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyPasswordOtp = async (e?: FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+    resetMessages();
+    setLoading(true);
+
+    try {
+      await api.post("/password/verify-otp", {
+        email: form.email,
+        otp: form.otp,
+      });
+
+      setMessage("OTP verified. Enter your new password below.");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || "Invalid or expired OTP."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    resetMessages();
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await api.post("/password/reset", {
+        email: form.email,
+        otp: form.otp,
+        newPassword: form.password,
+        confirmPassword: form.confirmPassword,
+      });
+
+      setScreen("login");
+      update("password", "");
+      update("confirmPassword", "");
+      update("otp", "");
+      setMessage("Password reset successfully. Please login with your new password.");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || "Unable to reset password."
       );
     } finally {
       setLoading(false);
@@ -239,7 +308,7 @@ function AuthApp() {
         <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] p-6 shadow-2xl shadow-black/80 sm:p-9">
           <div className="mb-7 flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#C6A66B]/30 bg-[#171717] text-[#C6A66B]">
-              {screen === "verify" ? (
+              {screen === "verify" || screen === "forgot" || screen === "reset" ? (
                 <Mail size={22} />
               ) : (
                 <Server size={22} />
@@ -255,6 +324,8 @@ function AuthApp() {
                 {screen === "login" && "Console Access"}
                 {screen === "register" && "Create Account"}
                 {screen === "verify" && "Email Verification"}
+                {screen === "forgot" && "Forgot Password"}
+                {screen === "reset" && "Reset Password"}
               </h1>
             </div>
           </div>
@@ -308,11 +379,13 @@ function AuthApp() {
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setError(
-                          "Password recovery can be requested directly via our 24/7 support desk."
-                        )
-                      }
+                      onClick={() => {
+                        resetMessages();
+                        update("otp", "");
+                        update("password", "");
+                        update("confirmPassword", "");
+                        setScreen("forgot");
+                      }}
                       className="text-xs text-[#C6A66B] hover:underline"
                     >
                       Forgot Password?
@@ -372,6 +445,164 @@ function AuthApp() {
             </>
           )}
 
+          {screen === "forgot" && (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  resetMessages();
+                  setScreen("login");
+                }}
+                className="mb-6 flex items-center gap-2 text-xs text-slate-400 hover:text-white"
+              >
+                <ArrowLeft size={15} /> Back to Login
+              </button>
+
+              <p className="mb-6 text-sm leading-6 text-slate-400">
+                Enter your registered email address. We will send you a password reset OTP.
+              </p>
+
+              <form onSubmit={requestPasswordOtp} className="space-y-5">
+                <div>
+                  <label className={labelClass}>Work Email</label>
+                  <input
+                    className={inputClass}
+                    type="email"
+                    placeholder="you@company.com"
+                    value={form.email}
+                    onChange={(e) => update("email", e.target.value)}
+                    required
+                  />
+                </div>
+
+                {error && (
+                  <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
+                    {error}
+                  </p>
+                )}
+
+                {message && (
+                  <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-400">
+                    {message}
+                  </p>
+                )}
+
+                <button className={primaryButton} disabled={loading}>
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    "Send Reset OTP"
+                  )}
+                  {!loading && <ArrowRight size={17} />}
+                </button>
+              </form>
+            </>
+          )}
+
+          {screen === "reset" && (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  resetMessages();
+                  setScreen("forgot");
+                }}
+                className="mb-6 flex items-center gap-2 text-xs text-slate-400 hover:text-white"
+              >
+                <ArrowLeft size={15} /> Back
+              </button>
+
+              <p className="mb-6 text-sm leading-6 text-slate-400">
+                Enter the OTP sent to{" "}
+                <span className="font-semibold text-white">{form.email}</span>,
+                then choose your new password.
+              </p>
+
+              <form onSubmit={resetPassword} className="space-y-5">
+                <div>
+                  <label className={labelClass}>Password Reset OTP</label>
+                  <input
+                    className={`${inputClass} text-center text-2xl font-bold tracking-[12px]`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="••••••"
+                    value={form.otp}
+                    onChange={(e) =>
+                      update("otp", e.target.value.replace(/\D/g, ""))
+                    }
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>New Password</label>
+                  <input
+                    className={inputClass}
+                    type="password"
+                    placeholder="Enter new password"
+                    value={form.password}
+                    onChange={(e) => update("password", e.target.value)}
+                    required
+                    minLength={8}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Confirm New Password</label>
+                  <input
+                    className={inputClass}
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={form.confirmPassword}
+                    onChange={(e) => update("confirmPassword", e.target.value)}
+                    required
+                    minLength={8}
+                  />
+                </div>
+
+                {error && (
+                  <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
+                    {error}
+                  </p>
+                )}
+
+                {message && (
+                  <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-400">
+                    {message}
+                  </p>
+                )}
+
+                <button className={primaryButton} disabled={loading}>
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    "Reset Password"
+                  )}
+                  {!loading && <CheckCircle2 size={17} />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void verifyPasswordOtp()}
+                  disabled={loading || form.otp.length !== 6}
+                  className="w-full text-center text-xs font-semibold text-[#C6A66B] hover:text-[#d8ba82] disabled:opacity-50"
+                >
+                  Verify OTP
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void requestPasswordOtp()}
+                  disabled={loading}
+                  className="w-full text-center text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-50"
+                >
+                  Resend OTP
+                </button>
+              </form>
+            </>
+          )}
+
           {screen === "register" && (
             <>
               <button
@@ -418,32 +649,6 @@ function AuthApp() {
                     placeholder="you@company.com"
                     value={form.email}
                     onChange={(e) => update("email", e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>Password</label>
-                  <input
-                    className={inputClass}
-                    type="password"
-                    placeholder="Create a password"
-                    value={form.password}
-                    onChange={(e) => update("password", e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>Confirm Password</label>
-                  <input
-                    className={inputClass}
-                    type="password"
-                    placeholder="Confirm your password"
-                    value={form.confirmPassword}
-                    onChange={(e) =>
-                      update("confirmPassword", e.target.value)
-                    }
                     required
                   />
                 </div>

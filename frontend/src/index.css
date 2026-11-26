@@ -29,3 +29,14 @@ body {
   background-color: #171717;
   color: #F1E9DA;
 }
+/* Keep browser autofill fields consistent with the dark login theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #F1E9DA !important;
+  -webkit-box-shadow: 0 0 0 1000px #171717 inset !important;
+  box-shadow: 0 0 0 1000px #171717 inset !important;
+  caret-color: #F1E9DA;
+  transition: background-color 999999s ease-out;
+}
