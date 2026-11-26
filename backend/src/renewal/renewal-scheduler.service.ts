@@ -22,7 +22,7 @@ export class RenewalSchedulerService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('RenewalSchedulerService initialized. Starting background scheduler loop.');
 
     // Run safe initial check after 10 seconds of startup in non-test mode
-    if (process.env.NODE_ENV !== 'test') {
+    if (process.env.NODE_ENV !== 'test' && process.env.DISABLE_BACKGROUND_JOBS !== 'true') {
       setTimeout(() => {
         this.runScheduledCycle().catch((err) =>
           this.logger.error('Error during initial scheduled renewal cycle:', err),

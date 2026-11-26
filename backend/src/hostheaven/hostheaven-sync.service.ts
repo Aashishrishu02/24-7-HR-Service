@@ -62,7 +62,7 @@ export class HostHeavenSyncService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    if (process.env.NODE_ENV !== 'test') {
+    if (process.env.NODE_ENV !== 'test' && process.env.DISABLE_BACKGROUND_JOBS !== 'true') {
       setTimeout(() => {
         this.runScheduledSync().catch((err) =>
           this.logger.error(`Initial catalogue sync failed: ${err.message}`),

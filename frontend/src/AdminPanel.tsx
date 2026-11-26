@@ -16,6 +16,7 @@ import DedicatedIpCatalogue from "./admin/DedicatedIpCatalogue";
 import AdminSupportDesk from "./admin/AdminSupportDesk";
 import SupportContact from "./admin/SupportContact";
 import AdminPayments from "./admin/AdminPayments";
+import BackendMonitor from "./admin/BackendMonitor";
 
 type Stats = {
   totalCustomers: number;
@@ -848,6 +849,7 @@ export default function AdminPanel() {
           <div style={{ display: page === "Provisioning" ? "block" : "none" }}><Provisioning /></div>
           <div style={{ display: page === "Auto-Renewal & Lifecycle" ? "block" : "none" }}><RenewalLifecycle /></div>
           <div style={{ display: page === "Support & Contact" ? "block" : "none" }}><SupportContact /></div>
+          {page === "Backend Monitor" && <BackendMonitor />}
         </section>
       </main>
 

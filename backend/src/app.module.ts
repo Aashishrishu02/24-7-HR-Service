@@ -23,6 +23,7 @@ import { HostHeavenModule } from './hostheaven/hostheaven.module.js';
 import { AdminHostHeavenMappingsModule } from './admin-hostheaven-mappings/admin-hostheaven-mappings.module.js';
 import { SupportModule } from './support/support.module.js';
 import { WebhooksModule } from './webhooks/webhooks.module.js';
+import { HealthModule } from './health/health.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -49,6 +50,7 @@ import { WebhooksModule } from './webhooks/webhooks.module.js';
     AdminHostHeavenMappingsModule,
     SupportModule,
     WebhooksModule,
+    HealthModule,
   ],
   
 })
