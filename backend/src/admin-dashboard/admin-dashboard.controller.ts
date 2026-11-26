@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AdminAuthGuard } from '../admin-auth/admin-auth.guard.js';
 import { AdminDashboardService } from './admin-dashboard.service.js';
 
@@ -12,5 +12,22 @@ export class AdminDashboardController {
   @Get('stats')
   async getStats() {
     return this.adminDashboardService.getStats();
+  }
+
+  @Get('payments')
+  async getPayments(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string,
+    @Query('purpose') purpose?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.adminDashboardService.getPayments(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 20,
+      status,
+      purpose,
+      search,
+    );
   }
 }

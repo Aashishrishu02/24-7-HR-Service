@@ -283,6 +283,7 @@ export default function Dashboard() {
   const [renewalLoading, setRenewalLoading] = useState(false);
   const [renewalConsentChecked, setRenewalConsentChecked] = useState(false);
   const [renewalActionLoading, setRenewalActionLoading] = useState(false);
+  const [renewalRazorpayLoading, setRenewalRazorpayLoading] = useState(false);
   const [renewalError, setRenewalError] = useState("");
   const [renewalSuccess, setRenewalSuccess] = useState("");
 
@@ -659,6 +660,73 @@ export default function Dashboard() {
       setRenewalError(err.response?.data?.message || "Failed to renew VPS");
     } finally {
       setRenewalActionLoading(false);
+    }
+  };
+
+  const handleRazorpayRenew = async () => {
+    if (!renewalModalVpsId) return;
+    setRenewalRazorpayLoading(true);
+    setRenewalError("");
+    setRenewalSuccess("");
+
+    try {
+      const res = await api.post(`/vps/${renewalModalVpsId}/renewal/razorpay/create`);
+      const data = res.data;
+
+      const Razorpay = (window as any).Razorpay;
+      if (!Razorpay || !data.keyId) {
+        setRenewalError("Razorpay payment gateway is not loaded or key is missing. Please contact support.");
+        setRenewalRazorpayLoading(false);
+        return;
+      }
+
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency || "INR",
+        name: "24/7 HR Service",
+        description: `VPS Server Renewal - ${data.planName || "Cloud VPS"}`,
+        order_id: data.razorpayOrderId,
+        handler: async (response: any) => {
+          try {
+            setRenewalActionLoading(true);
+            const verifyRes = await api.post(`/vps/${renewalModalVpsId}/renewal/razorpay/verify`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            setRenewalSuccess(verifyRes.data?.message || "VPS renewed successfully via Razorpay!");
+            const detailsRes = await api.get(`/vps/${renewalModalVpsId}/renewal-details`);
+            setRenewalDetails(detailsRes.data);
+            await Promise.all([fetchVps(), fetchWallet(), fetchTransactions()]);
+          } catch (vErr: any) {
+            setRenewalError(
+              vErr.response?.data?.message || "Payment completed on gateway, but verification failed. Support will assist shortly."
+            );
+          } finally {
+            setRenewalActionLoading(false);
+          }
+        },
+        prefill: {
+          name: profile?.name || "",
+          email: profile?.email || "",
+        },
+        theme: {
+          color: "#C6A66B",
+        },
+        modal: {
+          ondismiss: () => {
+            setRenewalRazorpayLoading(false);
+          },
+        },
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      setRenewalError(err.response?.data?.message || "Failed to initiate Razorpay renewal. Please try again.");
+    } finally {
+      setRenewalRazorpayLoading(false);
     }
   };
 
@@ -3023,19 +3091,34 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {/* Manual Renewal Action */}
-                  <div className="pt-2">
+                  {/* Renewal Action Buttons */}
+                  <div className="pt-2 space-y-2.5">
+                    {/* 1. Direct Razorpay Payment Button */}
                     <button
-                      disabled={!renewalDetails.isBalanceSufficient || renewalActionLoading}
+                      disabled={renewalRazorpayLoading || renewalActionLoading}
+                      onClick={handleRazorpayRenew}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#C6A66B] to-[#d8ba82] py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/20 transition hover:opacity-95 disabled:opacity-40"
+                    >
+                      {renewalRazorpayLoading ? (
+                        <RefreshCw size={15} className="animate-spin" />
+                      ) : (
+                        <CreditCard size={15} />
+                      )}
+                      Pay & Renew with Razorpay (₹{renewalDetails.plan.renewalPrice} UPI/Card)
+                    </button>
+
+                    {/* 2. Wallet Renewal Button */}
+                    <button
+                      disabled={!renewalDetails.isBalanceSufficient || renewalActionLoading || renewalRazorpayLoading}
                       onClick={handleManualRenew}
-                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#C6A66B] py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-40"
+                      className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#332f2a] bg-[#171717] py-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#F1E9DA]/80 transition hover:border-[#C6A66B]/50 hover:text-[#F1E9DA] disabled:opacity-40"
                     >
                       {renewalActionLoading ? (
                         <RefreshCw size={15} className="animate-spin" />
                       ) : (
                         <Zap size={15} />
                       )}
-                      Renew Server Immediately (₹{renewalDetails.plan.renewalPrice} via Wallet)
+                      Renew via Wallet (₹{renewalDetails.plan.renewalPrice})
                     </button>
                   </div>
                 </>

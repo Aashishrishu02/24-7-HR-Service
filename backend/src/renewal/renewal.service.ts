@@ -3,28 +3,46 @@ import {
   BadRequestException,
   NotFoundException,
   ConflictException,
+  ServiceUnavailableException,
   Logger,
   Optional,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AdminSettingsService } from './admin-settings.service.js';
 import { NotificationService } from './notification.service.js';
 import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
 import { VpsService } from '../vps/vps.service.js';
+import Razorpay from 'razorpay';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 @Injectable()
 export class RenewalService {
   private readonly logger = new Logger(RenewalService.name);
   private isProcessing = false;
+  private readonly razorpay: Razorpay | null = null;
+  private readonly keyId: string | undefined;
+  private readonly keySecret: string | undefined;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly adminSettings: AdminSettingsService,
     private readonly notificationService: NotificationService,
+    private readonly config: ConfigService,
     @Optional() private readonly hostheavenService?: HostHeavenService,
     @Optional() private readonly vpsService?: VpsService,
-  ) {}
+  ) {
+    this.keyId = this.config.get<string>('RAZORPAY_KEY_ID');
+    this.keySecret = this.config.get<string>('RAZORPAY_KEY_SECRET');
+
+    if (this.keyId && this.keySecret && this.keyId !== 'rzp_test_placeholder') {
+      this.razorpay = new Razorpay({
+        key_id: this.keyId,
+        key_secret: this.keySecret,
+      });
+    }
+  }
 
   // ==========================================
   // CUSTOMER AUTO-RENEWAL CONSENT & CONTROLS
@@ -727,5 +745,272 @@ export class RenewalService {
       idempotencyKey,
       isAutomatic: false,
     });
+  }
+
+  // ==========================================
+  // RAZORPAY DIRECT VPS RENEWAL
+  // ==========================================
+
+  async createRazorpayRenewalOrder(userId: string, vpsId: string) {
+    const vps = await this.prisma.vPSInstance.findFirst({
+      where: { id: vpsId, userId },
+      include: {
+        order: {
+          include: {
+            plan: true,
+          },
+        },
+      },
+    });
+
+    if (!vps) {
+      throw new NotFoundException('VPS instance not found');
+    }
+
+    if (vps.status === 'TERMINATED') {
+      throw new BadRequestException('Terminated VPS instances cannot be renewed');
+    }
+
+    let renewalPrice = new Prisma.Decimal('999.00');
+    let planName = 'VPS Plan';
+    let durationDays = 30;
+
+    if (vps.order?.plan) {
+      renewalPrice = vps.order.plan.price;
+      planName = vps.order.plan.name;
+      durationDays = vps.order.plan.durationDays;
+    } else if (vps.order?.amount) {
+      renewalPrice = vps.order.amount;
+      planName = vps.order.planName;
+    }
+
+    if (!this.razorpay || !this.keyId || !this.keySecret) {
+      throw new ServiceUnavailableException(
+        'Razorpay payment gateway is not configured on the server. Please supply Razorpay credentials.',
+      );
+    }
+
+    const amountPaise = Math.round(Number(renewalPrice) * 100);
+    const receipt = `ren_${vps.id.replace(/-/g, '').slice(0, 14)}_${Date.now()}`.slice(0, 40);
+
+    let razorpayOrder: any;
+    try {
+      razorpayOrder = await this.razorpay.orders.create({
+        amount: amountPaise,
+        currency: 'INR',
+        receipt,
+        notes: {
+          userId,
+          vpsId: vps.id,
+          purpose: 'VPS_RENEWAL',
+          planName,
+          durationDays: String(durationDays),
+        },
+      });
+    } catch (err: any) {
+      this.logger.error(`Failed to create Razorpay renewal order: ${err?.message || err}`);
+      throw new BadRequestException('Failed to initiate Razorpay order for renewal');
+    }
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        userId,
+        orderId: vps.orderId,
+        purpose: 'VPS_RENEWAL',
+        provider: 'RAZORPAY',
+        razorpayOrderId: razorpayOrder.id,
+        amount: renewalPrice,
+        currency: 'INR',
+        status: 'CREATED',
+      },
+    });
+
+    return {
+      paymentId: payment.id,
+      razorpayOrderId: razorpayOrder.id,
+      amount: amountPaise,
+      currency: 'INR',
+      keyId: this.keyId,
+      vpsId: vps.id,
+      planName,
+      renewalPrice: Number(renewalPrice),
+    };
+  }
+
+  async verifyRazorpayRenewal(
+    userId: string,
+    vpsId: string,
+    dto: {
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+    },
+  ) {
+    if (!this.razorpay || !this.keySecret) {
+      throw new ServiceUnavailableException('Razorpay verification service is not configured');
+    }
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = dto;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      throw new BadRequestException('Missing Razorpay verification parameters');
+    }
+
+    const expectedSignature = createHmac('sha256', this.keySecret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+    const receivedBuffer = Buffer.from(razorpay_signature, 'hex');
+
+    if (
+      expectedBuffer.length !== receivedBuffer.length ||
+      !timingSafeEqual(expectedBuffer, receivedBuffer)
+    ) {
+      throw new BadRequestException('Invalid Razorpay payment signature');
+    }
+
+    const payment = await this.prisma.payment.findFirst({
+      where: {
+        userId,
+        razorpayOrderId: razorpay_order_id,
+        purpose: 'VPS_RENEWAL',
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Renewal payment record not found');
+    }
+
+    return this.applyVpsRenewalFromPayment({
+      paymentId: payment.id,
+      userId,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+      vpsIdHint: vpsId,
+    });
+  }
+
+  async applyVpsRenewalFromPayment(params: {
+    paymentId: string;
+    userId: string;
+    razorpayPaymentId?: string;
+    razorpaySignature?: string;
+    vpsIdHint?: string;
+  }) {
+    const { paymentId, userId, razorpayPaymentId, razorpaySignature, vpsIdHint } = params;
+
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { order: true },
+    });
+
+    if (!payment) {
+      throw new NotFoundException(`Payment ${paymentId} not found`);
+    }
+
+    if (payment.status === 'CAPTURED') {
+      return { success: true, message: 'VPS renewal was already processed' };
+    }
+
+    let vps = null;
+    if (vpsIdHint) {
+      vps = await this.prisma.vPSInstance.findFirst({
+        where: { id: vpsIdHint, userId },
+        include: { order: { include: { plan: true } } },
+      });
+    }
+
+    if (!vps && payment.orderId) {
+      vps = await this.prisma.vPSInstance.findFirst({
+        where: { orderId: payment.orderId, userId },
+        include: { order: { include: { plan: true } } },
+      });
+    }
+
+    if (!vps) {
+      throw new NotFoundException('Target VPS instance for renewal could not be located');
+    }
+
+    let durationDays = 30;
+    let planName = 'VPS Plan';
+    if (vps.order?.plan) {
+      durationDays = vps.order.plan.durationDays;
+      planName = vps.order.plan.name;
+    }
+
+    const baseDate =
+      vps.expiresAt && vps.expiresAt.getTime() > Date.now()
+        ? new Date(vps.expiresAt)
+        : new Date();
+
+    const newExpiresAt = new Date(
+      baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000,
+    );
+
+    const payId = razorpayPaymentId || payment.razorpayPaymentId || `pay_${Date.now()}`;
+    const idempotencyKey = `vps-renewal-razorpay:${payment.id}`;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: 'CAPTURED',
+          razorpayPaymentId: payId,
+          razorpaySignature: razorpaySignature || payment.razorpaySignature,
+        },
+      });
+
+      await tx.vPSInstance.update({
+        where: { id: vps.id },
+        data: {
+          expiresAt: newExpiresAt,
+          status: 'RUNNING',
+          suspendedAt: null,
+          providerSuspended: false,
+        },
+      });
+
+      await tx.renewalAttempt.upsert({
+        where: { idempotencyKey },
+        create: {
+          vpsId: vps.id,
+          userId,
+          status: 'SUCCESS',
+          renewalAmount: payment.amount,
+          previousExpiresAt: vps.expiresAt,
+          newExpiresAt,
+          paymentId: payment.id,
+          idempotencyKey,
+        },
+        update: {
+          status: 'SUCCESS',
+          newExpiresAt,
+          paymentId: payment.id,
+        },
+      });
+    });
+
+    try {
+      if (vps.provider === 'HOSTHEAVEN' && this.hostheavenService) {
+        const monthsToAdd = Math.max(1, Math.round(durationDays / 30));
+        await this.hostheavenService.renewVm(
+          vps.providerVpsId || vps.id,
+          monthsToAdd,
+        );
+      } else if (vps.provider === 'SMARTVPS' && this.vpsService) {
+        await this.vpsService.renew(vps.ipAddress);
+      }
+    } catch (providerErr: any) {
+      this.logger.error(`Provider VM renew notification error: ${providerErr.message}`);
+    }
+
+    return {
+      success: true,
+      message: 'VPS renewed successfully via Razorpay',
+      vpsId: vps.id,
+      expiresAt: newExpiresAt,
+      durationDays,
+    };
   }
 }

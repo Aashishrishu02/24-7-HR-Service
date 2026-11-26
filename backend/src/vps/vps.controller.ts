@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RenewalService } from '../renewal/renewal.service.js';
 import { UpdateAutoRenewDto } from '../renewal/dto/update-auto-renew.dto.js';
 import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
+import { VerifyVpsPaymentDto } from '../checkout/dto/verify-vps-payment.dto.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -226,6 +227,25 @@ export class VpsController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.renewalService.renewVpsManual(req.user.sub, id);
+  }
+
+  // Initiate direct VPS renewal via Razorpay
+  @Post(':id/renewal/razorpay/create')
+  async createRazorpayRenewal(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.renewalService.createRazorpayRenewalOrder(req.user.sub, id);
+  }
+
+  // Verify direct VPS renewal via Razorpay
+  @Post(':id/renewal/razorpay/verify')
+  async verifyRazorpayRenewal(
+    @Param('id') id: string,
+    @Body() dto: VerifyVpsPaymentDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.renewalService.verifyRazorpayRenewal(req.user.sub, id, dto);
   }
 
   // Verify VPS ownership
