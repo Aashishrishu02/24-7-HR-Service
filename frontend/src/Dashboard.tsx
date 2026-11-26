@@ -24,6 +24,9 @@ import {
   KeyRound,
   RotateCcw,
   Power,
+  Search,
+  ArrowUpDown,
+  Layers,
 } from "lucide-react";
 import api from "./api";
 import logo from "./assets/247-logo.png";
@@ -272,6 +275,14 @@ export default function Dashboard() {
   const [plansError, setPlansError] = useState("");
   const [notice, setNotice] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Plans Search, Filter & Sort State
+  const [planSearch, setPlanSearch] = useState("");
+  const [selectedRamFilter, setSelectedRamFilter] = useState<number | "ALL">("ALL");
+  const [selectedCpuFilter, setSelectedCpuFilter] = useState<number | "ALL">("ALL");
+  const [selectedSort, setSelectedSort] = useState<
+    "DEFAULT" | "PRICE_ASC" | "PRICE_DESC" | "RAM_ASC" | "RAM_DESC"
+  >("DEFAULT");
 
   // Checkout modal state
   const [selectedPlan, setSelectedPlan] = useState<VPSPlan | null>(null);
@@ -1129,7 +1140,7 @@ export default function Dashboard() {
     const isLinuxOS = (os: string) =>
       /linux|ubuntu|debian|centos|rocky|alma|fedora|alpine|opensuse/i.test(os);
 
-    return plans.filter((plan) => {
+    let list = plans.filter((plan) => {
       const productType = String(plan.productType ?? "")
         .trim()
         .toUpperCase()
@@ -1164,7 +1175,115 @@ export default function Dashboard() {
 
       return true;
     });
-  }, [plans, page]);
+
+    // 1. Filter by RAM pill
+    if (selectedRamFilter !== "ALL") {
+      if (selectedRamFilter === 16) {
+        list = list.filter((p) => Number(p.ramGb ?? 0) >= 16);
+      } else {
+        list = list.filter((p) => Number(p.ramGb ?? 0) === selectedRamFilter);
+      }
+    }
+
+    // 2. Filter by CPU pill
+    if (selectedCpuFilter !== "ALL") {
+      if (selectedCpuFilter === 8) {
+        list = list.filter((p) => Number(p.cpuCores ?? 0) >= 8);
+      } else {
+        list = list.filter((p) => Number(p.cpuCores ?? 0) === selectedCpuFilter);
+      }
+    }
+
+    // 3. Smart Search query
+    const q = planSearch.trim().toLowerCase();
+    if (q) {
+      // Extract RAM if mentioned (e.g. '2gb', '2 gb', '2gb ram', '2 gb ram', '2g ram', '2 ram')
+      const ramMatch =
+        q.match(/(\d+)\s*(?:gb|g)\b(?:\s*ram)?/i) || q.match(/(\d+)\s*ram\b/i);
+      const explicitRam = ramMatch ? parseInt(ramMatch[1], 10) : null;
+
+      // Extract CPU if mentioned (e.g. '2 vcpu', '2vcpu', '2 cpu', '2 cores', '2 core')
+      const cpuMatch = q.match(/(\d+)\s*(?:vcpu|cpu|cores?)\b/i);
+      const explicitCpu = cpuMatch ? parseInt(cpuMatch[1], 10) : null;
+
+      // Remaining clean keywords
+      let cleanKeywords = q;
+      if (ramMatch) cleanKeywords = cleanKeywords.replace(ramMatch[0], " ");
+      if (cpuMatch) cleanKeywords = cleanKeywords.replace(cpuMatch[0], " ");
+      cleanKeywords = cleanKeywords
+        .replace(/\b(vps|server|cloud|plans?)\b/gi, " ")
+        .trim();
+
+      list = list.filter((p) => {
+        const pName = (p.name || "").toLowerCase();
+        const pDesc = (p.description || "").toLowerCase();
+        const pLoc = (p.location || "").toLowerCase();
+        const pTier = (p.tier || "").toLowerCase();
+        const pRam = Number(p.ramGb || 0);
+        const pCpu = Number(p.cpuCores || 0);
+        const pStorage = `${p.storageGb || ""}gb nvme ssd`.toLowerCase();
+        const pPrice = String(p.price || "");
+
+        // If explicit RAM searched, must match plan RAM
+        if (explicitRam !== null && pRam !== explicitRam) {
+          if (
+            !pName.includes(`${explicitRam} gb`) &&
+            !pName.includes(`${explicitRam}gb`)
+          ) {
+            return false;
+          }
+        }
+
+        // If explicit CPU searched, must match plan CPU
+        if (explicitCpu !== null && pCpu !== explicitCpu) {
+          if (
+            !pName.includes(`${explicitCpu} vcpu`) &&
+            !pName.includes(`${explicitCpu}vcpu`)
+          ) {
+            return false;
+          }
+        }
+
+        // Remaining keywords matching
+        if (cleanKeywords) {
+          const words = cleanKeywords.split(/\s+/).filter(Boolean);
+          return words.every(
+            (w) =>
+              pName.includes(w) ||
+              pDesc.includes(w) ||
+              pLoc.includes(w) ||
+              pTier.includes(w) ||
+              pStorage.includes(w) ||
+              pPrice.includes(w) ||
+              `${pRam}gb`.includes(w) ||
+              `${pCpu}vcpu`.includes(w),
+          );
+        }
+
+        return true;
+      });
+    }
+
+    // 4. Sorting
+    if (selectedSort === "PRICE_ASC") {
+      list = [...list].sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (selectedSort === "PRICE_DESC") {
+      list = [...list].sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (selectedSort === "RAM_ASC") {
+      list = [...list].sort((a, b) => Number(a.ramGb || 0) - Number(b.ramGb || 0));
+    } else if (selectedSort === "RAM_DESC") {
+      list = [...list].sort((a, b) => Number(b.ramGb || 0) - Number(a.ramGb || 0));
+    }
+
+    return list;
+  }, [
+    plans,
+    page,
+    planSearch,
+    selectedRamFilter,
+    selectedCpuFilter,
+    selectedSort,
+  ]);
 
   const PlanCard = ({ plan, index }: { plan: VPSPlan; index: number }) => {
     const availableOS = plan.supportedOS || [];
@@ -1542,6 +1661,147 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Plan Search & Filter Bar */}
+              <div className="mb-8 space-y-3.5 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-4 sm:p-5 shadow-xl">
+                {/* Search Input & Sort Row */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="relative flex-1">
+                    <Search
+                      size={16}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#F1E9DA]/40"
+                    />
+                    <input
+                      type="text"
+                      value={planSearch}
+                      onChange={(e) => setPlanSearch(e.target.value)}
+                      placeholder="Search by RAM (e.g. 2GB, 4GB, 8GB), vCPU, location, plan name..."
+                      className="w-full rounded-xl border border-[#332f2a] bg-[#171717] py-2.5 pl-10 pr-10 font-mono text-xs text-[#F1E9DA] placeholder:text-[#F1E9DA]/35 transition focus:border-[#C6A66B] focus:outline-none focus:ring-1 focus:ring-[#C6A66B]/30"
+                    />
+                    {planSearch && (
+                      <button
+                        onClick={() => setPlanSearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-[#F1E9DA]/40 hover:text-[#F1E9DA] transition"
+                        title="Clear search"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Sort Dropdown & Reset */}
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex items-center">
+                      <ArrowUpDown
+                        size={14}
+                        className="pointer-events-none absolute left-3 text-[#C6A66B]"
+                      />
+                      <select
+                        value={selectedSort}
+                        onChange={(e: any) => setSelectedSort(e.target.value)}
+                        className="rounded-xl border border-[#332f2a] bg-[#171717] py-2.5 pl-9 pr-8 font-mono text-xs text-[#F1E9DA] transition focus:border-[#C6A66B] focus:outline-none"
+                      >
+                        <option value="DEFAULT">Sort: Recommended</option>
+                        <option value="PRICE_ASC">Price: Low to High</option>
+                        <option value="PRICE_DESC">Price: High to Low</option>
+                        <option value="RAM_ASC">RAM: Low to High</option>
+                        <option value="RAM_DESC">RAM: High to Low</option>
+                      </select>
+                    </div>
+
+                    {(planSearch ||
+                      selectedRamFilter !== "ALL" ||
+                      selectedCpuFilter !== "ALL" ||
+                      selectedSort !== "DEFAULT") && (
+                      <button
+                        onClick={() => {
+                          setPlanSearch("");
+                          setSelectedRamFilter("ALL");
+                          setSelectedCpuFilter("ALL");
+                          setSelectedSort("DEFAULT");
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-950/20 px-3 py-2.5 font-mono text-xs font-semibold text-red-400 hover:bg-red-900/30 transition"
+                        title="Reset all filters"
+                      >
+                        <X size={13} />
+                        <span className="hidden sm:inline">Reset</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Filter Pills Row */}
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between border-t border-[#332f2a]/60">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50 flex items-center gap-1 mr-1">
+                      <Layers size={12} className="text-[#C6A66B]" /> RAM:
+                    </span>
+                    {(["ALL", 1, 2, 4, 8, 16] as const).map((ram) => (
+                      <button
+                        key={ram}
+                        onClick={() => setSelectedRamFilter(ram)}
+                        className={`rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition ${
+                          selectedRamFilter === ram
+                            ? "border-[#C6A66B] bg-[#C6A66B] text-[#171717] shadow-sm shadow-[#C6A66B]/20"
+                            : "border-[#332f2a] bg-[#171717] text-[#F1E9DA]/70 hover:border-[#C6A66B]/40 hover:text-[#F1E9DA]"
+                        }`}
+                      >
+                        {ram === "ALL" ? "All RAM" : `${ram} GB`}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-[#F1E9DA]/50 flex items-center gap-1 mr-1">
+                      <Cpu size={12} className="text-[#C6A66B]" /> vCPU:
+                    </span>
+                    {(["ALL", 1, 2, 4, 8] as const).map((cpu) => (
+                      <button
+                        key={cpu}
+                        onClick={() => setSelectedCpuFilter(cpu)}
+                        className={`rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition ${
+                          selectedCpuFilter === cpu
+                            ? "border-[#C6A66B] bg-[#C6A66B] text-[#171717] shadow-sm shadow-[#C6A66B]/20"
+                            : "border-[#332f2a] bg-[#171717] text-[#F1E9DA]/70 hover:border-[#C6A66B]/40 hover:text-[#F1E9DA]"
+                        }`}
+                      >
+                        {cpu === "ALL" ? "All CPUs" : `${cpu} vCPU`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Active Filter Result Info Bar */}
+                <div className="flex items-center justify-between font-mono text-[11px] text-[#F1E9DA]/50 pt-0.5">
+                  <p>
+                    Showing{" "}
+                    <span className="font-bold text-[#C6A66B]">
+                      {visiblePlans.length}
+                    </span>{" "}
+                    {page === "Windows VPS"
+                      ? "Windows"
+                      : page === "Linux VPS"
+                        ? "Linux"
+                        : "Cloud"}{" "}
+                    VPS {visiblePlans.length === 1 ? "plan" : "plans"}
+                    {planSearch && (
+                      <span>
+                        {" "}
+                        matching &ldquo;
+                        <span className="text-[#F1E9DA]">{planSearch}</span>
+                        &rdquo;
+                      </span>
+                    )}
+                  </p>
+                  {(selectedRamFilter !== "ALL" ||
+                    selectedCpuFilter !== "ALL" ||
+                    planSearch) && (
+                    <span className="text-emerald-400 font-semibold">
+                      ● Active Filters
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {plansLoading ? (
                 <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                   {[1, 2, 3, 4].map((i) => (
@@ -1560,21 +1820,47 @@ export default function Dashboard() {
               ) : (
                 <div className="rounded-2xl border border-[#332f2a] bg-[#201d1a] px-6 py-12 text-center text-[#F1E9DA]">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#C6A66B]/20 bg-[#171717] text-[#C6A66B]">
-                    <Server size={26} />
+                    <Search size={26} />
                   </div>
                   <h3 className="mt-4 font-serif text-lg font-bold">
-                    VPS plans will appear here
+                    No VPS plans match your criteria
                   </h3>
                   <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-[#F1E9DA]/60">
-                    {plansError ||
-                      "Our team is updating the available server plans. Please check again shortly."}
+                    {planSearch ||
+                    selectedRamFilter !== "ALL" ||
+                    selectedCpuFilter !== "ALL"
+                      ? `No plans found matching "${
+                          planSearch ||
+                          (selectedRamFilter !== "ALL"
+                            ? `${selectedRamFilter} GB RAM`
+                            : `${selectedCpuFilter} vCPU`)
+                        }". Try selecting a different RAM / vCPU size or clear your search.`
+                      : plansError ||
+                        "Our team is updating the available server plans. Please check again shortly."}
                   </p>
-                  <button
-                    onClick={fetchPlans}
-                    className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#C6A66B] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82]"
-                  >
-                    <RefreshCw size={14} /> Refresh plans
-                  </button>
+                  {planSearch ||
+                  selectedRamFilter !== "ALL" ||
+                  selectedCpuFilter !== "ALL" ||
+                  selectedSort !== "DEFAULT" ? (
+                    <button
+                      onClick={() => {
+                        setPlanSearch("");
+                        setSelectedRamFilter("ALL");
+                        setSelectedCpuFilter("ALL");
+                        setSelectedSort("DEFAULT");
+                      }}
+                      className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#C6A66B] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82]"
+                    >
+                      <X size={14} /> Clear all filters
+                    </button>
+                  ) : (
+                    <button
+                      onClick={fetchPlans}
+                      className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#C6A66B] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#d8ba82]"
+                    >
+                      <RefreshCw size={14} /> Refresh plans
+                    </button>
+                  )}
                 </div>
               )}
             </section>
