@@ -44,6 +44,18 @@ export class VpsController {
     return this.prisma.vPSInstance.findMany({
       where: { userId: req.user.sub },
       orderBy: { createdAt: 'desc' },
+      include: {
+        inventory: {
+          select: {
+            cpuCores: true,
+            ramGb: true,
+            storageGb: true,
+            bandwidthGb: true,
+            region: true,
+            operatingSystem: true,
+          },
+        },
+      },
     });
   }
 
@@ -60,6 +72,11 @@ export class VpsController {
     @Req() req: AuthenticatedRequest,
   ) {
     const vps = await this.findOwnedVps(id, req.user.sub);
+    if (vps.provider !== 'SMARTVPS') {
+      throw new ServiceUnavailableException(
+        `OS templates are not supported for provider ${vps.provider}`,
+      );
+    }
     return this.vpsService.getOsTemplate(vps.ipAddress);
   }
 
@@ -116,7 +133,12 @@ export class VpsController {
     if (vps.provider === 'HOSTHEAVEN') {
       return this.hostheavenService.getVmDetails(vps.providerVpsId || vps.id);
     }
-    return this.vpsService.getStatus(vps.ipAddress);
+    if (vps.provider === 'SMARTVPS') {
+      return this.vpsService.getStatus(vps.ipAddress);
+    }
+    throw new ServiceUnavailableException(
+      `Live status is not supported for provider ${vps.provider}`,
+    );
   }
 
   // Start VPS
@@ -133,8 +155,12 @@ export class VpsController {
         vps.providerVpsId || vps.id,
         'start',
       );
-    } else {
+    } else if (vps.provider === 'SMARTVPS') {
       result = await this.vpsService.start(vps.ipAddress);
+    } else {
+      throw new ServiceUnavailableException(
+        `Start is not supported for provider ${vps.provider}`,
+      );
     }
 
     await this.prisma.vPSInstance.update({
@@ -159,8 +185,12 @@ export class VpsController {
         vps.providerVpsId || vps.id,
         'stop',
       );
-    } else {
+    } else if (vps.provider === 'SMARTVPS') {
       result = await this.vpsService.stop(vps.ipAddress);
+    } else {
+      throw new ServiceUnavailableException(
+        `Stop is not supported for provider ${vps.provider}`,
+      );
     }
 
     await this.prisma.vPSInstance.update({
@@ -183,6 +213,12 @@ export class VpsController {
     }
 
     const vps = await this.findOwnedVps(id, req.user.sub);
+    if (vps.provider !== 'SMARTVPS') {
+      throw new ServiceUnavailableException(
+        `OS change is not supported through the current integration for provider ${vps.provider}`,
+      );
+    }
+
     const result = await this.vpsService.changeOs(
       vps.ipAddress,
       body.os,

@@ -24,6 +24,7 @@ type Screen = "login" | "register" | "verify" | "forgot" | "reset";
 
 function App() {
   const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+  const isVpsDetailRoute = /^\/my-vps\/[^/]+$/.test(pathname);
 
   if (pathname === "/admin" || pathname === "/admin/login") {
     return <AdminPanel />;
@@ -42,6 +43,7 @@ function App() {
     pathname === "/orders" ||
     pathname === "/servers" ||
     pathname === "/my-vps" ||
+    isVpsDetailRoute ||
     pathname === "/windows-vps" ||
     pathname === "/linux-vps" ||
     pathname === "/dedicated-ip" ||
@@ -129,6 +131,20 @@ function AuthApp() {
     e.preventDefault();
     resetMessages();
 
+    if (form.password !== form.confirmPassword) {
+      setError("Password and confirm password do not match.");
+      return;
+    }
+
+    if (
+      form.password.length < 8 ||
+      form.password.length > 72 ||
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/.test(form.password)
+    ) {
+      setError("Password must be 8-72 characters and contain uppercase, lowercase and a number.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -145,6 +161,8 @@ function AuthApp() {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
       });
 
       setScreen("verify");
@@ -169,10 +187,8 @@ function AuthApp() {
         otp: form.otp,
       });
 
-      setMessage("Email verified! Your temporary login password has been sent to your email.");
       setScreen("login");
-
-      update("password", "");
+      setMessage("Email verified successfully! You can now log in using the password you created.");
       update("confirmPassword", "");
       update("otp", "");
     } catch (err: any) {
@@ -650,6 +666,36 @@ function AuthApp() {
                     value={form.email}
                     onChange={(e) => update("email", e.target.value)}
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Create Password</label>
+                  <input
+                    className={inputClass}
+                    type="password"
+                    placeholder="At least 8 characters"
+                    value={form.password}
+                    onChange={(e) => update("password", e.target.value)}
+                    required
+                    minLength={8}
+                    maxLength={72}
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*"
+                    title="Include uppercase, lowercase and a number"
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Confirm Password</label>
+                  <input
+                    className={inputClass}
+                    type="password"
+                    placeholder="Re-enter your password"
+                    value={form.confirmPassword}
+                    onChange={(e) => update("confirmPassword", e.target.value)}
+                    required
+                    minLength={8}
+                    maxLength={72}
                   />
                 </div>
 

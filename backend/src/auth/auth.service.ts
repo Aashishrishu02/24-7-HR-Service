@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-import { randomInt, randomBytes } from 'node:crypto';
+import { randomInt } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
@@ -54,28 +54,34 @@ export class AuthService {
       where: { email },
     });
 
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException('Password and confirm password do not match.');
+    }
+
     if (user?.emailVerifiedAt) {
       throw new ConflictException('Email is already registered');
     }
 
     const name = `${dto.firstName.trim()} ${dto.lastName.trim()}`;
-    const placeholderHash = await bcrypt.hash(
-      randomBytes(32).toString('hex'),
-      12,
-    );
+    const passwordHash = await bcrypt.hash(dto.password, 12);
 
     if (user) {
       user = await this.prisma.user.update({
         where: { id: user.id },
-        data: { name, passwordHash: placeholderHash },
+        data: {
+          name,
+          passwordHash,
+          isActive: false,
+        },
       });
     } else {
       user = await this.prisma.user.create({
         data: {
           name,
           email,
-          passwordHash: placeholderHash,
+          passwordHash,
           emailVerifiedAt: null,
+          isActive: false,
         },
       });
     }
@@ -111,7 +117,7 @@ export class AuthService {
     };
   }
 
-  // VERIFY EMAIL AND SEND TEMPORARY PASSWORD
+  // VERIFY EMAIL AND ACTIVATE ACCOUNT
   async verifyEmail(dto: VerifyEmailDto) {
     const email = dto.email.trim().toLowerCase();
 
@@ -136,14 +142,15 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired OTP.');
     }
 
-    const temporaryPassword = randomBytes(24).toString('base64url');
-    const passwordHash = await bcrypt.hash(temporaryPassword, 12);
     const now = new Date();
 
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: user.id },
-        data: { passwordHash, emailVerifiedAt: now },
+        data: {
+          emailVerifiedAt: now,
+          isActive: true,
+        },
       }),
       this.prisma.emailVerificationOtp.update({
         where: { id: otpRecord.id },
@@ -151,13 +158,8 @@ export class AuthService {
       }),
     ]);
 
-    await this.emailService.sendTemporaryPasswordEmail(
-      email,
-      temporaryPassword,
-    );
-
     return {
-      message: 'Email verified. Your temporary password has been sent to your email.',
+      message: 'Email verified successfully. You can now log in with your chosen password.',
     };
   }
 

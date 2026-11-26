@@ -29,6 +29,7 @@ import api from "./api";
 import logo from "./assets/247-logo.png";
 import BuyLinuxIP from "./BuyLinuxIP";
 import CustomerSupportDesk from "./CustomerSupportDesk";
+import VpsDetail from "./VpsDetail";
 
 type UserProfile = {
   id: string;
@@ -45,6 +46,14 @@ type VPSInstance = {
   userId: string;
   provider: string;
   providerVpsId?: string | null;
+  inventory?: {
+    cpuCores?: number | null;
+    ramGb?: number | null;
+    storageGb?: number | null;
+    bandwidthGb?: number | null;
+    region?: string | null;
+    operatingSystem?: string | null;
+  } | null;
   ipAddress: string;
   hostname: string | null;
   operatingSystem: string | null;
@@ -238,6 +247,10 @@ const determineInitialPage = (): Page => {
 
 export default function Dashboard() {
   const [page, setPage] = useState<Page>(determineInitialPage());
+  const [selectedVpsId, setSelectedVpsId] = useState<string | null>(() => {
+    const parts = window.location.pathname.split("/");
+    return parts[1] === "my-vps" && parts[2] ? parts[2] : null;
+  });
   const [checkoutReturnPage, setCheckoutReturnPage] = useState<Page>("Windows VPS");
   const [dedicatedIpEnabled, setDedicatedIpEnabled] = useState(false);
   const [dedicatedIpStatusLoaded, setDedicatedIpStatusLoaded] = useState(false);
@@ -299,13 +312,13 @@ export default function Dashboard() {
   // HostHeaven VPS Diagnostics & Control Modal
   const [manageModalVps, setManageModalVps] = useState<VPSInstance | null>(null);
   const [manageDetails, setManageDetails] = useState<any | null>(null);
-  const [manageLock, setManageLock] = useState<any | null>(null);
-  const [manageMetrics, setManageMetrics] = useState<any | null>(null);
-  const [manageStorage, setManageStorage] = useState<any | null>(null);
+  const [manageLock] = useState<any | null>(null);
+  const [manageMetrics] = useState<any | null>(null);
+  const [manageStorage] = useState<any | null>(null);
   const [manageTab, setManageTab] = useState<
     "overview" | "metrics" | "storage" | "password" | "rebuild"
   >("overview");
-  const [manageLoading, setManageLoading] = useState(false);
+  const [manageLoading] = useState(false);
   const [manageActionLoading, setManageActionLoading] = useState(false);
   const [manageNotice, setManageNotice] = useState("");
   const [manageError, setManageError] = useState("");
@@ -442,42 +455,6 @@ export default function Dashboard() {
       }
     } catch {
       // Keep existing OS list
-    }
-  };
-
-  const openDiagnosticsModal = async (vps: VPSInstance) => {
-    setManageModalVps(vps);
-    setManageTab("overview");
-    setManageNotice("");
-    setManageError("");
-    setNewVmPassword("");
-    setSelectedRebuildIso("");
-    setManageLoading(true);
-
-    try {
-      const [detailsRes, lockRes, metricsRes, storageRes] = await Promise.all([
-        api.get(`/hostheaven/vms/${vps.id}/details`).catch(() => null),
-        api.get(`/hostheaven/vms/${vps.id}/lock-status`).catch(() => null),
-        api
-          .get(`/hostheaven/vms/${vps.id}/metrics?timeframe=hour`)
-          .catch(() => null),
-        api.get(`/hostheaven/vms/${vps.id}/storage`).catch(() => null),
-      ]);
-
-      if (detailsRes?.data) setManageDetails(detailsRes.data);
-      if (lockRes?.data) setManageLock(lockRes.data);
-      if (metricsRes?.data) setManageMetrics(metricsRes.data);
-      if (storageRes?.data) setManageStorage(storageRes.data);
-
-      if (hhIsos.length === 0) {
-        void fetchHostHeavenCatalogue();
-      }
-    } catch (err: any) {
-      setManageError(
-        err.response?.data?.message || "Failed to load server diagnostics",
-      );
-    } finally {
-      setManageLoading(false);
     }
   };
 
@@ -773,6 +750,10 @@ export default function Dashboard() {
   useEffect(() => {
     const handlePopState = () => {
       setPage(determineInitialPage());
+      const parts = window.location.pathname.split("/");
+      setSelectedVpsId(
+        parts[1] === "my-vps" && parts[2] ? parts[2] : null,
+      );
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -792,6 +773,7 @@ export default function Dashboard() {
 
   const go = (next: Page) => {
     setPage(next);
+    if (next === "My VPS") setSelectedVpsId(null);
     setMobileMenu(false);
     setNotice("");
     setError("");
@@ -822,6 +804,18 @@ export default function Dashboard() {
       void fetchVps();
     } else if (next === "Checkout") {
       void fetchWallet();
+    }
+  };
+
+  const openVpsDashboard = (vps: VPSInstance) => {
+    setSelectedVpsId(vps.id);
+    setPage("My VPS");
+    setMobileMenu(false);
+    setNotice("");
+    setError("");
+    const targetPath = `/my-vps/${encodeURIComponent(vps.id)}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, "", targetPath);
     }
   };
 
@@ -1592,6 +1586,15 @@ export default function Dashboard() {
 
         {/* My Servers */}
         {page === "My VPS" && (
+          selectedVpsId ? (
+            <VpsDetail
+              vps={vpsList.find((vps) => vps.id === selectedVpsId) || null}
+              loading={loading}
+              onBack={() => go("My VPS")}
+              onRefresh={fetchVps}
+              onRenew={openRenewalModal}
+            />
+          ) : (
           <section className="pt-10">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
@@ -1760,7 +1763,7 @@ export default function Dashboard() {
                       </button>
 
                       <button
-                        onClick={() => openDiagnosticsModal(vps)}
+                        onClick={() => openVpsDashboard(vps)}
                         className="flex items-center justify-center gap-2 rounded-xl border border-[#C6A66B]/30 bg-[#171717] px-3 py-2.5 text-xs font-bold text-[#C6A66B] hover:bg-[#292521] transition"
                       >
                         <Activity size={14} /> Manage & Metrics
@@ -1792,7 +1795,9 @@ export default function Dashboard() {
               </div>
             )}
           </section>
+          )
         )}
+
 
         {/* Wallet Page */}
         {page === "Wallet" && (
