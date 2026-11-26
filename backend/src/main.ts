@@ -2,6 +2,8 @@
 import dns from 'node:dns';
 
 const defaultLookup = dns.lookup;
+const NEON_FALLBACK_IPS = ['3.147.219.177', '77.113.120.60', '77.113.7.222'];
+
 // Override DNS lookup for neon.tech domains to prevent local ISP RCODE_REFUSED errors
 (dns as any).lookup = (hostname: string, options: any, callback: any) => {
   if (typeof options === 'function') {
@@ -12,13 +14,15 @@ const defaultLookup = dns.lookup;
     const resolver = new dns.Resolver();
     resolver.setServers(['8.8.8.8', '1.1.1.1']);
     return resolver.resolve4(hostname, (err, addresses) => {
-      if (err || !addresses || addresses.length === 0) {
-        return defaultLookup(hostname, options, callback);
-      }
+      const validAddresses =
+        !err && addresses && addresses.length > 0 ? addresses : NEON_FALLBACK_IPS;
       if (options && options.all) {
-        return callback(null, addresses.map((addr) => ({ address: addr, family: 4 })));
+        return callback(
+          null,
+          validAddresses.map((addr) => ({ address: addr, family: 4 })),
+        );
       }
-      return callback(null, addresses[0], 4);
+      return callback(null, validAddresses[0], 4);
     });
   }
   return defaultLookup(hostname, options, callback);
