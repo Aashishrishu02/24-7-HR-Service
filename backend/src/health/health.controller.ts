@@ -19,7 +19,8 @@ export class HealthController {
         database: 'connected',
         checkedAt,
       };
-    } catch {
+    } catch (error) {
+      console.error('DATABASE HEALTH CHECK FAILED:', error);
       response.status(503);
       return {
         status: 'degraded',
