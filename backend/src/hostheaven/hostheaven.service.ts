@@ -51,7 +51,7 @@ export class HostHeavenService {
       'HOSTHEAVEN_RESELLER_DOMAIN',
     );
 
-    const sanitizedBaseUrl = baseUrl ? baseUrl.replace(/\/+$/, '') : 'https://backend.hostheaven.in';
+    const sanitizedBaseUrl = baseUrl ? baseUrl.replace(/\/+$/, '') : 'https://vps.hostheaven.in';
     const domain = resellerDomain || '247hrservice.com';
 
     const hasRealCredentials = Boolean(
@@ -100,7 +100,7 @@ export class HostHeavenService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Reseller-Domain': config.resellerDomain,
+
         },
         body: JSON.stringify({
           email: config.email,
