@@ -1,7 +1,8 @@
-import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class CreateCheckoutOrderDto {
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   planId: string;
 
   @IsString()

@@ -334,6 +334,7 @@ export class PublicPlansController {
       this.prisma.vPSPlan.findMany({
         where: {
           isActive: true,
+          productType: 'VPS_HOSTING',
         },
         orderBy: [
           { sortOrder: 'asc' },

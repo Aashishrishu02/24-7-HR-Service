@@ -1284,7 +1284,9 @@ export default function Dashboard() {
     }
   };
 
-  const activeCount = vpsList.filter((v) => v.status === "RUNNING").length;
+  const activeCount = vpsList.filter(
+    (v) => v.status === "RUNNING" || v.status === "ACTIVE",
+  ).length;
   const currentWalletBalance = Number(wallet?.balance ?? 0);
   const currentCheckoutPrice = useMemo(() => {
     if (!selectedPlan) return 0;
@@ -2247,27 +2249,32 @@ export default function Dashboard() {
                     </div>
 
                     <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <button
-                        disabled={actionLoading === vps.id}
-                        onClick={() =>
-                          handleVpsAction(
-                            vps.id,
-                            vps.status === "RUNNING" ? "stop" : "start",
-                          )
-                        }
-                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold disabled:opacity-50 ${
-                          vps.status === "RUNNING"
-                            ? "bg-red-500/10 text-red-300 hover:bg-red-500/20 border border-red-500/20"
-                            : "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30"
-                        }`}
-                      >
-                        {actionLoading === vps.id ? (
-                          <RefreshCw size={14} className="animate-spin" />
-                        ) : (
-                          <Zap size={14} />
-                        )}
-                        {vps.status === "RUNNING" ? "Stop Server" : "Start Server"}
-                      </button>
+                      {(() => {
+                        const isOnline = vps.status === "RUNNING" || vps.status === "ACTIVE";
+                        return (
+                          <button
+                            disabled={actionLoading === vps.id}
+                            onClick={() =>
+                              handleVpsAction(
+                                vps.id,
+                                isOnline ? "stop" : "start",
+                              )
+                            }
+                            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold disabled:opacity-50 ${
+                              isOnline
+                                ? "bg-red-500/10 text-red-300 hover:bg-red-500/20 border border-red-500/20"
+                                : "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30"
+                            }`}
+                          >
+                            {actionLoading === vps.id ? (
+                              <RefreshCw size={14} className="animate-spin" />
+                            ) : (
+                              <Zap size={14} />
+                            )}
+                            {isOnline ? "Stop Server" : "Start Server"}
+                          </button>
+                        );
+                      })()}
 
                       <button
                         onClick={() => openVpsDashboard(vps)}
