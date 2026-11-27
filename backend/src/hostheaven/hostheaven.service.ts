@@ -100,7 +100,7 @@ export class HostHeavenService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-
+          'X-Reseller-Domain': config.resellerDomain,
         },
         body: JSON.stringify({
           email: config.email,
@@ -110,6 +110,21 @@ export class HostHeavenService {
       });
 
       if (!response.ok) {
+        const errorBody = await response.text();
+        let providerMessage = errorBody.slice(0, 500);
+
+        try {
+          const parsed = JSON.parse(errorBody);
+          providerMessage =
+            parsed.message || parsed.error || parsed.detail || providerMessage;
+        } catch {}
+
+        console.error(
+          '[HostHeaven local diagnostic]',
+          response.status,
+          String(providerMessage).slice(0, 500),
+        );
+
         throw new UnauthorizedException(
           `HostHeaven login failed with HTTP ${response.status}`,
         );
@@ -187,10 +202,19 @@ export class HostHeavenService {
         let errorMsg = `HostHeaven API returned HTTP ${response.status}`;
         try {
           const parsed = JSON.parse(text);
-          if (parsed.message) errorMsg = parsed.message;
+          if (parsed.message) errorMsg = String(parsed.message).slice(0, 300);
         } catch {
           // Keep generic message
         }
+
+        console.error(
+          '[HostHeaven API diagnostic]',
+          method,
+          cleanEndpoint,
+          response.status,
+          errorMsg,
+        );
+
         throw new ServiceUnavailableException(errorMsg);
       }
 
