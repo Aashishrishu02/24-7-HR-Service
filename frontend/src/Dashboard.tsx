@@ -777,10 +777,24 @@ export default function Dashboard() {
       const matched = plans.find((p) => p.id === planIdFromUrl) || plans[0];
       if (matched) {
         setSelectedPlan(matched);
-        setSelectedOS(matched.supportedOS?.[0] || "Ubuntu 22.04");
       }
     }
   }, [page, plans, selectedPlan]);
+
+  useEffect(() => {
+    if (selectedPlan) {
+      const availableOsList =
+        hhIsos.length > 0
+          ? hhIsos.map((iso) => iso.isoName)
+          : selectedPlan.supportedOS?.length
+          ? selectedPlan.supportedOS
+          : ["Ubuntu 22.04 LTS", "Windows Server 2022"];
+
+      if (!selectedOS || !availableOsList.includes(selectedOS)) {
+        setSelectedOS(availableOsList[0] || "Ubuntu 22.04 LTS");
+      }
+    }
+  }, [selectedPlan, hhIsos, selectedOS]);
 
   const go = (next: Page) => {
     setPage(next);
@@ -970,22 +984,111 @@ export default function Dashboard() {
           months: selectedMonths || 1,
           operatingSystem: selectedOS,
           hostname: customHostname.trim() || undefined,
-          paymentMethod: "WALLET",
+          paymentMethod: paymentMethod,
         });
 
-        setNotice(
-          res.data?.message ||
-            `HostHeaven VPS deployed successfully! Order #${res.data?.order?.orderNumber}`,
-        );
-        setSelectedPlan(null);
-        go("My VPS");
+        if (paymentMethod === "WALLET") {
+          setNotice(
+            res.data?.message ||
+              `HostHeaven VPS deployed successfully! Order #${res.data?.order?.orderNumber}`,
+          );
+          setSelectedPlan(null);
+          go("My VPS");
 
-        await Promise.all([
-          fetchWallet(),
-          fetchTransactions(),
-          fetchOrders(),
-          fetchVps(),
-        ]);
+          await Promise.all([
+            fetchWallet(),
+            fetchTransactions(),
+            fetchOrders(),
+            fetchVps(),
+          ]);
+          return;
+        }
+
+        // Razorpay payment flow for HostHeaven VPS
+        const checkout = res.data;
+        const RazorpayConstructor = (window as any).Razorpay;
+
+        if (!RazorpayConstructor) {
+          throw new Error(
+            "Razorpay Checkout did not load. Please refresh the page and try again.",
+          );
+        }
+
+        if (
+          !checkout?.keyId ||
+          !checkout?.razorpayOrderId ||
+          !checkout?.amount ||
+          !checkout?.currency
+        ) {
+          throw new Error(
+            "The server returned incomplete Razorpay checkout details.",
+          );
+        }
+
+        let verificationStarted = false;
+
+        const razorpay = new RazorpayConstructor({
+          key: checkout.keyId,
+          amount: checkout.amount,
+          currency: checkout.currency,
+          name: "247HR Service",
+          description: `VPS Order ${checkout.orderNumber}`,
+          order_id: checkout.razorpayOrderId,
+
+          handler: async (response: any) => {
+            verificationStarted = true;
+            setCheckoutLoading(true);
+            setCheckoutError("");
+
+            try {
+              const verifyRes = await api.post(
+                `/checkout/orders/${checkout.orderId}/razorpay/verify`,
+                {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                },
+              );
+
+              setNotice(
+                verifyRes.data?.message ||
+                  `VPS order placed successfully! Order #${checkout.orderNumber}`,
+              );
+              setSelectedPlan(null);
+              go("My VPS");
+
+              await Promise.all([
+                fetchWallet(),
+                fetchTransactions(),
+                fetchOrders(),
+                fetchVps(),
+              ]);
+            } catch (vErr: any) {
+              setCheckoutError(
+                vErr.response?.data?.message ||
+                  "Payment captured, but VPS verification failed. Please contact support.",
+              );
+            } finally {
+              setCheckoutLoading(false);
+            }
+          },
+          prefill: {
+            name: profile?.name || "",
+            email: profile?.email || "",
+          },
+          theme: {
+            color: "#C6A66B",
+          },
+          modal: {
+            ondismiss: () => {
+              if (!verificationStarted) {
+                setCheckoutLoading(false);
+              }
+            },
+          },
+        });
+
+        razorpay.open();
         return;
       }
 

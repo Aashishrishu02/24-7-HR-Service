@@ -108,32 +108,36 @@ export class CheckoutService {
 
     if (
       order.currency !== 'INR' ||
-      !order.plan.isActive ||
-      order.plan.hostHeavenMapping ||
-      order.planId.startsWith('hh:')
+      !order.plan.isActive
     ) {
       throw new BadRequestException(
         'This order is not eligible for standard Razorpay checkout',
       );
     }
 
-    const availableInventory =
-      await this.prisma.providerInventory.findFirst({
-        where: {
-          status: 'AVAILABLE',
-          ipAddress: { not: null },
-          cpuCores: { gte: order.plan.cpuCores },
-          ramGb: { gte: order.plan.ramGb },
-          storageGb: { gte: order.plan.storageGb },
-          currency: 'INR',
-          provider: { isActive: true },
-        },
-      });
+    const isHostHeaven = Boolean(
+      order.plan.hostHeavenMapping || order.planId.startsWith('hh:'),
+    );
 
-    if (!availableInventory) {
-      throw new BadRequestException(
-        'No available VPS inventory found for this plan',
-      );
+    if (!isHostHeaven) {
+      const availableInventory =
+        await this.prisma.providerInventory.findFirst({
+          where: {
+            status: 'AVAILABLE',
+            ipAddress: { not: null },
+            cpuCores: { gte: order.plan.cpuCores },
+            ramGb: { gte: order.plan.ramGb },
+            storageGb: { gte: order.plan.storageGb },
+            currency: 'INR',
+            provider: { isActive: true },
+          },
+        });
+
+      if (!availableInventory) {
+        throw new BadRequestException(
+          'No available VPS inventory found for this plan',
+        );
+      }
     }
 
     const existingPayment = await this.prisma.payment.findFirst({
@@ -220,7 +224,17 @@ export class CheckoutService {
         provider: 'RAZORPAY',
         razorpayOrderId: dto.razorpay_order_id,
       },
-      include: { order: true },
+      include: {
+        order: {
+          include: {
+            plan: {
+              include: {
+                hostHeavenMapping: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!payment || !payment.order) {
@@ -322,6 +336,16 @@ export class CheckoutService {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
       },
     );
+
+    const hhResult = await this.tryFulfillHostHeavenProvisioning(
+      orderId,
+      payment.id,
+      userId,
+    );
+
+    if (hhResult) {
+      return hhResult;
+    }
 
     try {
       const provisionResult =
@@ -497,12 +521,6 @@ export class CheckoutService {
       throw new BadRequestException('HostHeaven provider service is not initialized');
     }
 
-    if ((dto.paymentMethod ?? 'WALLET') !== 'WALLET') {
-      throw new BadRequestException(
-        'Only wallet payment is currently supported for direct HostHeaven checkout.',
-      );
-    }
-
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, isActive: true },
@@ -526,6 +544,120 @@ export class CheckoutService {
     const finalAmountDec = new Prisma.Decimal(
       validated.customerSellingPrice.toFixed(2),
     );
+
+    if (dto.paymentMethod === 'RAZORPAY') {
+      if (!this.razorpay || !this.razorpayKeyId) {
+        throw new ServiceUnavailableException(
+          'Razorpay is not configured on the server',
+        );
+      }
+
+      const orderNumber = `HH-${Date.now()}-${randomUUID()
+        .replaceAll('-', '')
+        .slice(0, 8)
+        .toUpperCase()}`;
+
+      const amountPaise = Math.round(Number(finalAmountDec) * 100);
+
+      const razorpayOrder = await this.razorpay.orders.create({
+        amount: amountPaise,
+        currency: 'INR',
+        receipt: `hh_${orderNumber.slice(0, 24)}`,
+        notes: {
+          userId,
+          purpose: 'VPS_ORDER',
+          serviceName: validated.serviceName,
+        },
+      });
+
+      const hostheavenConfig = {
+        zoneId: validated.zoneId,
+        zoneIsoId: validated.zoneIsoId,
+        planType: validated.planType,
+        cpuPriceId: validated.cpuPriceId,
+        ramPriceId: validated.ramPriceId,
+        diskPriceId: validated.diskPriceId,
+        bandwidthPriceId: validated.bandwidthPriceId,
+        months: validated.months,
+        serviceId: validated.serviceId,
+        serviceName: validated.serviceName,
+        isoName: validated.isoName,
+        ramGb: validated.ramGb,
+        hostname: dto.hostname?.trim() || undefined,
+      };
+
+      const systemPlan = await this.prisma.vPSPlan.upsert({
+        where: { id: validated.serviceId },
+        create: {
+          id: validated.serviceId,
+          name: validated.serviceName,
+          productType: 'VPS_HOSTING',
+          description: `Direct HostHeaven service (${validated.zoneName})`,
+          cpuCores: validated.cpuCores,
+          ramGb: validated.ramGb,
+          storageGb: validated.storageGb,
+          bandwidthGb: validated.bandwidthGb,
+          price: finalAmountDec,
+          currency: 'INR',
+          durationDays: validated.months * 30,
+          supportedOS: [validated.isoName],
+          isActive: true,
+        },
+        update: {
+          price: finalAmountDec,
+          durationDays: validated.months * 30,
+        },
+      });
+
+      const order = await this.prisma.order.create({
+        data: {
+          orderNumber,
+          userId,
+          planId: systemPlan.id,
+          planName: validated.serviceName,
+          operatingSystem: validated.isoName,
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'PENDING',
+        },
+      });
+
+      await this.prisma.payment.create({
+        data: {
+          userId,
+          orderId: order.id,
+          purpose: 'VPS_ORDER',
+          provider: 'RAZORPAY',
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'CREATED',
+          razorpayOrderId: razorpayOrder.id,
+        },
+      });
+
+      await this.prisma.provisioningJob.create({
+        data: {
+          orderId: order.id,
+          source: 'PROVIDER_API',
+          status: 'PENDING',
+          idempotencyKey: `hostheaven-direct:${orderNumber}`,
+          errorMessage: JSON.stringify(hostheavenConfig),
+          startedAt: new Date(),
+        },
+      });
+
+      return {
+        success: true,
+        requiresRazorpay: true,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        razorpayOrderId: razorpayOrder.id,
+        keyId: this.razorpayKeyId,
+        amount: amountPaise,
+        currency: 'INR',
+        serviceName: validated.serviceName,
+      };
+    }
 
     const userWallet = await this.prisma.wallet.upsert({
       where: { userId },
@@ -842,6 +974,278 @@ export class CheckoutService {
         providerRequestId,
       };
     }
+  }
+
+  async tryFulfillHostHeavenProvisioning(
+    orderId: string,
+    paymentId: string,
+    userId: string,
+  ): Promise<any | null> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        plan: {
+          include: {
+            hostHeavenMapping: true,
+          },
+        },
+      },
+    });
+
+    if (!order) return null;
+
+    const job = await this.prisma.provisioningJob.findFirst({
+      where: { orderId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    let hhConfig: any = null;
+    if (job?.errorMessage?.startsWith('{')) {
+      try {
+        hhConfig = JSON.parse(job.errorMessage);
+      } catch {}
+    }
+
+    if (!hhConfig && order.plan) {
+      const plan = order.plan as any;
+      if (plan.hostHeavenMapping) {
+        hhConfig = {
+          zoneId: plan.hostHeavenMapping.zoneId,
+          zoneIsoId: plan.hostHeavenMapping.zoneIsoId,
+          planType: plan.hostHeavenMapping.planType,
+          cpuPriceId: plan.hostHeavenMapping.cpuPricingId,
+          ramPriceId: plan.hostHeavenMapping.ramPricingId,
+          diskPriceId: plan.hostHeavenMapping.diskPricingId,
+          bandwidthPriceId: plan.hostHeavenMapping.bandwidthPricingId,
+          months: Math.round((plan.durationDays || 30) / 30) || 1,
+          isoName: order.operatingSystem,
+          ramGb: plan.ramGb,
+        };
+      } else if (plan.id?.startsWith('hh:')) {
+        const parts = plan.id.split(':');
+        if (parts.length >= 7) {
+          hhConfig = {
+            planType: parts[1] === 'DEDICATED' ? 'DEDICATED' : 'SHARED',
+            zoneId: parts[2],
+            cpuPriceId: parts[3],
+            ramPriceId: parts[4],
+            diskPriceId: parts[5],
+            bandwidthPriceId: parts[6],
+            months: Math.round((plan.durationDays || 30) / 30) || 1,
+            isoName: order.operatingSystem,
+            ramGb: plan.ramGb,
+          };
+        }
+      }
+    }
+
+    if (!hhConfig || !this.hostheavenService) {
+      return null;
+    }
+
+    return this.fulfillHostHeavenProvisioningAfterPayment(
+      orderId,
+      paymentId,
+      userId,
+      order.orderNumber,
+      hhConfig,
+    );
+  }
+
+  async fulfillHostHeavenProvisioningAfterPayment(
+    orderId: string,
+    paymentId: string,
+    userId: string,
+    orderNumber: string,
+    hhConfig: any,
+  ) {
+    const job = await this.prisma.provisioningJob.findFirst({
+      where: { orderId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    let vmResponse: any;
+    try {
+      vmResponse = await this.hostheavenService!.createVm({
+        zoneId: hhConfig.zoneId,
+        zoneIsoId: hhConfig.zoneIsoId,
+        planType: hhConfig.planType,
+        cpuPriceId: hhConfig.cpuPriceId,
+        ramPriceId: hhConfig.ramPriceId,
+        diskPriceId: hhConfig.diskPriceId,
+        bandwidthPriceId: hhConfig.bandwidthPriceId,
+        months: hhConfig.months || 1,
+        quantity: 1,
+        useWalletBalance: true,
+      });
+    } catch (error: any) {
+      const message = error?.message || String(error);
+      if (job) {
+        await this.prisma.provisioningJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'PROVISIONING',
+            errorCode: 'PROVIDER_OUTCOME_UNKNOWN',
+            errorMessage: message.slice(0, 1000),
+          },
+        });
+      }
+      await this.prisma.order.updateMany({
+        where: { id: orderId, status: 'PAID' },
+        data: { status: 'PROVISIONING' },
+      });
+      return {
+        success: true,
+        status: 'PROVISIONING',
+        message:
+          'Payment verified. HostHeaven VM provisioning is in progress and will appear in My Servers shortly.',
+        orderNumber,
+      };
+    }
+
+    const providerRequestId =
+      vmResponse?.orderId != null ? String(vmResponse.orderId) : null;
+
+    if (vmResponse?.status === 'FAILED') {
+      if (job) {
+        await this.prisma.provisioningJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'FAILED',
+            providerRequestId,
+            errorCode: 'PROVIDER_REJECTED',
+            errorMessage: String(
+              vmResponse?.message || 'Provider rejected VM creation',
+            ).slice(0, 1000),
+            completedAt: new Date(),
+          },
+        });
+      }
+
+      const paymentRecord = await this.prisma.payment.findUnique({
+        where: { id: paymentId },
+      });
+      const refundAmount = paymentRecord ? paymentRecord.amount : 0;
+      if (Number(refundAmount) > 0) {
+        await this.prisma.$transaction(async (tx) => {
+          const w = await tx.wallet.upsert({
+            where: { userId },
+            create: { userId },
+            update: {},
+          });
+          await tx.wallet.update({
+            where: { id: w.id },
+            data: { balance: { increment: refundAmount } },
+          });
+          await tx.walletTransaction.create({
+            data: {
+              walletId: w.id,
+              type: 'REFUND',
+              amount: refundAmount,
+              currency: 'INR',
+              reference: orderNumber,
+              idempotencyKey: `wallet-vps-refund:${orderNumber}`,
+              description: `Refund for failed HostHeaven VPS order #${orderNumber}`,
+              paymentId,
+            },
+          });
+          await tx.order.update({
+            where: { id: orderId },
+            data: { status: 'FAILED' },
+          });
+        });
+      }
+      return {
+        success: false,
+        status: 'FAILED',
+        message:
+          'HostHeaven rejected VM creation. Payment has been refunded to your wallet balance.',
+        orderNumber,
+      };
+    }
+
+    const assignedVm = vmResponse?.vms?.[0];
+    const providerVpsId = assignedVm?.vmId;
+    const ipAddress = assignedVm?.ipAddress;
+
+    if (
+      vmResponse?.status !== 'COMPLETED' ||
+      !providerVpsId ||
+      !ipAddress
+    ) {
+      if (job) {
+        await this.prisma.provisioningJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'PROVISIONING',
+            providerRequestId,
+            errorCode: null,
+            errorMessage: null,
+          },
+        });
+      }
+      await this.prisma.order.updateMany({
+        where: { id: orderId, status: 'PAID' },
+        data: { status: 'PROVISIONING' },
+      });
+      return {
+        success: true,
+        status: 'PROVISIONING',
+        message: 'Payment verified. HostHeaven VPS provisioning is queued.',
+        orderNumber,
+      };
+    }
+
+    const months = hhConfig.months || 1;
+    const expiresAt = new Date(
+      Date.now() + months * 30 * 24 * 60 * 60 * 1000,
+    );
+    const hostname =
+      hhConfig.hostname?.trim() ||
+      assignedVm?.hostname ||
+      assignedVm?.vmName ||
+      `vps-${orderNumber.toLowerCase()}.247hrservice.com`;
+
+    const vps = await this.prisma.vPSInstance.create({
+      data: {
+        userId,
+        orderId,
+        provider: 'HOSTHEAVEN',
+        providerVpsId: String(providerVpsId),
+        ipAddress: String(ipAddress),
+        hostname,
+        operatingSystem: hhConfig.isoName || 'Ubuntu 22.04 LTS',
+        ram: hhConfig.ramGb || 1,
+        status: 'ACTIVE',
+        expiresAt,
+      },
+    });
+
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: 'ACTIVE' },
+    });
+
+    if (job) {
+      await this.prisma.provisioningJob.update({
+        where: { id: job.id },
+        data: {
+          status: 'COMPLETED',
+          providerRequestId,
+          completedAt: new Date(),
+          errorCode: null,
+          errorMessage: null,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      status: 'ACTIVE',
+      message: 'Payment verified and HostHeaven VPS deployed successfully!',
+      orderNumber,
+      vps,
+    };
   }
 
   async payWithWallet(userId: string, orderId: string) {

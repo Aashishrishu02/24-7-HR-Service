@@ -3,11 +3,14 @@ import {
   Logger,
   BadRequestException,
   UnauthorizedException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProvisioningService } from '../provisioning/provisioning.service.js';
 import { RenewalService } from '../renewal/renewal.service.js';
+import { CheckoutService } from '../checkout/checkout.service.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 
@@ -20,6 +23,8 @@ export class WebhooksService {
     private readonly config: ConfigService,
     private readonly provisioningService: ProvisioningService,
     private readonly renewalService: RenewalService,
+    @Inject(forwardRef(() => CheckoutService))
+    private readonly checkoutService: CheckoutService,
   ) {}
 
   /**
@@ -239,6 +244,31 @@ export class WebhooksService {
         },
       });
     });
+
+    if (this.checkoutService && payment.orderId) {
+      try {
+        const hhResult =
+          await this.checkoutService.tryFulfillHostHeavenProvisioning(
+            payment.orderId,
+            payment.id,
+            payment.userId,
+          );
+        if (hhResult) {
+          this.logger.log(
+            `HostHeaven provisioning executed via webhook: ${JSON.stringify(hhResult)}`,
+          );
+          return {
+            status: 'success',
+            action: 'HOSTHEAVEN_VPS_PROVISIONED',
+            result: hhResult,
+          };
+        }
+      } catch (hhErr: any) {
+        this.logger.error(
+          `Error running HostHeaven provisioning in webhook for order ${payment.orderId}: ${hhErr.message}`,
+        );
+      }
+    }
 
     // Trigger asynchronous VPS provisioning job
     try {
