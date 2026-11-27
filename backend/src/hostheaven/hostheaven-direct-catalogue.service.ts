@@ -224,6 +224,15 @@ export class HostHeavenDirectCatalogueService {
       }
 
       const activeZones = zones.filter((z) => {
+        const name = (z.name || (z as any).zoneName || '').toLowerCase();
+        if (
+          name.includes('coming soon') ||
+          name.includes('inactive') ||
+          name.includes('disabled') ||
+          name.includes('maintenance')
+        ) {
+          return false;
+        }
         if (z.status) {
           const s = z.status.toUpperCase();
           return s === 'ACTIVE' || s === 'AVAILABLE';
@@ -574,6 +583,10 @@ export class HostHeavenDirectCatalogueService {
     const zone = this.cachedZones.find((z) => z.id === zoneId);
     if (!zone) {
       throw new BadRequestException(`HostHeaven zone '${zoneId}' is not currently available or active`);
+    }
+    const zoneName = (zone.name || (zone as any).zoneName || '').toLowerCase();
+    if (zoneName.includes('coming soon')) {
+      throw new BadRequestException(`Datacenter zone '${zone.name}' is currently marked Coming Soon and is not ready for deployment.`);
     }
 
     // 2. Validate ISO for that zone

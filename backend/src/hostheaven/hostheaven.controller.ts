@@ -123,7 +123,23 @@ export class HostHeavenController {
   @Get('hostheaven/zones')
   @UseGuards(JwtAuthGuard)
   async getZones() {
-    return this.hostheavenService.getZones();
+    const rawZones = await this.hostheavenService.getZones();
+    return rawZones.filter((z) => {
+      const name = (z.name || '').toLowerCase();
+      if (
+        name.includes('coming soon') ||
+        name.includes('inactive') ||
+        name.includes('disabled') ||
+        name.includes('maintenance')
+      ) {
+        return false;
+      }
+      if (z.status) {
+        const s = z.status.toUpperCase();
+        return s === 'ACTIVE' || s === 'AVAILABLE';
+      }
+      return z.isAvailable !== false;
+    });
   }
 
   @Get('hostheaven/zones/:zoneId/isos')

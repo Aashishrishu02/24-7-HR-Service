@@ -443,12 +443,22 @@ export default function Dashboard() {
   const fetchHostHeavenCatalogue = useCallback(async () => {
     try {
       const res = await api.get("/hostheaven/zones");
-      const zones = Array.isArray(res.data) ? res.data : [];
+      const rawZones = Array.isArray(res.data) ? res.data : [];
+      const zones = rawZones.filter(
+        (z: any) =>
+          !z.name?.toLowerCase().includes("coming soon") &&
+          z.status?.toUpperCase() === "ACTIVE",
+      );
       setHhZones(zones);
       if (zones.length > 0) {
-        setSelectedZoneId((prev) => prev || zones[0].id);
-        const isoRes = await api.get(`/hostheaven/zones/${zones[0].id}/isos`);
-        setHhIsos(Array.isArray(isoRes.data) ? isoRes.data : []);
+        const defaultZone = zones[0];
+        setSelectedZoneId(defaultZone.id);
+        const isoRes = await api.get(`/hostheaven/zones/${defaultZone.id}/isos`);
+        const isos = Array.isArray(isoRes.data) ? isoRes.data : [];
+        setHhIsos(isos);
+        if (isos.length > 0) {
+          setSelectedOS((prev) => prev || isos[0].isoName);
+        }
       }
     } catch {
       // Non-blocking fallback
@@ -852,12 +862,28 @@ export default function Dashboard() {
   const openCheckout = (plan: VPSPlan) => {
     setCheckoutReturnPage(page === "Checkout" ? "Windows VPS" : page);
     setSelectedPlan(plan);
-    setSelectedOS(plan.supportedOS?.[0] || "Ubuntu 22.04");
+    const initialOS = plan.supportedOS?.[0] || "Ubuntu 22.04 LTS";
+    setSelectedOS(initialOS);
     setSelectedMonths(1);
     setCustomHostname("");
-    if (plan.providerConfig?.zoneId) {
-      setSelectedZoneId(plan.providerConfig.zoneId);
-    }
+
+    const targetZoneId =
+      plan.providerConfig?.zoneId && plan.providerConfig.zoneId !== "7"
+        ? plan.providerConfig.zoneId
+        : hhZones[0]?.id || "23";
+    setSelectedZoneId(targetZoneId);
+
+    // Fetch ISOs for zone so OS dropdown is populated
+    api.get(`/hostheaven/zones/${targetZoneId}/isos`)
+      .then((res) => {
+        const isos = Array.isArray(res.data) ? res.data : [];
+        setHhIsos(isos);
+        if (isos.length > 0 && (!initialOS || initialOS === "Ubuntu 22.04")) {
+          setSelectedOS(isos[0].isoName);
+        }
+      })
+      .catch(() => {});
+
     setCheckoutError("");
     setPaymentMethod("WALLET");
     void fetchWallet();

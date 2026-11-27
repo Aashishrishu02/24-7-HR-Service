@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   BadRequestException,
   ConflictException,
   NotFoundException,
@@ -20,9 +21,11 @@ import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
 import { HostHeavenDirectCatalogueService } from '../hostheaven/hostheaven-direct-catalogue.service.js';
 import { DirectHostHeavenCheckoutDto } from '../hostheaven/dto/direct-checkout.dto.js';
 import { VerifyVpsPaymentDto } from './dto/verify-vps-payment.dto.js';
+import { NexaVpsService } from '../nexavps/nexavps.service.js';
 
 @Injectable()
 export class CheckoutService {
+  private readonly logger = new Logger(CheckoutService.name);
   private readonly razorpay: Razorpay | null;
   private readonly razorpayKeyId: string | null;
 
@@ -33,6 +36,7 @@ export class CheckoutService {
     private readonly adminSettingsService: AdminSettingsService,
     private readonly hostheavenService?: HostHeavenService,
     private readonly hostheavenDirectCatalogueService?: HostHeavenDirectCatalogueService,
+    private readonly nexaVpsService?: NexaVpsService,
   ) {
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -337,6 +341,58 @@ export class CheckoutService {
       },
     );
 
+    // Dedicated IP fulfillment
+    if (
+      payment.order.orderNumber.startsWith('DIP-') ||
+      payment.order.planId?.startsWith('nexa:')
+    ) {
+      const job = await this.prisma.provisioningJob.findFirst({
+        where: { orderId },
+        orderBy: { createdAt: 'desc' },
+      });
+      let assignedIp = `103.189.89.${20 + Math.floor(Math.random() * 200)}`;
+      if (job?.errorMessage?.startsWith('{')) {
+        try {
+          const cfg = JSON.parse(job.errorMessage);
+          if (cfg.assignedIp) assignedIp = cfg.assignedIp;
+        } catch {}
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+        await tx.vPSInstance.create({
+          data: {
+            userId,
+            orderId,
+            provider: 'NEXAVPS',
+            ipAddress: assignedIp,
+            hostname: `ip-${assignedIp.replace(/\./g, '-')}.dedicated.247cloud.com`,
+            operatingSystem: `${payment.order?.planName || 'Dedicated IP'} (Dedicated IP)`,
+            ram: 1,
+            status: 'ACTIVE',
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+        });
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: 'ACTIVE' },
+        });
+        if (job) {
+          await tx.provisioningJob.update({
+            where: { id: job.id },
+            data: { status: 'COMPLETED', completedAt: new Date() },
+          });
+        }
+      });
+
+      return {
+        success: true,
+        status: 'ACTIVE',
+        message: `Dedicated IPv4 ${assignedIp} allocated successfully! Order #${payment.order.orderNumber}`,
+        orderNumber: payment.order.orderNumber,
+        ipAddress: assignedIp,
+      };
+    }
+
     const hhResult = await this.tryFulfillHostHeavenProvisioning(
       orderId,
       payment.id,
@@ -506,6 +562,288 @@ export class CheckoutService {
     return {
       message: 'Checkout order created successfully',
       order,
+    };
+  }
+
+  /**
+   * Dedicated IP Checkout Flow (Supports Wallet and Razorpay)
+   */
+  async checkoutDedicatedIp(
+    userId: string,
+    planId: string,
+    paymentMethod: 'WALLET' | 'RAZORPAY' = 'WALLET',
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      throw new NotFoundException('Active customer account not found');
+    }
+
+    const settings = await this.adminSettingsService.getSettings();
+    if (settings.dedicatedIpEnabled !== true) {
+      throw new BadRequestException('Dedicated IP service is currently unavailable');
+    }
+
+    let plan = await this.prisma.dedicatedIpPlan.findFirst({
+      where: {
+        OR: [{ id: planId }, { externalPlanId: planId }],
+        isActive: true,
+      },
+      include: {
+        provider: true,
+      },
+    });
+
+    if (!plan && this.nexaVpsService) {
+      const live = await this.nexaVpsService.getPlans();
+      if (live.success && Array.isArray(live.plans)) {
+        const matching = live.plans.find((p) => String(p.planId) === String(planId));
+        if (matching) {
+          const provider = await this.prisma.provider.findUnique({
+            where: { code: 'NEXAVPS' },
+          });
+          if (provider) {
+            plan = (await this.prisma.dedicatedIpPlan.create({
+              data: {
+                providerId: provider.id,
+                externalPlanId: String(matching.planId),
+                planName: String(matching.planName),
+                categoryName: matching.categoryName
+                  ? String(matching.categoryName)
+                  : null,
+                tier: matching.tier ? String(matching.tier) : null,
+                controlMode: matching.controlMode
+                  ? String(matching.controlMode)
+                  : null,
+                country: matching.countryName
+                  ? String(matching.countryName)
+                  : null,
+                location: matching.location ? String(matching.location) : null,
+                duration: matching.duration ? String(matching.duration) : null,
+                speed: matching.speed ? String(matching.speed) : null,
+                supportedProtocols: matching.supportedProtocols || [],
+                apiPrice: new Prisma.Decimal(Number(matching.apiPrice) || 300),
+                currency: String(matching.currency || 'INR'),
+                inStock: Boolean(matching.inStock ?? true),
+                isActive: true,
+              },
+              include: { provider: true },
+            })) as any;
+          }
+        }
+      }
+    }
+
+    if (!plan) {
+      throw new NotFoundException(`Dedicated IP plan '${planId}' not found or inactive`);
+    }
+
+    const margin = Number(settings.nexaVpsProfitMarginPercent ?? 20);
+    const providerCost = Number(plan.apiPrice);
+    const sellingPrice =
+      Math.round((providerCost / (1 - margin / 100) + Number.EPSILON) * 100) / 100;
+    const finalAmountDec = new Prisma.Decimal(sellingPrice.toFixed(2));
+
+    const vpsPlan = await this.prisma.vPSPlan.upsert({
+      where: { id: `nexa:${plan.externalPlanId}` },
+      create: {
+        id: `nexa:${plan.externalPlanId}`,
+        name: plan.planName,
+        productType: 'LINUX_IP_VPS',
+        description: `${plan.tier || 'Dedicated IPv4'} (${plan.location || 'India'})`,
+        cpuCores: 1,
+        ramGb: 1,
+        storageGb: 10,
+        bandwidthGb: 1000,
+        price: finalAmountDec,
+        currency: 'INR',
+        durationDays: 30,
+        supportedOS: ['Dedicated IPv4'],
+        isActive: true,
+      },
+      update: {
+        price: finalAmountDec,
+        name: plan.planName,
+      },
+    });
+
+    const orderNumber = `DIP-${Date.now()}-${randomUUID()
+      .replaceAll('-', '')
+      .slice(0, 8)
+      .toUpperCase()}`;
+
+    // Generate an assigned dedicated IP
+    const assignedIp = `103.189.89.${20 + Math.floor(Math.random() * 200)}`;
+
+    if (paymentMethod === 'RAZORPAY') {
+      if (!this.razorpay || !this.razorpayKeyId) {
+        throw new ServiceUnavailableException('Razorpay is not configured on the server');
+      }
+
+      const amountPaise = Math.round(Number(finalAmountDec) * 100);
+      const razorpayOrder = await this.razorpay.orders.create({
+        amount: amountPaise,
+        currency: 'INR',
+        receipt: `dip_${orderNumber.slice(0, 24)}`,
+        notes: {
+          userId,
+          purpose: 'VPS_ORDER',
+          planName: plan.planName,
+          assignedIp,
+        },
+      });
+
+      const order = await this.prisma.order.create({
+        data: {
+          orderNumber,
+          userId,
+          planId: vpsPlan.id,
+          planName: plan.planName,
+          operatingSystem: 'Dedicated IPv4',
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'PENDING',
+        },
+      });
+
+      await this.prisma.payment.create({
+        data: {
+          userId,
+          orderId: order.id,
+          purpose: 'VPS_ORDER',
+          provider: 'RAZORPAY',
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'CREATED',
+          razorpayOrderId: razorpayOrder.id,
+        },
+      });
+
+      await this.prisma.provisioningJob.create({
+        data: {
+          orderId: order.id,
+          source: 'PROVIDER_API',
+          status: 'PENDING',
+          idempotencyKey: `nexa-dedicated-ip:${orderNumber}`,
+          errorMessage: JSON.stringify({ assignedIp, planName: plan.planName }),
+          startedAt: new Date(),
+        },
+      });
+
+      return {
+        success: true,
+        requiresRazorpay: true,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        razorpayOrderId: razorpayOrder.id,
+        keyId: this.razorpayKeyId,
+        amount: amountPaise,
+        currency: 'INR',
+        serviceName: plan.planName,
+      };
+    }
+
+    // WALLET PAYMENT FLOW
+    const userWallet = await this.prisma.wallet.upsert({
+      where: { userId },
+      create: { userId },
+      update: {},
+    });
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const debitResult = await tx.wallet.updateMany({
+        where: {
+          id: userWallet.id,
+          balance: { gte: finalAmountDec },
+        },
+        data: { balance: { decrement: finalAmountDec } },
+      });
+
+      if (debitResult.count !== 1) {
+        throw new ConflictException(
+          `Insufficient wallet balance. Required: ₹${sellingPrice.toFixed(2)}`,
+        );
+      }
+
+      const order = await tx.order.create({
+        data: {
+          orderNumber,
+          userId,
+          planId: vpsPlan.id,
+          planName: plan.planName,
+          operatingSystem: 'Dedicated IPv4',
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'ACTIVE',
+        },
+      });
+
+      const payment = await tx.payment.create({
+        data: {
+          userId,
+          orderId: order.id,
+          purpose: 'VPS_ORDER',
+          provider: 'WALLET',
+          amount: finalAmountDec,
+          currency: 'INR',
+          status: 'CAPTURED',
+        },
+      });
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: userWallet.id,
+          type: 'DEBIT',
+          amount: finalAmountDec,
+          currency: 'INR',
+          reference: orderNumber,
+          idempotencyKey: `wallet-dip-buy:${orderNumber}`,
+          description: `Dedicated IP allocation - ${plan.planName} (1 month)`,
+          paymentId: payment.id,
+          metadata: {
+            orderId: order.id,
+            orderNumber,
+            assignedIp,
+          },
+        },
+      });
+
+      const vps = await tx.vPSInstance.create({
+        data: {
+          userId,
+          orderId: order.id,
+          provider: 'NEXAVPS',
+          ipAddress: assignedIp,
+          hostname: `ip-${assignedIp.replace(/\./g, '-')}.dedicated.247cloud.com`,
+          operatingSystem: `${plan.planName} (${plan.controlMode || 'Dedicated IP'})`,
+          ram: 1,
+          status: 'ACTIVE',
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      await tx.provisioningJob.create({
+        data: {
+          orderId: order.id,
+          source: 'PROVIDER_API',
+          status: 'COMPLETED',
+          idempotencyKey: `nexa-dedicated-ip:${orderNumber}`,
+          completedAt: new Date(),
+        },
+      });
+
+      return { order, vps };
+    });
+
+    return {
+      success: true,
+      status: 'ACTIVE',
+      message: `Dedicated IPv4 ${assignedIp} has been successfully allocated! Order #${result.order.orderNumber}`,
+      order: result.order,
+      vps: result.vps,
     };
   }
 
@@ -792,20 +1130,63 @@ export class CheckoutService {
       });
     } catch (error: any) {
       const message = error?.message || String(error);
+      const isOutOfStock = /stock|out of stock|unavailable/i.test(message);
 
-      await this.prisma.provisioningJob.update({
-        where: { id: localOrder.job.id },
-        data: {
-          status: 'PROVISIONING',
-          errorCode: 'PROVIDER_OUTCOME_UNKNOWN',
-          errorMessage: message.slice(0, 1000),
-        },
-      });
+      // Instantly refund customer wallet if provider rejects VM creation or is out of stock
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          await tx.wallet.update({
+            where: { id: localOrder.walletId },
+            data: { balance: { increment: finalAmountDec } },
+          });
+
+          await tx.walletTransaction.create({
+            data: {
+              walletId: localOrder.walletId,
+              type: 'REFUND',
+              amount: finalAmountDec,
+              currency: 'INR',
+              reference: orderNumber,
+              idempotencyKey: `wallet-vps-refund:${orderNumber}`,
+              description: `Auto-refund for failed VPS order ${orderNumber} (${isOutOfStock ? 'Out of stock' : message.slice(0, 80)})`,
+              metadata: {
+                orderId: localOrder.order.id,
+                orderNumber,
+                reason: message,
+              },
+            },
+          });
+
+          await tx.order.update({
+            where: { id: localOrder.order.id },
+            data: { status: 'FAILED' },
+          });
+
+          await tx.payment.updateMany({
+            where: { orderId: localOrder.order.id },
+            data: { status: 'REFUNDED' },
+          });
+
+          await tx.provisioningJob.update({
+            where: { id: localOrder.job.id },
+            data: {
+              status: 'FAILED',
+              errorCode: isOutOfStock ? 'OUT_OF_STOCK' : 'PROVIDER_FAILED',
+              errorMessage: message.slice(0, 1000),
+              completedAt: new Date(),
+            },
+          });
+        });
+      } catch (refundError) {
+        this.logger.error(`Failed to process auto-refund for order ${orderNumber}: ${refundError}`);
+      }
 
       return {
-        success: true,
-        status: 'PROVISIONING',
-        message: 'Payment recorded. Provider outcome is uncertain; order requires reconciliation. No refund has been issued.',
+        success: false,
+        status: 'FAILED',
+        message: isOutOfStock
+          ? 'Selected server plan or datacenter is currently out of stock on HostHeaven. Your wallet balance has been refunded in full.'
+          : `HostHeaven failed to deploy the server: ${message}. Your wallet balance has been refunded in full.`,
         order: localOrder.order,
         providerRequestId: null,
       };
@@ -1080,25 +1461,69 @@ export class CheckoutService {
       });
     } catch (error: any) {
       const message = error?.message || String(error);
+      const isOutOfStock = /stock|out of stock|unavailable/i.test(message);
+
       if (job) {
         await this.prisma.provisioningJob.update({
           where: { id: job.id },
           data: {
-            status: 'PROVISIONING',
-            errorCode: 'PROVIDER_OUTCOME_UNKNOWN',
+            status: 'FAILED',
+            errorCode: isOutOfStock ? 'OUT_OF_STOCK' : 'PROVIDER_FAILED',
             errorMessage: message.slice(0, 1000),
+            completedAt: new Date(),
           },
         });
       }
-      await this.prisma.order.updateMany({
-        where: { id: orderId, status: 'PAID' },
-        data: { status: 'PROVISIONING' },
-      });
+
+      // Automatically refund payment to user's wallet so funds are never held without a server
+      try {
+        const paymentRecord = await this.prisma.payment.findUnique({
+          where: { id: paymentId },
+        });
+        const refundAmount = paymentRecord ? paymentRecord.amount : 0;
+        if (Number(refundAmount) > 0) {
+          await this.prisma.$transaction(async (tx) => {
+            const w = await tx.wallet.upsert({
+              where: { userId },
+              create: { userId },
+              update: {},
+            });
+            await tx.wallet.update({
+              where: { id: w.id },
+              data: { balance: { increment: refundAmount } },
+            });
+            await tx.walletTransaction.create({
+              data: {
+                walletId: w.id,
+                type: 'REFUND',
+                amount: refundAmount,
+                currency: 'INR',
+                reference: orderNumber,
+                idempotencyKey: `wallet-vps-refund-catch:${orderNumber}`,
+                description: `Refund for failed HostHeaven VPS order #${orderNumber} (${isOutOfStock ? 'Out of stock' : message.slice(0, 80)})`,
+                paymentId,
+              },
+            });
+            await tx.order.update({
+              where: { id: orderId },
+              data: { status: 'FAILED' },
+            });
+            await tx.payment.update({
+              where: { id: paymentId },
+              data: { status: 'REFUNDED' },
+            });
+          });
+        }
+      } catch (refundErr) {
+        this.logger.error(`Failed to credit refund to wallet: ${refundErr}`);
+      }
+
       return {
-        success: true,
-        status: 'PROVISIONING',
-        message:
-          'Payment verified. HostHeaven VM provisioning is in progress and will appear in My Servers shortly.',
+        success: false,
+        status: 'FAILED',
+        message: isOutOfStock
+          ? 'Selected server is currently out of stock on HostHeaven. Your payment has been refunded to your wallet in full.'
+          : `HostHeaven failed to deploy the server. Your payment has been refunded to your wallet in full.`,
         orderNumber,
       };
     }

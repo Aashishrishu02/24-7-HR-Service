@@ -73,6 +73,18 @@ export class CheckoutController {
     return this.checkoutService.checkoutDirectHostHeaven(req.user.sub, dto);
   }
 
+  @Post('dedicated-ip')
+  async checkoutDedicatedIp(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: { planId: string; paymentMethod?: 'WALLET' | 'RAZORPAY' },
+  ) {
+    return this.checkoutService.checkoutDedicatedIp(
+      req.user.sub,
+      dto.planId,
+      dto.paymentMethod || 'WALLET',
+    );
+  }
+
   @Post('orders/:orderId/pay-wallet')
   async payWithWallet(
     @Req() req: AuthenticatedRequest,

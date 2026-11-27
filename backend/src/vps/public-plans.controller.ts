@@ -258,12 +258,22 @@ export class PublicPlansController {
 
     const margin = settings.hostHeavenProfitMarginPercent ?? 20;
 
-    // Filter out plans whose HostHeaven mapping is inactive, unverified, or mixes standard and Slot IP resources
+    // Filter out plans whose HostHeaven mapping is inactive, unverified, out-of-stock (Coming Soon), or mixes standard and Slot IP resources
     const visiblePlans = plans.filter((plan) => {
+      const planName = (plan.name || '').toLowerCase();
+      if (planName.includes('coming soon') || plan.id.includes(':7:')) {
+        return false;
+      }
+
       if (!plan.hostHeavenMapping) return true;
       if (!plan.hostHeavenMapping.isActive || !plan.hostHeavenMapping.isCostVerified) return false;
 
       const m = plan.hostHeavenMapping;
+      const zoneName = (m.zoneName || '').toLowerCase();
+      if (zoneName.includes('coming soon') || m.zoneId === '7') {
+        return false;
+      }
+
       const isMixed =
         isSlotIpItem({ name: m.cpuName ?? undefined, label: m.cpuPricingId }) !==
           isSlotIpItem({ name: m.ramName ?? undefined, label: m.ramPricingId }) ||
