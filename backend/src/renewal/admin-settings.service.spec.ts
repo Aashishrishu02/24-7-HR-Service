@@ -28,6 +28,7 @@ describe('AdminSettingsService', () => {
     expect(settings.terminationPolicy).toBe('AUTO_TERMINATE_AFTER_GRACE');
     expect(settings.renewalPricingModel).toBe('PLAN_SELLING_PRICE');
     expect(settings.nexaVpsProfitMarginPercent).toBe(20);
+    expect(settings.smartVpsProfitMarginPercent).toBe(20);
     expect(settings.dedicatedIpEnabled).toBe(false);
   });
 
@@ -53,6 +54,30 @@ describe('AdminSettingsService', () => {
     expect(updated.hostHeavenProfitMarginPercent).toBe(20);
   });
 
+
+
+  it('saves SmartVPS profit margin independently from Nexa and HostHeaven', async () => {
+    mockPrisma.systemSetting.upsert.mockResolvedValue({});
+    mockPrisma.systemSetting.findMany.mockResolvedValue([
+      { key: 'SMARTVPS_PROFIT_MARGIN_PERCENT', value: '32.5' },
+      { key: 'NEXAVPS_PROFIT_MARGIN_PERCENT', value: '35' },
+      { key: 'HOSTHEAVEN_PROFIT_MARGIN_PERCENT', value: '20' },
+    ]);
+
+    const updated = await service.updateSettings({
+      smartVpsProfitMarginPercent: 32.5,
+    });
+
+    expect(mockPrisma.systemSetting.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { key: 'SMARTVPS_PROFIT_MARGIN_PERCENT' },
+        create: expect.objectContaining({ value: '32.5' }),
+      }),
+    );
+    expect(updated.smartVpsProfitMarginPercent).toBe(32.5);
+    expect(updated.nexaVpsProfitMarginPercent).toBe(35);
+    expect(updated.hostHeavenProfitMarginPercent).toBe(20);
+  });
 
   it('saves Dedicated IP availability independently', async () => {
     mockPrisma.systemSetting.upsert.mockResolvedValue({});

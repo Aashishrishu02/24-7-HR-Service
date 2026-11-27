@@ -76,6 +76,7 @@ describe('VpsController', () => {
       id: 'vps-1',
       userId: 'cust-1',
       ipAddress: '103.1.1.1',
+      provider: 'SMARTVPS',
     });
     mockPrisma.vPSInstance.update.mockResolvedValue({});
 
@@ -95,6 +96,7 @@ describe('VpsController', () => {
       id: 'vps-1',
       userId: 'cust-1',
       ipAddress: '103.1.1.1',
+      provider: 'SMARTVPS',
     });
     mockPrisma.vPSInstance.update.mockResolvedValue({});
 

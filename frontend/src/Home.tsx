@@ -48,9 +48,21 @@ type VPSPlan = {
   isActive?: boolean;
 };
 
+type SmartVPSPlan = {
+  ramGb: number;
+  name: string;
+  availableCount: number;
+  price: number | string;
+  monthlyPrice?: number | string;
+  currency: string;
+  inStock: boolean;
+};
+
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [plans, setPlans] = useState<VPSPlan[]>([]);
+  const [smartVpsPlans, setSmartVpsPlans] = useState<SmartVPSPlan[]>([]);
+  const [smartVpsLoading, setSmartVpsLoading] = useState(true);
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState("");
   const [dedicatedIpAvailable, setDedicatedIpAvailable] = useState(true);
@@ -84,6 +96,24 @@ export default function Home() {
     }
   }, []);
 
+  const fetchSmartVpsPlans = useCallback(async () => {
+    try {
+      setSmartVpsLoading(true);
+      const res = await api.get("/plans/smartvps");
+      const rows = Array.isArray(res.data?.plans) ? res.data.plans : [];
+      setSmartVpsPlans(
+        rows.filter(
+          (plan: SmartVPSPlan) =>
+            plan.inStock === true && Number(plan.availableCount) > 0,
+        ),
+      );
+    } catch {
+      setSmartVpsPlans([]);
+    } finally {
+      setSmartVpsLoading(false);
+    }
+  }, []);
+
   // Fetch dedicated IP status from existing admin setting
   const fetchDedicatedIpStatus = useCallback(async () => {
     try {
@@ -105,9 +135,10 @@ export default function Home() {
 
   useEffect(() => {
     void fetchPlans();
+    void fetchSmartVpsPlans();
     void fetchDedicatedIpStatus();
     void fetchSupportContact();
-  }, [fetchPlans, fetchDedicatedIpStatus, fetchSupportContact]);
+  }, [fetchPlans, fetchSmartVpsPlans, fetchDedicatedIpStatus, fetchSupportContact]);
 
   // Representative dynamic plans directly from backend (No hardcoded fallback plans)
   const pricingPlans = useMemo(() => {
@@ -973,6 +1004,67 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+
+      {/* SmartVPS Live Catalogue */}
+      <section id="smartvps" className="bg-[#171717] px-6 py-20 text-[#F1E9DA] lg:px-10 lg:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center">
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#C6A66B]">
+              OCEAN VPS INFRASTRUCTURE
+            </p>
+            <h2 className="mt-3 font-serif text-3xl font-bold sm:text-4xl">
+              SmartVPS Plans
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[#F1E9DA]/65">
+              RAM-based cloud plans with live provider availability and transparent monthly pricing.
+            </p>
+          </div>
+
+          {smartVpsLoading ? (
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="h-64 animate-pulse rounded-2xl border border-[#332f2a] bg-[#201d1a]" />
+              ))}
+            </div>
+          ) : smartVpsPlans.length > 0 ? (
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {smartVpsPlans.map((plan) => (
+                <div key={plan.ramGb} className="rounded-2xl border border-[#C6A66B]/30 bg-[#201d1a] p-7 shadow-xl">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C6A66B]">
+                    SMART VPS
+                  </p>
+                  <h3 className="mt-3 font-serif text-2xl font-bold">
+                    {plan.ramGb} GB RAM
+                  </h3>
+                  <p className="mt-5 text-3xl font-bold text-[#C6A66B]">
+                    {formatSellingPrice(plan.monthlyPrice ?? plan.price, plan.currency)}
+                    <span className="ml-1 text-xs font-normal text-[#F1E9DA]/50">/ month</span>
+                  </p>
+                  <div className="mt-6 border-t border-[#332f2a] pt-5">
+                    <p className="text-sm text-emerald-400">
+                      {plan.availableCount} available
+                    </p>
+                    <p className="mt-2 text-xs text-[#F1E9DA]/45">
+                      Live provider stock
+                    </p>
+                  </div>
+                  <div className="mt-6 rounded-lg border border-[#C6A66B]/20 bg-[#171717] px-3 py-3 text-center font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
+                    Ordering coming soon
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-10 text-center text-sm text-[#F1E9DA]/50">
+              SmartVPS plans are currently unavailable. Please check again later.
+            </p>
+          )}
+          <p className="mt-7 text-center font-mono text-[10px] text-[#F1E9DA]/35">
+            Availability is checked live. Displayed plans are not yet available for online purchase.
+          </p>
         </div>
       </section>
 

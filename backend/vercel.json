@@ -1,15 +1,18 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/admin/:path*",
-      "destination": "/api/admin-router?__adminPath=:path*"
-    }
-  ],
   "functions": {
     "api/[...path].ts": {
       "maxDuration": 30
     },
-    "api/admin-router.ts": {
+    "api/register/[...path].ts": {
+      "maxDuration": 30
+    },
+    "api/admin/[...path].ts": {
+      "maxDuration": 30
+    },
+    "api/admin-auth/login.ts": {
+      "maxDuration": 30
+    },
+    "api/admin-auth/profile.ts": {
       "maxDuration": 30
     }
   }

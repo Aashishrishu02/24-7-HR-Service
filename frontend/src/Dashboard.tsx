@@ -34,6 +34,16 @@ import BuyLinuxIP from "./BuyLinuxIP";
 import CustomerSupportDesk from "./CustomerSupportDesk";
 import VpsDetail from "./VpsDetail";
 
+type SmartVPSPlan = {
+  ramGb: number;
+  name: string;
+  availableCount: number;
+  price: number | string;
+  monthlyPrice?: number | string;
+  currency: string;
+  inStock: boolean;
+};
+
 type UserProfile = {
   id: string;
   name: string;
@@ -262,6 +272,8 @@ export default function Dashboard() {
   const [supportContact, setSupportContact] = useState<Record<string, string>>({});
   const [vpsList, setVpsList] = useState<VPSInstance[]>([]);
   const [plans, setPlans] = useState<VPSPlan[]>([]);
+  const [smartVpsPlans, setSmartVpsPlans] = useState<SmartVPSPlan[]>([]);
+  const [smartVpsLoading, setSmartVpsLoading] = useState(true);
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<WalletTx[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -393,6 +405,26 @@ export default function Dashboard() {
       );
     } finally {
       setPlansLoading(false);
+    }
+  }, []);
+
+  const fetchSmartVpsPlans = useCallback(async () => {
+    try {
+      setSmartVpsLoading(true);
+      const response = await api.get("/plans/smartvps");
+      const rows = Array.isArray(response.data?.plans)
+        ? response.data.plans
+        : [];
+      setSmartVpsPlans(
+        rows.filter(
+          (plan: SmartVPSPlan) =>
+            plan.inStock === true && Number(plan.availableCount) > 0,
+        ),
+      );
+    } catch {
+      setSmartVpsPlans([]);
+    } finally {
+      setSmartVpsLoading(false);
     }
   }, []);
 
@@ -566,6 +598,7 @@ export default function Dashboard() {
     void fetchProfile();
     void fetchVps();
     void fetchPlans();
+    void fetchSmartVpsPlans();
     void fetchSupportContact();
     void fetchWallet();
     void fetchTransactions();
@@ -575,6 +608,7 @@ export default function Dashboard() {
     fetchProfile,
     fetchVps,
     fetchPlans,
+    fetchSmartVpsPlans,
     fetchSupportContact,
     fetchWallet,
     fetchTransactions,
@@ -1993,6 +2027,64 @@ export default function Dashboard() {
                 </div>
               )}
             </section>
+
+            {page === "Home" && (
+              <section className="mt-12 rounded-2xl border border-[#C6A66B]/25 bg-[#201d1a] p-6 sm:p-8">
+                <div className="text-center">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#C6A66B]">
+                    SMART VPS HOSTING
+                  </p>
+                  <h2 className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">
+                    SmartVPS Plans
+                  </h2>
+                  <p className="mt-2 text-sm text-[#F1E9DA]/60">
+                    Separate RAM-based catalogue with live availability.
+                  </p>
+                </div>
+
+                {smartVpsLoading ? (
+                  <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {[1, 2, 3, 4].map((n) => (
+                      <div key={n} className="h-52 animate-pulse rounded-xl border border-[#332f2a] bg-[#171717]" />
+                    ))}
+                  </div>
+                ) : smartVpsPlans.length > 0 ? (
+                  <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {smartVpsPlans.map((plan) => (
+                      <div key={plan.ramGb} className="rounded-xl border border-[#332f2a] bg-[#171717] p-5">
+                        <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
+                          SMART VPS
+                        </p>
+                        <h3 className="mt-2 font-serif text-xl font-bold text-[#F1E9DA]">
+                          {plan.ramGb} GB RAM
+                        </h3>
+                        <p className="mt-4 text-2xl font-bold text-[#C6A66B]">
+                          {formatDecimal(plan.monthlyPrice ?? plan.price, plan.currency)}
+                          <span className="ml-1 text-xs font-normal text-[#F1E9DA]/45">/ month</span>
+                        </p>
+                        <p className="mt-4 text-sm text-emerald-400">
+                          {plan.availableCount} available
+                        </p>
+                        <p className="mt-1 text-xs text-[#F1E9DA]/40">
+                          Live availability
+                        </p>
+                        <div className="mt-5 rounded-lg border border-[#C6A66B]/20 px-3 py-2 text-center font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
+                          Online ordering coming soon
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-7 text-center text-sm text-[#F1E9DA]/50">
+                    SmartVPS plans are currently unavailable. Please check again later.
+                  </p>
+                )}
+                <p className="mt-6 text-center font-mono text-[10px] text-[#F1E9DA]/35">
+                  Plans and availability are refreshed from live inventory.
+                </p>
+              </section>
+            )}
+
           </>
         )}
 

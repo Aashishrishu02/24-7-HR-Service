@@ -4,6 +4,7 @@ import { AdminSettingsService } from '../renewal/admin-settings.service.js';
 import { calculateSellingPrice, isSlotIpItem } from '../hostheaven/hostheaven-pricing.util.js';
 import { HostHeavenDirectCatalogueService } from '../hostheaven/hostheaven-direct-catalogue.service.js';
 import { NexaVpsService } from '../nexavps/nexavps.service.js';
+import { VpsService } from './vps.service.js';
 
 @Controller('plans')
 export class PublicPlansController {
@@ -13,6 +14,7 @@ export class PublicPlansController {
     @Inject(forwardRef(() => HostHeavenDirectCatalogueService))
     private readonly directCatalogueService: HostHeavenDirectCatalogueService,
     private readonly nexaVpsService: NexaVpsService,
+    private readonly vpsService: VpsService,
   ) { }
 
   /**
@@ -205,6 +207,116 @@ export class PublicPlansController {
       return { plans: livePlans, total: livePlans.length };
     } catch {
       // Do not expose provider errors, API credentials, or internal configuration publicly.
+      return { plans: [], total: 0 };
+    }
+  }
+
+
+  /**
+   * Public, read-only SmartVPS RAM catalogue.
+   * Only admin-enabled plans with live Buy Now stock and configured cost
+   * are returned. Provider costs and IP prefixes are never exposed.
+   */
+  @Get('smartvps')
+  async findSmartVpsPlans() {
+    try {
+      const [stockResult, setting, settings] = await Promise.all([
+        this.vpsService.getIpStock(),
+        this.prisma.systemSetting.findUnique({
+          where: { key: 'SMARTVPS_PLAN_SETTINGS' },
+          select: { value: true },
+        }),
+        this.adminSettingsService.getSettings(),
+      ]);
+
+      let saved: Record<string, {
+        providerCost?: number | null;
+        enabled?: boolean;
+      }> = {};
+
+      if (setting?.value) {
+        try {
+          const parsed: unknown = JSON.parse(setting.value);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            saved = parsed as typeof saved;
+          }
+        } catch {
+          saved = {};
+        }
+      }
+
+      const configuredMargin = Number(
+        settings.smartVpsProfitMarginPercent ?? 20,
+      );
+      const margin =
+        Number.isFinite(configuredMargin) &&
+        configuredMargin >= 0 &&
+        configuredMargin <= 80
+          ? configuredMargin
+          : 20;
+
+      const plans = [4, 8, 16, 32].flatMap((ramGb) => {
+        const config = saved[String(ramGb)];
+        const providerCost = Number(config?.providerCost);
+
+        if (
+          config?.enabled !== true ||
+          config.providerCost === null ||
+          config.providerCost === undefined ||
+          !Number.isFinite(providerCost) ||
+          providerCost <= 0
+        ) {
+          return [];
+        }
+
+        const stockKey = Object.keys(
+          stockResult.stock.find((row) => row.plans)?.plans ?? {},
+        ).find((key) => {
+          const normalized = key.toLowerCase().replace(/\s+/g, ' ').trim();
+          return ramGb === 4
+            ? normalized.startsWith('4 gb')
+            : normalized === `${ramGb} gb`;
+        });
+
+        if (!stockKey) return [];
+
+        const availableCount = stockResult.stock.reduce((total, row) => {
+          const status = String(row.plans?.[stockKey] ?? '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+          return status === 'buy now'
+            ? total + Math.max(0, Number(row.available) || 0)
+            : total;
+        }, 0);
+
+        if (availableCount <= 0) return [];
+
+        const price =
+          Math.round(
+            (providerCost / (1 - margin / 100) + Number.EPSILON) * 100,
+          ) / 100;
+
+        return [{
+          ramGb,
+          name: `SmartVPS ${ramGb} GB`,
+          availableCount,
+          price,
+          monthlyPrice: price,
+          currency: 'INR',
+          billingInterval: 'month',
+          inStock: true,
+        }];
+      });
+
+      return {
+        plans,
+        total: plans.length,
+        refreshedAt: stockResult.refreshedAt,
+      };
+    } catch {
+      // Never expose provider credentials, IP prefixes, or internal errors.
       return { plans: [], total: 0 };
     }
   }

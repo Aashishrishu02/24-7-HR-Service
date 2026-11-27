@@ -44,11 +44,23 @@ enum PaymentPurpose {
   VPS_ORDER
   WALLET_TOPUP
   VPS_RENEWAL
+  SMARTVPS_ORDER
 }
 
 enum PaymentProvider {
   RAZORPAY
   WALLET
+}
+
+enum SmartVpsOrderStatus {
+  PAYMENT_PENDING
+  PAID
+  PROVISIONING
+  ACTIVE
+  PROVISIONING_FAILED
+  REFUND_PENDING
+  REFUNDED
+  CANCELLED
 }
 
 enum WalletTransactionType {
@@ -135,13 +147,14 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  emailOtps     EmailVerificationOtp[]
-  passwordOtps  PasswordResetOtp[]
-  vpsInstances  VPSInstance[]
-  orders        Order[]
-  wallet        Wallet?
-  payments      Payment[]
-  consentAudits VPSConsentAudit[]
+  emailOtps       EmailVerificationOtp[]
+  passwordOtps    PasswordResetOtp[]
+  vpsInstances    VPSInstance[]
+  orders          Order[]
+  wallet          Wallet?
+  payments        Payment[]
+  smartVpsOrders  SmartVpsOrder[]
+  consentAudits   VPSConsentAudit[]
   renewalAttempts RenewalAttempt[]
   notifications   NotificationLog[]
   supportTickets  SupportTicket[]
@@ -263,9 +276,9 @@ model VPSPlan {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders           Order[]
-  providerMappings VPSPlanProviderMapping[]
-  priceHistory     PriceHistory[]
+  orders            Order[]
+  providerMappings  VPSPlanProviderMapping[]
+  priceHistory      PriceHistory[]
   hostHeavenMapping HostHeavenPlanMapping?
 
   @@index([productType])
@@ -310,10 +323,36 @@ model Order {
 // PAYMENTS
 // ==========================================
 
+model SmartVpsOrder {
+  id                String              @id @default(uuid())
+  userId            String
+  ramGb             Int
+  planName          String
+  amount            Decimal             @db.Decimal(10, 2)
+  currency          String              @default("INR")
+  status            SmartVpsOrderStatus @default(PAYMENT_PENDING)
+  idempotencyKey    String              @unique @default(uuid())
+  providerIp        String?             @unique
+  providerUsername  String?
+  passwordEncrypted String?
+  provisioningError String?
+  paidAt            DateTime?
+  provisionedAt     DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  payments Payment[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
 model Payment {
-  id      String  @id @default(uuid())
-  userId  String
-  orderId String?
+  id              String  @id @default(uuid())
+  userId          String
+  orderId         String?
+  smartVpsOrderId String?
 
   purpose  PaymentPurpose
   provider PaymentProvider @default(RAZORPAY)
@@ -331,10 +370,12 @@ model Payment {
 
   user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
   order              Order?              @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  smartVpsOrder      SmartVpsOrder?      @relation(fields: [smartVpsOrderId], references: [id], onDelete: Restrict)
   walletTransactions WalletTransaction[]
 
   @@index([userId, createdAt])
   @@index([orderId])
+  @@index([smartVpsOrderId])
   @@index([status])
   @@index([purpose])
   @@index([provider])
@@ -374,7 +415,6 @@ model Provider {
   @@index([isActive, priority])
 }
 
-
 // ==========================================
 // DEDICATED IP CATALOGUE
 // ==========================================
@@ -382,42 +422,42 @@ model Provider {
 model DedicatedIpPlan {
   id String @id @default(uuid())
 
-  providerId String
+  providerId     String
   externalPlanId String
-  planName String
+  planName       String
 
-  categoryId String?
-  categoryName String?
-  tier String?
-  tierLabel String?
-  controlMode String?
-  protocol String?
+  categoryId         String?
+  categoryName       String?
+  tier               String?
+  tierLabel          String?
+  controlMode        String?
+  protocol           String?
   supportedProtocols String[] @default([])
 
   countryCode String?
   countryName String?
-  location String?
-  duration String?
-  speed String?
+  location    String?
+  duration    String?
+  speed       String?
   minQuantity Int?
 
   regularPrice Decimal? @db.Decimal(10, 2)
-  apiPrice Decimal? @db.Decimal(10, 2)
-  currency String @default("INR")
+  apiPrice     Decimal? @db.Decimal(10, 2)
+  currency     String   @default("INR")
 
-  inStock Boolean @default(false)
-  stock Int?
+  inStock       Boolean @default(false)
+  stock         Int?
   defaultSubnet String?
-  poolsCount Int @default(0)
+  poolsCount    Int     @default(0)
 
-  isActive Boolean @default(true)
+  isActive     Boolean   @default(true)
   lastSyncedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  provider Provider @relation(fields: [providerId], references: [id], onDelete: Restrict)
-  pools DedicatedIpPool[]
+  provider Provider          @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  pools    DedicatedIpPool[]
 
   @@unique([providerId, externalPlanId])
   @@index([providerId, isActive, inStock])
@@ -426,23 +466,23 @@ model DedicatedIpPlan {
 model DedicatedIpPool {
   id String @id @default(uuid())
 
-  planId String
+  planId         String
   externalPoolId String
-  poolName String?
-  subnet String?
-  location String?
+  poolName       String?
+  subnet         String?
+  location       String?
 
   regularPrice Decimal? @db.Decimal(10, 2)
-  apiPrice Decimal? @db.Decimal(10, 2)
-  currency String @default("INR")
+  apiPrice     Decimal? @db.Decimal(10, 2)
+  currency     String   @default("INR")
 
-  inStock Boolean @default(false)
-  stock Int?
+  inStock   Boolean @default(false)
+  stock     Int?
   isDefault Boolean @default(false)
 
   lastSyncedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   plan DedicatedIpPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
@@ -453,13 +493,13 @@ model DedicatedIpPool {
 model DedicatedIpSyncState {
   id String @id @default(uuid())
 
-  providerId String @unique
-  status String @default("NEVER_SYNCED")
-  lastAttemptAt DateTime?
-  lastSuccessAt DateTime?
-  lastError String?
-  syncedPlanCount Int @default(0)
-  syncedPoolCount Int @default(0)
+  providerId      String    @unique
+  status          String    @default("NEVER_SYNCED")
+  lastAttemptAt   DateTime?
+  lastSuccessAt   DateTime?
+  lastError       String?
+  syncedPlanCount Int       @default(0)
+  syncedPoolCount Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -591,7 +631,7 @@ model VPSInstance {
   provider      String
   providerVpsId String? @unique
 
-  ipAddress       String    @unique
+  ipAddress       String  @unique
   hostname        String?
   operatingSystem String?
 
@@ -610,10 +650,10 @@ model VPSInstance {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user          User                @relation(fields: [userId], references: [id], onDelete: Restrict)
-  order         Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  inventory     ProviderInventory?  @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
-  consentAudits VPSConsentAudit[]
+  user            User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  order           Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  inventory       ProviderInventory? @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+  consentAudits   VPSConsentAudit[]
   renewalAttempts RenewalAttempt[]
   notifications   NotificationLog[]
   supportTickets  SupportTicket[]
@@ -721,18 +761,18 @@ model PriceHistory {
 // ==========================================
 
 model RenewalAttempt {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
   vpsId             String
   userId            String
-  status            String   // SUCCESS, INSUFFICIENT_FUNDS, FAILED, SKIPPED
-  renewalAmount     Decimal  @db.Decimal(10, 2)
-  walletBalance     Decimal? @db.Decimal(10, 2)
+  status            String // SUCCESS, INSUFFICIENT_FUNDS, FAILED, SKIPPED
+  renewalAmount     Decimal   @db.Decimal(10, 2)
+  walletBalance     Decimal?  @db.Decimal(10, 2)
   previousExpiresAt DateTime?
   newExpiresAt      DateTime?
   paymentId         String?
   errorMessage      String?
-  idempotencyKey    String   @unique
-  attemptedAt       DateTime @default(now())
+  idempotencyKey    String    @unique
+  attemptedAt       DateTime  @default(now())
 
   vps  VPSInstance @relation(fields: [vpsId], references: [id], onDelete: Restrict)
   user User        @relation(fields: [userId], references: [id], onDelete: Restrict)
@@ -750,7 +790,7 @@ model NotificationLog {
   id             String   @id @default(uuid())
   userId         String
   vpsId          String?
-  type           String   // EXPIRY_WARNING, RENEWAL_SUCCESS, RENEWAL_FAILED, INSUFFICIENT_BALANCE, VPS_SUSPENDED, GRACE_PERIOD_WARNING, VPS_TERMINATED
+  type           String // EXPIRY_WARNING, RENEWAL_SUCCESS, RENEWAL_FAILED, INSUFFICIENT_BALANCE, VPS_SUSPENDED, GRACE_PERIOD_WARNING, VPS_TERMINATED
   channel        String   @default("EMAIL")
   recipient      String
   subject        String
@@ -775,18 +815,18 @@ model HostHeavenPlanMapping {
 
   planId String @unique
 
-  externalConfigId   String?  @unique
-  isCostVerified     Boolean  @default(false)
-  costStatus         String   @default("ESTIMATED") // ESTIMATED or VERIFIED
-  lastSyncedAt       DateTime?
+  externalConfigId String?   @unique
+  isCostVerified   Boolean   @default(false)
+  costStatus       String    @default("ESTIMATED") // ESTIMATED or VERIFIED
+  lastSyncedAt     DateTime?
 
-  pricingDetails     Json?
+  pricingDetails Json?
 
-  zoneId             String
-  zoneName           String?
-  zoneIsoId          String
-  isoName            String?
-  planType           String // SHARED or DEDICATED
+  zoneId    String
+  zoneName  String?
+  zoneIsoId String
+  isoName   String?
+  planType  String // SHARED or DEDICATED
 
   cpuPricingId       String
   cpuName            String?
@@ -797,13 +837,13 @@ model HostHeavenPlanMapping {
   bandwidthPricingId String
   bandwidthName      String?
 
-  providerCost       Decimal @db.Decimal(10, 2)
-  currency           String  @default("INR")
+  providerCost Decimal @db.Decimal(10, 2)
+  currency     String  @default("INR")
 
-  isActive           Boolean @default(true)
+  isActive Boolean @default(true)
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   plan VPSPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
@@ -818,23 +858,23 @@ model HostHeavenPlanMapping {
 // ==========================================
 
 model SupportTicket {
-  id            String          @id @default(uuid())
-  ticketNumber  Int             @default(autoincrement())
+  id            String  @id @default(uuid())
+  ticketNumber  Int     @default(autoincrement())
   userId        String
   vpsInstanceId String?
   orderId       String?
 
-  subject       String
-  category      TicketCategory  @default(VPS_TECHNICAL)
-  priority      TicketPriority  @default(MEDIUM)
-  status        TicketStatus    @default(OPEN)
+  subject  String
+  category TicketCategory @default(VPS_TECHNICAL)
+  priority TicketPriority @default(MEDIUM)
+  status   TicketStatus   @default(OPEN)
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vpsInstance   VPSInstance?    @relation(fields: [vpsInstanceId], references: [id], onDelete: SetNull)
-  messages      TicketMessage[]
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vpsInstance VPSInstance?    @relation(fields: [vpsInstanceId], references: [id], onDelete: SetNull)
+  messages    TicketMessage[]
 
   @@index([userId, status])
   @@index([status, priority])
@@ -842,19 +882,17 @@ model SupportTicket {
 }
 
 model TicketMessage {
-  id          String        @id @default(uuid())
+  id          String   @id @default(uuid())
   ticketId    String
   senderId    String
-  senderRole  UserRole      @default(CUSTOMER)
+  senderRole  UserRole @default(CUSTOMER)
   senderName  String
-  message     String        @db.Text
-  attachments String[]      @default([])
+  message     String   @db.Text
+  attachments String[] @default([])
 
-  createdAt   DateTime      @default(now())
+  createdAt DateTime @default(now())
 
-  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([ticketId, createdAt])
 }
-
-

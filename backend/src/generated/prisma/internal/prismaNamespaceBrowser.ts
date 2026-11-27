@@ -59,6 +59,7 @@ export const ModelName = {
   WalletTransaction: 'WalletTransaction',
   VPSPlan: 'VPSPlan',
   Order: 'Order',
+  SmartVpsOrder: 'SmartVpsOrder',
   Payment: 'Payment',
   Provider: 'Provider',
   DedicatedIpPlan: 'DedicatedIpPlan',
@@ -216,10 +217,33 @@ export const OrderScalarFieldEnum = {
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
 
 
+export const SmartVpsOrderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ramGb: 'ramGb',
+  planName: 'planName',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  idempotencyKey: 'idempotencyKey',
+  providerIp: 'providerIp',
+  providerUsername: 'providerUsername',
+  passwordEncrypted: 'passwordEncrypted',
+  provisioningError: 'provisioningError',
+  paidAt: 'paidAt',
+  provisionedAt: 'provisionedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SmartVpsOrderScalarFieldEnum = (typeof SmartVpsOrderScalarFieldEnum)[keyof typeof SmartVpsOrderScalarFieldEnum]
+
+
 export const PaymentScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   orderId: 'orderId',
+  smartVpsOrderId: 'smartVpsOrderId',
   purpose: 'purpose',
   provider: 'provider',
   razorpayOrderId: 'razorpayOrderId',

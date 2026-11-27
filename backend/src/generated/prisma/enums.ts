@@ -53,7 +53,8 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 export const PaymentPurpose = {
   VPS_ORDER: 'VPS_ORDER',
   WALLET_TOPUP: 'WALLET_TOPUP',
-  VPS_RENEWAL: 'VPS_RENEWAL'
+  VPS_RENEWAL: 'VPS_RENEWAL',
+  SMARTVPS_ORDER: 'SMARTVPS_ORDER'
 } as const
 
 export type PaymentPurpose = (typeof PaymentPurpose)[keyof typeof PaymentPurpose]
@@ -65,6 +66,20 @@ export const PaymentProvider = {
 } as const
 
 export type PaymentProvider = (typeof PaymentProvider)[keyof typeof PaymentProvider]
+
+
+export const SmartVpsOrderStatus = {
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  PAID: 'PAID',
+  PROVISIONING: 'PROVISIONING',
+  ACTIVE: 'ACTIVE',
+  PROVISIONING_FAILED: 'PROVISIONING_FAILED',
+  REFUND_PENDING: 'REFUND_PENDING',
+  REFUNDED: 'REFUNDED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type SmartVpsOrderStatus = (typeof SmartVpsOrderStatus)[keyof typeof SmartVpsOrderStatus]
 
 
 export const WalletTransactionType = {

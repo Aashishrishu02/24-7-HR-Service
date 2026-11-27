@@ -220,6 +220,7 @@ export type UserWhereInput = {
   orders?: Prisma.OrderListRelationFilter
   wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
   payments?: Prisma.PaymentListRelationFilter
+  smartVpsOrders?: Prisma.SmartVpsOrderListRelationFilter
   consentAudits?: Prisma.VPSConsentAuditListRelationFilter
   renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
   notifications?: Prisma.NotificationLogListRelationFilter
@@ -242,6 +243,7 @@ export type UserOrderByWithRelationInput = {
   orders?: Prisma.OrderOrderByRelationAggregateInput
   wallet?: Prisma.WalletOrderByWithRelationInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
+  smartVpsOrders?: Prisma.SmartVpsOrderOrderByRelationAggregateInput
   consentAudits?: Prisma.VPSConsentAuditOrderByRelationAggregateInput
   renewalAttempts?: Prisma.RenewalAttemptOrderByRelationAggregateInput
   notifications?: Prisma.NotificationLogOrderByRelationAggregateInput
@@ -267,6 +269,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   orders?: Prisma.OrderListRelationFilter
   wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
   payments?: Prisma.PaymentListRelationFilter
+  smartVpsOrders?: Prisma.SmartVpsOrderListRelationFilter
   consentAudits?: Prisma.VPSConsentAuditListRelationFilter
   renewalAttempts?: Prisma.RenewalAttemptListRelationFilter
   notifications?: Prisma.NotificationLogListRelationFilter
@@ -319,6 +322,7 @@ export type UserCreateInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -341,6 +345,7 @@ export type UserUncheckedCreateInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -363,6 +368,7 @@ export type UserUpdateInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -385,6 +391,7 @@ export type UserUncheckedUpdateInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
@@ -548,6 +555,20 @@ export type UserUpdateOneRequiredWithoutOrdersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrdersInput, Prisma.UserUpdateWithoutOrdersInput>, Prisma.UserUncheckedUpdateWithoutOrdersInput>
 }
 
+export type UserCreateNestedOneWithoutSmartVpsOrdersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSmartVpsOrdersInput, Prisma.UserUncheckedCreateWithoutSmartVpsOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSmartVpsOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSmartVpsOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSmartVpsOrdersInput, Prisma.UserUncheckedCreateWithoutSmartVpsOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSmartVpsOrdersInput
+  upsert?: Prisma.UserUpsertWithoutSmartVpsOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSmartVpsOrdersInput, Prisma.UserUpdateWithoutSmartVpsOrdersInput>, Prisma.UserUncheckedUpdateWithoutSmartVpsOrdersInput>
+}
+
 export type UserCreateNestedOneWithoutPaymentsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentsInput, Prisma.UserUncheckedCreateWithoutPaymentsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentsInput
@@ -647,6 +668,7 @@ export type UserCreateWithoutEmailOtpsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -668,6 +690,7 @@ export type UserUncheckedCreateWithoutEmailOtpsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -705,6 +728,7 @@ export type UserUpdateWithoutEmailOtpsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -726,6 +750,7 @@ export type UserUncheckedUpdateWithoutEmailOtpsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
@@ -747,6 +772,7 @@ export type UserCreateWithoutPasswordOtpsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -768,6 +794,7 @@ export type UserUncheckedCreateWithoutPasswordOtpsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -805,6 +832,7 @@ export type UserUpdateWithoutPasswordOtpsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -826,6 +854,7 @@ export type UserUncheckedUpdateWithoutPasswordOtpsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
@@ -847,6 +876,7 @@ export type UserCreateWithoutWalletInput = {
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -868,6 +898,7 @@ export type UserUncheckedCreateWithoutWalletInput = {
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -905,6 +936,7 @@ export type UserUpdateWithoutWalletInput = {
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -926,6 +958,7 @@ export type UserUncheckedUpdateWithoutWalletInput = {
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
@@ -947,6 +980,7 @@ export type UserCreateWithoutOrdersInput = {
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -968,6 +1002,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -1005,6 +1040,7 @@ export type UserUpdateWithoutOrdersInput = {
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -1024,6 +1060,111 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
   passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutSmartVpsOrdersInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutSmartVpsOrdersInput = {
+  id?: string
+  name?: string | null
+  email: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  emailVerifiedAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedCreateNestedManyWithoutUserInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedCreateNestedManyWithoutUserInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
+  renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
+  supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutSmartVpsOrdersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSmartVpsOrdersInput, Prisma.UserUncheckedCreateWithoutSmartVpsOrdersInput>
+}
+
+export type UserUpsertWithoutSmartVpsOrdersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSmartVpsOrdersInput, Prisma.UserUncheckedUpdateWithoutSmartVpsOrdersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSmartVpsOrdersInput, Prisma.UserUncheckedCreateWithoutSmartVpsOrdersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSmartVpsOrdersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSmartVpsOrdersInput, Prisma.UserUncheckedUpdateWithoutSmartVpsOrdersInput>
+}
+
+export type UserUpdateWithoutSmartVpsOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
+  renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
+  supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSmartVpsOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  emailOtps?: Prisma.EmailVerificationOtpUncheckedUpdateManyWithoutUserNestedInput
+  passwordOtps?: Prisma.PasswordResetOtpUncheckedUpdateManyWithoutUserNestedInput
+  vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
@@ -1047,6 +1188,7 @@ export type UserCreateWithoutPaymentsInput = {
   vpsInstances?: Prisma.VPSInstanceCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -1068,6 +1210,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   vpsInstances?: Prisma.VPSInstanceUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -1105,6 +1248,7 @@ export type UserUpdateWithoutPaymentsInput = {
   vpsInstances?: Prisma.VPSInstanceUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -1126,6 +1270,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   vpsInstances?: Prisma.VPSInstanceUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
@@ -1147,6 +1292,7 @@ export type UserCreateWithoutVpsInstancesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -1168,6 +1314,7 @@ export type UserUncheckedCreateWithoutVpsInstancesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -1205,6 +1352,7 @@ export type UserUpdateWithoutVpsInstancesInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -1226,6 +1374,7 @@ export type UserUncheckedUpdateWithoutVpsInstancesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
@@ -1248,6 +1397,7 @@ export type UserCreateWithoutConsentAuditsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
@@ -1269,6 +1419,7 @@ export type UserUncheckedCreateWithoutConsentAuditsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
@@ -1306,6 +1457,7 @@ export type UserUpdateWithoutConsentAuditsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
@@ -1327,6 +1479,7 @@ export type UserUncheckedUpdateWithoutConsentAuditsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
@@ -1348,6 +1501,7 @@ export type UserCreateWithoutRenewalAttemptsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
@@ -1369,6 +1523,7 @@ export type UserUncheckedCreateWithoutRenewalAttemptsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
@@ -1406,6 +1561,7 @@ export type UserUpdateWithoutRenewalAttemptsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
@@ -1427,6 +1583,7 @@ export type UserUncheckedUpdateWithoutRenewalAttemptsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
@@ -1448,6 +1605,7 @@ export type UserCreateWithoutNotificationsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   supportTickets?: Prisma.SupportTicketCreateNestedManyWithoutUserInput
@@ -1469,6 +1627,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   supportTickets?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutUserInput
@@ -1506,6 +1665,7 @@ export type UserUpdateWithoutNotificationsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   supportTickets?: Prisma.SupportTicketUpdateManyWithoutUserNestedInput
@@ -1527,6 +1687,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   supportTickets?: Prisma.SupportTicketUncheckedUpdateManyWithoutUserNestedInput
@@ -1548,6 +1709,7 @@ export type UserCreateWithoutSupportTicketsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogCreateNestedManyWithoutUserInput
@@ -1569,6 +1731,7 @@ export type UserUncheckedCreateWithoutSupportTicketsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   wallet?: Prisma.WalletUncheckedCreateNestedOneWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedCreateNestedManyWithoutUserInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedCreateNestedManyWithoutUserInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationLogUncheckedCreateNestedManyWithoutUserInput
@@ -1606,6 +1769,7 @@ export type UserUpdateWithoutSupportTicketsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUpdateManyWithoutUserNestedInput
@@ -1627,6 +1791,7 @@ export type UserUncheckedUpdateWithoutSupportTicketsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   wallet?: Prisma.WalletUncheckedUpdateOneWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  smartVpsOrders?: Prisma.SmartVpsOrderUncheckedUpdateManyWithoutUserNestedInput
   consentAudits?: Prisma.VPSConsentAuditUncheckedUpdateManyWithoutUserNestedInput
   renewalAttempts?: Prisma.RenewalAttemptUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationLogUncheckedUpdateManyWithoutUserNestedInput
@@ -1643,6 +1808,7 @@ export type UserCountOutputType = {
   vpsInstances: number
   orders: number
   payments: number
+  smartVpsOrders: number
   consentAudits: number
   renewalAttempts: number
   notifications: number
@@ -1655,6 +1821,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   vpsInstances?: boolean | UserCountOutputTypeCountVpsInstancesArgs
   orders?: boolean | UserCountOutputTypeCountOrdersArgs
   payments?: boolean | UserCountOutputTypeCountPaymentsArgs
+  smartVpsOrders?: boolean | UserCountOutputTypeCountSmartVpsOrdersArgs
   consentAudits?: boolean | UserCountOutputTypeCountConsentAuditsArgs
   renewalAttempts?: boolean | UserCountOutputTypeCountRenewalAttemptsArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
@@ -1709,6 +1876,13 @@ export type UserCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.E
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountSmartVpsOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SmartVpsOrderWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountConsentAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.VPSConsentAuditWhereInput
 }
@@ -1751,6 +1925,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   wallet?: boolean | Prisma.User$walletArgs<ExtArgs>
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
+  smartVpsOrders?: boolean | Prisma.User$smartVpsOrdersArgs<ExtArgs>
   consentAudits?: boolean | Prisma.User$consentAuditsArgs<ExtArgs>
   renewalAttempts?: boolean | Prisma.User$renewalAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
@@ -1802,6 +1977,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   wallet?: boolean | Prisma.User$walletArgs<ExtArgs>
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
+  smartVpsOrders?: boolean | Prisma.User$smartVpsOrdersArgs<ExtArgs>
   consentAudits?: boolean | Prisma.User$consentAuditsArgs<ExtArgs>
   renewalAttempts?: boolean | Prisma.User$renewalAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
@@ -1820,6 +1996,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     orders: Prisma.$OrderPayload<ExtArgs>[]
     wallet: Prisma.$WalletPayload<ExtArgs> | null
     payments: Prisma.$PaymentPayload<ExtArgs>[]
+    smartVpsOrders: Prisma.$SmartVpsOrderPayload<ExtArgs>[]
     consentAudits: Prisma.$VPSConsentAuditPayload<ExtArgs>[]
     renewalAttempts: Prisma.$RenewalAttemptPayload<ExtArgs>[]
     notifications: Prisma.$NotificationLogPayload<ExtArgs>[]
@@ -2235,6 +2412,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   orders<T extends Prisma.User$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   wallet<T extends Prisma.User$walletArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$walletArgs<ExtArgs>>): Prisma.Prisma__WalletClient<runtime.Types.Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   payments<T extends Prisma.User$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  smartVpsOrders<T extends Prisma.User$smartVpsOrdersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$smartVpsOrdersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SmartVpsOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   consentAudits<T extends Prisma.User$consentAuditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$consentAuditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VPSConsentAuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   renewalAttempts<T extends Prisma.User$renewalAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$renewalAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RenewalAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2806,6 +2984,30 @@ export type User$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
+}
+
+/**
+ * User.smartVpsOrders
+ */
+export type User$smartVpsOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SmartVpsOrder
+   */
+  select?: Prisma.SmartVpsOrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SmartVpsOrder
+   */
+  omit?: Prisma.SmartVpsOrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmartVpsOrderInclude<ExtArgs> | null
+  where?: Prisma.SmartVpsOrderWhereInput
+  orderBy?: Prisma.SmartVpsOrderOrderByWithRelationInput | Prisma.SmartVpsOrderOrderByWithRelationInput[]
+  cursor?: Prisma.SmartVpsOrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SmartVpsOrderScalarFieldEnum | Prisma.SmartVpsOrderScalarFieldEnum[]
 }
 
 /**

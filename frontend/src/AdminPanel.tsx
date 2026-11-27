@@ -13,6 +13,7 @@ import Provisioning from "./admin/Provisioning";
 import RenewalLifecycle from "./admin/RenewalLifecycle";
 import HostHeavenMapping from "./admin/HostHeavenMapping";
 import DedicatedIpCatalogue from "./admin/DedicatedIpCatalogue";
+import SmartVPS from "./admin/SmartVPS";
 import AdminSupportDesk from "./admin/AdminSupportDesk";
 import SupportContact from "./admin/SupportContact";
 import AdminPayments from "./admin/AdminPayments";
@@ -366,6 +367,7 @@ export default function AdminPanel() {
     ["Payments & Billing", CreditCard],
     ["Support Desk", Headphones],
     ["Providers", Network],
+    ["SmartVPS", Server],
     ["Dedicated IP Catalogue", Package],
     ["HostHeaven Mappings", Cloud],
     ["Plan Provider Mapping", Network],
@@ -843,6 +845,7 @@ export default function AdminPanel() {
           <div style={{ display: page === "Support Desk" ? "block" : "none" }}><AdminSupportDesk /></div>
           <div style={{ display: page === "Plans" ? "block" : "none" }}><AdminPlans /></div>
           <div style={{ display: page === "Providers" ? "block" : "none" }}><Providers /></div>
+          <div style={{ display: page === "SmartVPS" ? "block" : "none" }}><SmartVPS /></div>
           <div style={{ display: page === "Dedicated IP Catalogue" ? "block" : "none" }}><DedicatedIpCatalogue /></div>
           <div style={{ display: page === "HostHeaven Mappings" ? "block" : "none" }}><HostHeavenMapping /></div>
           <div style={{ display: page === "Plan Provider Mapping" ? "block" : "none" }}><PlanProviderMapping /></div>

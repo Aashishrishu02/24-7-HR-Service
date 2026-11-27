@@ -38,6 +38,7 @@ export type PaymentMinAggregateOutputType = {
   id: string | null
   userId: string | null
   orderId: string | null
+  smartVpsOrderId: string | null
   purpose: $Enums.PaymentPurpose | null
   provider: $Enums.PaymentProvider | null
   razorpayOrderId: string | null
@@ -54,6 +55,7 @@ export type PaymentMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   orderId: string | null
+  smartVpsOrderId: string | null
   purpose: $Enums.PaymentPurpose | null
   provider: $Enums.PaymentProvider | null
   razorpayOrderId: string | null
@@ -70,6 +72,7 @@ export type PaymentCountAggregateOutputType = {
   id: number
   userId: number
   orderId: number
+  smartVpsOrderId: number
   purpose: number
   provider: number
   razorpayOrderId: number
@@ -96,6 +99,7 @@ export type PaymentMinAggregateInputType = {
   id?: true
   userId?: true
   orderId?: true
+  smartVpsOrderId?: true
   purpose?: true
   provider?: true
   razorpayOrderId?: true
@@ -112,6 +116,7 @@ export type PaymentMaxAggregateInputType = {
   id?: true
   userId?: true
   orderId?: true
+  smartVpsOrderId?: true
   purpose?: true
   provider?: true
   razorpayOrderId?: true
@@ -128,6 +133,7 @@ export type PaymentCountAggregateInputType = {
   id?: true
   userId?: true
   orderId?: true
+  smartVpsOrderId?: true
   purpose?: true
   provider?: true
   razorpayOrderId?: true
@@ -231,6 +237,7 @@ export type PaymentGroupByOutputType = {
   id: string
   userId: string
   orderId: string | null
+  smartVpsOrderId: string | null
   purpose: $Enums.PaymentPurpose
   provider: $Enums.PaymentProvider
   razorpayOrderId: string | null
@@ -270,6 +277,7 @@ export type PaymentWhereInput = {
   id?: Prisma.StringFilter<"Payment"> | string
   userId?: Prisma.StringFilter<"Payment"> | string
   orderId?: Prisma.StringNullableFilter<"Payment"> | string | null
+  smartVpsOrderId?: Prisma.StringNullableFilter<"Payment"> | string | null
   purpose?: Prisma.EnumPaymentPurposeFilter<"Payment"> | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFilter<"Payment"> | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.StringNullableFilter<"Payment"> | string | null
@@ -282,6 +290,7 @@ export type PaymentWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   order?: Prisma.XOR<Prisma.OrderNullableScalarRelationFilter, Prisma.OrderWhereInput> | null
+  smartVpsOrder?: Prisma.XOR<Prisma.SmartVpsOrderNullableScalarRelationFilter, Prisma.SmartVpsOrderWhereInput> | null
   walletTransactions?: Prisma.WalletTransactionListRelationFilter
 }
 
@@ -289,6 +298,7 @@ export type PaymentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   orderId?: Prisma.SortOrderInput | Prisma.SortOrder
+  smartVpsOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
   purpose?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   razorpayOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -301,6 +311,7 @@ export type PaymentOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   order?: Prisma.OrderOrderByWithRelationInput
+  smartVpsOrder?: Prisma.SmartVpsOrderOrderByWithRelationInput
   walletTransactions?: Prisma.WalletTransactionOrderByRelationAggregateInput
 }
 
@@ -313,6 +324,7 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
   userId?: Prisma.StringFilter<"Payment"> | string
   orderId?: Prisma.StringNullableFilter<"Payment"> | string | null
+  smartVpsOrderId?: Prisma.StringNullableFilter<"Payment"> | string | null
   purpose?: Prisma.EnumPaymentPurposeFilter<"Payment"> | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFilter<"Payment"> | $Enums.PaymentProvider
   razorpaySignature?: Prisma.StringNullableFilter<"Payment"> | string | null
@@ -323,6 +335,7 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   order?: Prisma.XOR<Prisma.OrderNullableScalarRelationFilter, Prisma.OrderWhereInput> | null
+  smartVpsOrder?: Prisma.XOR<Prisma.SmartVpsOrderNullableScalarRelationFilter, Prisma.SmartVpsOrderWhereInput> | null
   walletTransactions?: Prisma.WalletTransactionListRelationFilter
 }, "id" | "razorpayOrderId" | "razorpayPaymentId">
 
@@ -330,6 +343,7 @@ export type PaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   orderId?: Prisma.SortOrderInput | Prisma.SortOrder
+  smartVpsOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
   purpose?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   razorpayOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -354,6 +368,7 @@ export type PaymentScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Payment"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Payment"> | string
   orderId?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
+  smartVpsOrderId?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   purpose?: Prisma.EnumPaymentPurposeWithAggregatesFilter<"Payment"> | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderWithAggregatesFilter<"Payment"> | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
@@ -380,6 +395,7 @@ export type PaymentCreateInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPaymentsInput
   order?: Prisma.OrderCreateNestedOneWithoutPaymentsInput
+  smartVpsOrder?: Prisma.SmartVpsOrderCreateNestedOneWithoutPaymentsInput
   walletTransactions?: Prisma.WalletTransactionCreateNestedManyWithoutPaymentInput
 }
 
@@ -387,6 +403,7 @@ export type PaymentUncheckedCreateInput = {
   id?: string
   userId: string
   orderId?: string | null
+  smartVpsOrderId?: string | null
   purpose: $Enums.PaymentPurpose
   provider?: $Enums.PaymentProvider
   razorpayOrderId?: string | null
@@ -414,6 +431,7 @@ export type PaymentUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPaymentsNestedInput
   order?: Prisma.OrderUpdateOneWithoutPaymentsNestedInput
+  smartVpsOrder?: Prisma.SmartVpsOrderUpdateOneWithoutPaymentsNestedInput
   walletTransactions?: Prisma.WalletTransactionUpdateManyWithoutPaymentNestedInput
 }
 
@@ -421,6 +439,7 @@ export type PaymentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smartVpsOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -438,6 +457,7 @@ export type PaymentCreateManyInput = {
   id?: string
   userId: string
   orderId?: string | null
+  smartVpsOrderId?: string | null
   purpose: $Enums.PaymentPurpose
   provider?: $Enums.PaymentProvider
   razorpayOrderId?: string | null
@@ -468,6 +488,7 @@ export type PaymentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smartVpsOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -499,6 +520,7 @@ export type PaymentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
+  smartVpsOrderId?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   razorpayOrderId?: Prisma.SortOrder
@@ -519,6 +541,7 @@ export type PaymentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
+  smartVpsOrderId?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   razorpayOrderId?: Prisma.SortOrder
@@ -535,6 +558,7 @@ export type PaymentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   orderId?: Prisma.SortOrder
+  smartVpsOrderId?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   razorpayOrderId?: Prisma.SortOrder
@@ -651,6 +675,48 @@ export type PaymentUncheckedUpdateManyWithoutOrderNestedInput = {
   deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
 }
 
+export type PaymentCreateNestedManyWithoutSmartVpsOrderInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput> | Prisma.PaymentCreateWithoutSmartVpsOrderInput[] | Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput | Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput[]
+  createMany?: Prisma.PaymentCreateManySmartVpsOrderInputEnvelope
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+}
+
+export type PaymentUncheckedCreateNestedManyWithoutSmartVpsOrderInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput> | Prisma.PaymentCreateWithoutSmartVpsOrderInput[] | Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput | Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput[]
+  createMany?: Prisma.PaymentCreateManySmartVpsOrderInputEnvelope
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+}
+
+export type PaymentUpdateManyWithoutSmartVpsOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput> | Prisma.PaymentCreateWithoutSmartVpsOrderInput[] | Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput | Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput[]
+  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutSmartVpsOrderInput | Prisma.PaymentUpsertWithWhereUniqueWithoutSmartVpsOrderInput[]
+  createMany?: Prisma.PaymentCreateManySmartVpsOrderInputEnvelope
+  set?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  disconnect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  delete?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutSmartVpsOrderInput | Prisma.PaymentUpdateWithWhereUniqueWithoutSmartVpsOrderInput[]
+  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutSmartVpsOrderInput | Prisma.PaymentUpdateManyWithWhereWithoutSmartVpsOrderInput[]
+  deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
+}
+
+export type PaymentUncheckedUpdateManyWithoutSmartVpsOrderNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput> | Prisma.PaymentCreateWithoutSmartVpsOrderInput[] | Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput | Prisma.PaymentCreateOrConnectWithoutSmartVpsOrderInput[]
+  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutSmartVpsOrderInput | Prisma.PaymentUpsertWithWhereUniqueWithoutSmartVpsOrderInput[]
+  createMany?: Prisma.PaymentCreateManySmartVpsOrderInputEnvelope
+  set?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  disconnect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  delete?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
+  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutSmartVpsOrderInput | Prisma.PaymentUpdateWithWhereUniqueWithoutSmartVpsOrderInput[]
+  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutSmartVpsOrderInput | Prisma.PaymentUpdateManyWithWhereWithoutSmartVpsOrderInput[]
+  deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
+}
+
 export type EnumPaymentPurposeFieldUpdateOperationsInput = {
   set?: $Enums.PaymentPurpose
 }
@@ -676,12 +742,14 @@ export type PaymentCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   order?: Prisma.OrderCreateNestedOneWithoutPaymentsInput
+  smartVpsOrder?: Prisma.SmartVpsOrderCreateNestedOneWithoutPaymentsInput
   walletTransactions?: Prisma.WalletTransactionCreateNestedManyWithoutPaymentInput
 }
 
 export type PaymentUncheckedCreateWithoutUserInput = {
   id?: string
   orderId?: string | null
+  smartVpsOrderId?: string | null
   purpose: $Enums.PaymentPurpose
   provider?: $Enums.PaymentProvider
   razorpayOrderId?: string | null
@@ -728,6 +796,7 @@ export type PaymentScalarWhereInput = {
   id?: Prisma.StringFilter<"Payment"> | string
   userId?: Prisma.StringFilter<"Payment"> | string
   orderId?: Prisma.StringNullableFilter<"Payment"> | string | null
+  smartVpsOrderId?: Prisma.StringNullableFilter<"Payment"> | string | null
   purpose?: Prisma.EnumPaymentPurposeFilter<"Payment"> | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFilter<"Payment"> | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.StringNullableFilter<"Payment"> | string | null
@@ -754,12 +823,14 @@ export type PaymentCreateWithoutWalletTransactionsInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPaymentsInput
   order?: Prisma.OrderCreateNestedOneWithoutPaymentsInput
+  smartVpsOrder?: Prisma.SmartVpsOrderCreateNestedOneWithoutPaymentsInput
 }
 
 export type PaymentUncheckedCreateWithoutWalletTransactionsInput = {
   id?: string
   userId: string
   orderId?: string | null
+  smartVpsOrderId?: string | null
   purpose: $Enums.PaymentPurpose
   provider?: $Enums.PaymentProvider
   razorpayOrderId?: string | null
@@ -802,12 +873,14 @@ export type PaymentUpdateWithoutWalletTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPaymentsNestedInput
   order?: Prisma.OrderUpdateOneWithoutPaymentsNestedInput
+  smartVpsOrder?: Prisma.SmartVpsOrderUpdateOneWithoutPaymentsNestedInput
 }
 
 export type PaymentUncheckedUpdateWithoutWalletTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smartVpsOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -833,12 +906,14 @@ export type PaymentCreateWithoutOrderInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPaymentsInput
+  smartVpsOrder?: Prisma.SmartVpsOrderCreateNestedOneWithoutPaymentsInput
   walletTransactions?: Prisma.WalletTransactionCreateNestedManyWithoutPaymentInput
 }
 
 export type PaymentUncheckedCreateWithoutOrderInput = {
   id?: string
   userId: string
+  smartVpsOrderId?: string | null
   purpose: $Enums.PaymentPurpose
   provider?: $Enums.PaymentProvider
   razorpayOrderId?: string | null
@@ -878,9 +953,70 @@ export type PaymentUpdateManyWithWhereWithoutOrderInput = {
   data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyWithoutOrderInput>
 }
 
+export type PaymentCreateWithoutSmartVpsOrderInput = {
+  id?: string
+  purpose: $Enums.PaymentPurpose
+  provider?: $Enums.PaymentProvider
+  razorpayOrderId?: string | null
+  razorpayPaymentId?: string | null
+  razorpaySignature?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  status?: $Enums.PaymentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPaymentsInput
+  order?: Prisma.OrderCreateNestedOneWithoutPaymentsInput
+  walletTransactions?: Prisma.WalletTransactionCreateNestedManyWithoutPaymentInput
+}
+
+export type PaymentUncheckedCreateWithoutSmartVpsOrderInput = {
+  id?: string
+  userId: string
+  orderId?: string | null
+  purpose: $Enums.PaymentPurpose
+  provider?: $Enums.PaymentProvider
+  razorpayOrderId?: string | null
+  razorpayPaymentId?: string | null
+  razorpaySignature?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  status?: $Enums.PaymentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  walletTransactions?: Prisma.WalletTransactionUncheckedCreateNestedManyWithoutPaymentInput
+}
+
+export type PaymentCreateOrConnectWithoutSmartVpsOrderInput = {
+  where: Prisma.PaymentWhereUniqueInput
+  create: Prisma.XOR<Prisma.PaymentCreateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput>
+}
+
+export type PaymentCreateManySmartVpsOrderInputEnvelope = {
+  data: Prisma.PaymentCreateManySmartVpsOrderInput | Prisma.PaymentCreateManySmartVpsOrderInput[]
+  skipDuplicates?: boolean
+}
+
+export type PaymentUpsertWithWhereUniqueWithoutSmartVpsOrderInput = {
+  where: Prisma.PaymentWhereUniqueInput
+  update: Prisma.XOR<Prisma.PaymentUpdateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedUpdateWithoutSmartVpsOrderInput>
+  create: Prisma.XOR<Prisma.PaymentCreateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedCreateWithoutSmartVpsOrderInput>
+}
+
+export type PaymentUpdateWithWhereUniqueWithoutSmartVpsOrderInput = {
+  where: Prisma.PaymentWhereUniqueInput
+  data: Prisma.XOR<Prisma.PaymentUpdateWithoutSmartVpsOrderInput, Prisma.PaymentUncheckedUpdateWithoutSmartVpsOrderInput>
+}
+
+export type PaymentUpdateManyWithWhereWithoutSmartVpsOrderInput = {
+  where: Prisma.PaymentScalarWhereInput
+  data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyWithoutSmartVpsOrderInput>
+}
+
 export type PaymentCreateManyUserInput = {
   id?: string
   orderId?: string | null
+  smartVpsOrderId?: string | null
   purpose: $Enums.PaymentPurpose
   provider?: $Enums.PaymentProvider
   razorpayOrderId?: string | null
@@ -906,12 +1042,14 @@ export type PaymentUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   order?: Prisma.OrderUpdateOneWithoutPaymentsNestedInput
+  smartVpsOrder?: Prisma.SmartVpsOrderUpdateOneWithoutPaymentsNestedInput
   walletTransactions?: Prisma.WalletTransactionUpdateManyWithoutPaymentNestedInput
 }
 
 export type PaymentUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smartVpsOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -928,6 +1066,7 @@ export type PaymentUncheckedUpdateWithoutUserInput = {
 export type PaymentUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smartVpsOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -943,6 +1082,7 @@ export type PaymentUncheckedUpdateManyWithoutUserInput = {
 export type PaymentCreateManyOrderInput = {
   id?: string
   userId: string
+  smartVpsOrderId?: string | null
   purpose: $Enums.PaymentPurpose
   provider?: $Enums.PaymentProvider
   razorpayOrderId?: string | null
@@ -968,12 +1108,14 @@ export type PaymentUpdateWithoutOrderInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPaymentsNestedInput
+  smartVpsOrder?: Prisma.SmartVpsOrderUpdateOneWithoutPaymentsNestedInput
   walletTransactions?: Prisma.WalletTransactionUpdateManyWithoutPaymentNestedInput
 }
 
 export type PaymentUncheckedUpdateWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  smartVpsOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -990,6 +1132,73 @@ export type PaymentUncheckedUpdateWithoutOrderInput = {
 export type PaymentUncheckedUpdateManyWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  smartVpsOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PaymentCreateManySmartVpsOrderInput = {
+  id?: string
+  userId: string
+  orderId?: string | null
+  purpose: $Enums.PaymentPurpose
+  provider?: $Enums.PaymentProvider
+  razorpayOrderId?: string | null
+  razorpayPaymentId?: string | null
+  razorpaySignature?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  status?: $Enums.PaymentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type PaymentUpdateWithoutSmartVpsOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPaymentsNestedInput
+  order?: Prisma.OrderUpdateOneWithoutPaymentsNestedInput
+  walletTransactions?: Prisma.WalletTransactionUpdateManyWithoutPaymentNestedInput
+}
+
+export type PaymentUncheckedUpdateWithoutSmartVpsOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+  provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
+  razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactions?: Prisma.WalletTransactionUncheckedUpdateManyWithoutPaymentNestedInput
+}
+
+export type PaymentUncheckedUpdateManyWithoutSmartVpsOrderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   purpose?: Prisma.EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
   provider?: Prisma.EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1037,6 +1246,7 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   userId?: boolean
   orderId?: boolean
+  smartVpsOrderId?: boolean
   purpose?: boolean
   provider?: boolean
   razorpayOrderId?: boolean
@@ -1049,6 +1259,7 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Payment$orderArgs<ExtArgs>
+  smartVpsOrder?: boolean | Prisma.Payment$smartVpsOrderArgs<ExtArgs>
   walletTransactions?: boolean | Prisma.Payment$walletTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.PaymentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
@@ -1057,6 +1268,7 @@ export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   userId?: boolean
   orderId?: boolean
+  smartVpsOrderId?: boolean
   purpose?: boolean
   provider?: boolean
   razorpayOrderId?: boolean
@@ -1069,12 +1281,14 @@ export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Payment$orderArgs<ExtArgs>
+  smartVpsOrder?: boolean | Prisma.Payment$smartVpsOrderArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
 export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
   orderId?: boolean
+  smartVpsOrderId?: boolean
   purpose?: boolean
   provider?: boolean
   razorpayOrderId?: boolean
@@ -1087,12 +1301,14 @@ export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Payment$orderArgs<ExtArgs>
+  smartVpsOrder?: boolean | Prisma.Payment$smartVpsOrderArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
 export type PaymentSelectScalar = {
   id?: boolean
   userId?: boolean
   orderId?: boolean
+  smartVpsOrderId?: boolean
   purpose?: boolean
   provider?: boolean
   razorpayOrderId?: boolean
@@ -1105,20 +1321,23 @@ export type PaymentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "orderId" | "purpose" | "provider" | "razorpayOrderId" | "razorpayPaymentId" | "razorpaySignature" | "amount" | "currency" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["payment"]>
+export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "orderId" | "smartVpsOrderId" | "purpose" | "provider" | "razorpayOrderId" | "razorpayPaymentId" | "razorpaySignature" | "amount" | "currency" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["payment"]>
 export type PaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Payment$orderArgs<ExtArgs>
+  smartVpsOrder?: boolean | Prisma.Payment$smartVpsOrderArgs<ExtArgs>
   walletTransactions?: boolean | Prisma.Payment$walletTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.PaymentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Payment$orderArgs<ExtArgs>
+  smartVpsOrder?: boolean | Prisma.Payment$smartVpsOrderArgs<ExtArgs>
 }
 export type PaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Payment$orderArgs<ExtArgs>
+  smartVpsOrder?: boolean | Prisma.Payment$smartVpsOrderArgs<ExtArgs>
 }
 
 export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1126,12 +1345,14 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     order: Prisma.$OrderPayload<ExtArgs> | null
+    smartVpsOrder: Prisma.$SmartVpsOrderPayload<ExtArgs> | null
     walletTransactions: Prisma.$WalletTransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
     orderId: string | null
+    smartVpsOrderId: string | null
     purpose: $Enums.PaymentPurpose
     provider: $Enums.PaymentProvider
     razorpayOrderId: string | null
@@ -1538,6 +1759,7 @@ export interface Prisma__PaymentClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   order<T extends Prisma.Payment$orderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$orderArgs<ExtArgs>>): Prisma.Prisma__OrderClient<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  smartVpsOrder<T extends Prisma.Payment$smartVpsOrderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$smartVpsOrderArgs<ExtArgs>>): Prisma.Prisma__SmartVpsOrderClient<runtime.Types.Result.GetResult<Prisma.$SmartVpsOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   walletTransactions<T extends Prisma.Payment$walletTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payment$walletTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WalletTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1571,6 +1793,7 @@ export interface PaymentFieldRefs {
   readonly id: Prisma.FieldRef<"Payment", 'String'>
   readonly userId: Prisma.FieldRef<"Payment", 'String'>
   readonly orderId: Prisma.FieldRef<"Payment", 'String'>
+  readonly smartVpsOrderId: Prisma.FieldRef<"Payment", 'String'>
   readonly purpose: Prisma.FieldRef<"Payment", 'PaymentPurpose'>
   readonly provider: Prisma.FieldRef<"Payment", 'PaymentProvider'>
   readonly razorpayOrderId: Prisma.FieldRef<"Payment", 'String'>
@@ -1998,6 +2221,25 @@ export type Payment$orderArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.OrderInclude<ExtArgs> | null
   where?: Prisma.OrderWhereInput
+}
+
+/**
+ * Payment.smartVpsOrder
+ */
+export type Payment$smartVpsOrderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SmartVpsOrder
+   */
+  select?: Prisma.SmartVpsOrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SmartVpsOrder
+   */
+  omit?: Prisma.SmartVpsOrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmartVpsOrderInclude<ExtArgs> | null
+  where?: Prisma.SmartVpsOrderWhereInput
 }
 
 /**

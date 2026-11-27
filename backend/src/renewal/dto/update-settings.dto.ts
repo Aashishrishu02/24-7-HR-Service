@@ -55,6 +55,12 @@ export class UpdateRenewalSettingsDto {
   nexaVpsProfitMarginPercent?: number;
 
   @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Max(80)
+  smartVpsProfitMarginPercent?: number;
+
+  @IsOptional()
   @IsBoolean()
   dedicatedIpEnabled?: boolean;
 }

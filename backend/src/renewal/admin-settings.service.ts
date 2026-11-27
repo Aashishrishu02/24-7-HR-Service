@@ -15,6 +15,7 @@ export interface RenewalSettings {
   hostHeavenMarkupPercent: number;
   hostHeavenProfitMarginPercent: number;
   nexaVpsProfitMarginPercent: number;
+  smartVpsProfitMarginPercent: number;
   dedicatedIpEnabled: boolean;
 }
 
@@ -33,6 +34,7 @@ export class AdminSettingsService {
     HOSTHEAVEN_PROFIT_MARGIN_PERCENT: '20',
     HOSTHEAVEN_MARKUP_PERCENT: '25',
     NEXAVPS_PROFIT_MARGIN_PERCENT: '20',
+    SMARTVPS_PROFIT_MARGIN_PERCENT: '20',
     DEDICATED_IP_ENABLED: 'false',
   };
 
@@ -109,6 +111,15 @@ export class AdminSettingsService {
       }
     }
 
+    const rawSmartVpsMargin = Number(
+      settingsMap.get('SMARTVPS_PROFIT_MARGIN_PERCENT') ??
+        this.defaults.SMARTVPS_PROFIT_MARGIN_PERCENT,
+    );
+    const smartVpsProfitMarginPercent =
+      Number.isFinite(rawSmartVpsMargin) && rawSmartVpsMargin >= 0 && rawSmartVpsMargin <= 80
+        ? rawSmartVpsMargin
+        : 20;
+
     const dedicatedIpEnabled =
       (settingsMap.get('DEDICATED_IP_ENABLED') ??
         this.defaults.DEDICATED_IP_ENABLED) === 'true';
@@ -147,6 +158,7 @@ export class AdminSettingsService {
       hostHeavenMarkupPercent,
       hostHeavenProfitMarginPercent,
       nexaVpsProfitMarginPercent,
+      smartVpsProfitMarginPercent,
       dedicatedIpEnabled,
     };
   }
@@ -249,6 +261,15 @@ export class AdminSettingsService {
         key: 'HOSTHEAVEN_PROFIT_MARGIN_PERCENT',
         value: equivalentMargin.toString(),
         description: 'Gross profit margin on HostHeaven provider cost (default 20%)',
+      });
+    }
+
+    if (dto.smartVpsProfitMarginPercent !== undefined) {
+      const margin = Math.min(80, Math.max(0, dto.smartVpsProfitMarginPercent));
+      updates.push({
+        key: 'SMARTVPS_PROFIT_MARGIN_PERCENT',
+        value: margin.toString(),
+        description: 'Gross profit margin on SmartVPS provider cost (default 20%)',
       });
     }
 

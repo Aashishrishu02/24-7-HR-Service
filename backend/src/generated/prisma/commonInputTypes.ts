@@ -348,6 +348,23 @@ export type EnumOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumOrderStatusFilter<$PrismaModel>
 }
 
+export type EnumSmartVpsOrderStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.SmartVpsOrderStatus | Prisma.EnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSmartVpsOrderStatusFilter<$PrismaModel> | $Enums.SmartVpsOrderStatus
+}
+
+export type EnumSmartVpsOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SmartVpsOrderStatus | Prisma.EnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSmartVpsOrderStatusWithAggregatesFilter<$PrismaModel> | $Enums.SmartVpsOrderStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSmartVpsOrderStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSmartVpsOrderStatusFilter<$PrismaModel>
+}
+
 export type EnumPaymentPurposeFilter<$PrismaModel = never> = {
   equals?: $Enums.PaymentPurpose | Prisma.EnumPaymentPurposeFieldRefInput<$PrismaModel>
   in?: $Enums.PaymentPurpose[] | Prisma.ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
@@ -880,6 +897,23 @@ export type NestedEnumOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumOrderStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumOrderStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumSmartVpsOrderStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.SmartVpsOrderStatus | Prisma.EnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSmartVpsOrderStatusFilter<$PrismaModel> | $Enums.SmartVpsOrderStatus
+}
+
+export type NestedEnumSmartVpsOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SmartVpsOrderStatus | Prisma.EnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SmartVpsOrderStatus[] | Prisma.ListEnumSmartVpsOrderStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSmartVpsOrderStatusWithAggregatesFilter<$PrismaModel> | $Enums.SmartVpsOrderStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSmartVpsOrderStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSmartVpsOrderStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumPaymentPurposeFilter<$PrismaModel = never> = {
