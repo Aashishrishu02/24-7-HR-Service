@@ -1013,10 +1013,10 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
             <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#C6A66B]">
-              OCEAN VPS INFRASTRUCTURE
+              HIGH PERFORMANCE CLOUD INFRASTRUCTURE
             </p>
             <h2 className="mt-3 font-serif text-3xl font-bold sm:text-4xl">
-              SmartVPS Plans
+              High Performance VPS Plans
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm text-[#F1E9DA]/65">
               RAM-based cloud plans with live provider availability and transparent monthly pricing.
@@ -1034,7 +1034,7 @@ export default function Home() {
               {smartVpsPlans.map((plan) => (
                 <div key={plan.ramGb} className="rounded-2xl border border-[#C6A66B]/30 bg-[#201d1a] p-7 shadow-xl">
                   <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C6A66B]">
-                    SMART VPS
+                    HIGH PERFORMANCE VPS
                   </p>
                   <h3 className="mt-3 font-serif text-2xl font-bold">
                     {plan.ramGb} GB RAM
@@ -1048,7 +1048,7 @@ export default function Home() {
                       {plan.availableCount} available
                     </p>
                     <p className="mt-2 text-xs text-[#F1E9DA]/45">
-                      Live provider stock
+                      Live infrastructure stock
                     </p>
                   </div>
                   <div className="mt-6 rounded-lg border border-[#C6A66B]/20 bg-[#171717] px-3 py-3 text-center font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
@@ -1059,7 +1059,7 @@ export default function Home() {
             </div>
           ) : (
             <p className="mt-10 text-center text-sm text-[#F1E9DA]/50">
-              SmartVPS plans are currently unavailable. Please check again later.
+              High-performance VPS plans are currently unavailable. Please check again later.
             </p>
           )}
           <p className="mt-7 text-center font-mono text-[10px] text-[#F1E9DA]/35">

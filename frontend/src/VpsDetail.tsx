@@ -139,7 +139,7 @@ export default function VpsDetail({
           if (results[3].status === "fulfilled") setStorage(results[3].value.data);
 
           if (results.slice(0, 4).every((result) => result.status === "rejected")) {
-            setError("Unable to retrieve HostHeaven server information. Please try refreshing.");
+            setError("Unable to retrieve server information. Please try refreshing.");
           }
 
           if (results[4].status === "fulfilled") {
@@ -229,7 +229,7 @@ export default function VpsDetail({
     setNotice("");
     try {
       await api.post(`/hostheaven/vms/${vps.id}/rebuild`, { isoId });
-      setNotice("OS reinstall request submitted to HostHeaven.");
+      setNotice("OS reinstall request submitted successfully.");
     } catch (err: any) {
       setError(err.response?.data?.message || "Unable to submit OS reinstall request.");
     } finally {
@@ -288,7 +288,7 @@ export default function VpsDetail({
       <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-[#332f2a] bg-[#201d1a] p-5 sm:p-7">
         <div>
           <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
-            Server control panel · {vps.provider}
+            Server control panel · Cloud Infrastructure
           </p>
           <h1 className="mt-2 break-all font-serif text-2xl font-bold text-[#F1E9DA]">
             {vps.hostname || "VPS Server"}
@@ -296,7 +296,13 @@ export default function VpsDetail({
           <p className="mt-2 font-mono text-sm text-[#F1E9DA]/60">{vps.ipAddress}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="rounded-full border border-[#C6A66B]/30 bg-[#C6A66B]/10 px-3 py-1 text-xs text-[#C6A66B]">{statusText}</span>
-            <span className="rounded-full border border-[#332f2a] bg-[#171717] px-3 py-1 text-xs text-[#F1E9DA]/70">{vps.provider}</span>
+            <span className="rounded-full border border-[#332f2a] bg-[#171717] px-3 py-1 text-xs text-[#F1E9DA]/70">
+              {vps.provider === "HOSTHEAVEN"
+                ? "Cloud VPS"
+                : vps.provider === "NEXAVPS"
+                ? "Dedicated IP"
+                : "High Performance VPS"}
+            </span>
           </div>
         </div>
         <button onClick={() => void onRefresh()} className="inline-flex items-center gap-2 rounded-xl border border-[#332f2a] px-4 py-3 text-xs font-bold text-[#C6A66B]">
@@ -365,9 +371,9 @@ export default function VpsDetail({
           <>
             <h2 className="mb-4 flex items-center gap-2 font-serif text-xl font-bold text-[#F1E9DA]"><Cpu size={19} /> Performance metrics</h2>
             {isHostHeaven ? (
-              providerLoading ? <p className="text-sm text-[#F1E9DA]/50">Loading provider metrics…</p> : <DataRows data={metrics} />
+              providerLoading ? <p className="text-sm text-[#F1E9DA]/50">Loading server metrics…</p> : <DataRows data={metrics} />
             ) : (
-              <p className="text-sm text-[#F1E9DA]/50">Live CPU and memory performance metrics are not available through the current {vps.provider} integration.</p>
+              <p className="text-sm text-[#F1E9DA]/50">Live CPU and memory performance metrics are not available for this server plan.</p>
             )}
           </>
         )}
@@ -375,7 +381,7 @@ export default function VpsDetail({
         {tab === "storage" && (
           <>
             <h2 className="mb-4 flex items-center gap-2 font-serif text-xl font-bold text-[#F1E9DA]"><HardDrive size={19} /> Storage information</h2>
-            {isHostHeaven ? <DataRows data={storage} /> : <p className="text-sm text-[#F1E9DA]/50">Live disk usage data is unavailable through the current provider integration.</p>}
+            {isHostHeaven ? <DataRows data={storage} /> : <p className="text-sm text-[#F1E9DA]/50">Live disk usage data is unavailable for this server configuration.</p>}
           </>
         )}
 
@@ -386,7 +392,7 @@ export default function VpsDetail({
               <p className="text-[10px] uppercase tracking-wider text-[#F1E9DA]/45">Public IP address</p>
               <p className="mt-1 font-mono text-lg font-bold text-[#C6A66B]">{vps.ipAddress}</p>
             </div>
-            {isHostHeaven ? <DataRows data={metrics} /> : <p className="text-sm text-[#F1E9DA]/50">Live network traffic statistics are unavailable through the current provider integration.</p>}
+            {isHostHeaven ? <DataRows data={metrics} /> : <p className="text-sm text-[#F1E9DA]/50">Live network traffic statistics are unavailable for this server configuration.</p>}
           </>
         )}
 
@@ -409,17 +415,17 @@ export default function VpsDetail({
                       </select>
                       <button disabled={actionLoading || !isoId} onClick={() => void rebuildServer()} className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-300 disabled:opacity-50">Reinstall OS</button>
                     </>
-                  ) : <p className="text-sm text-[#F1E9DA]/50">No operating system ISO is currently available from HostHeaven.</p>}
+                  ) : <p className="text-sm text-[#F1E9DA]/50">No operating system image is currently available for this instance.</p>}
                   <p className="mt-2 text-xs text-red-300">Warning: reinstalling may erase server data.</p>
                 </div>
                 <div className="lg:col-span-2">
-                  <h3 className="mb-3 text-sm font-bold text-[#F1E9DA]">Provider lock status</h3>
+                  <h3 className="mb-3 text-sm font-bold text-[#F1E9DA]">Server Lock Status</h3>
                   <DataRows data={lockStatus} />
                 </div>
               </div>
             ) : isSmartVps ? (
               <div className="mt-5 max-w-md">
-                <p className="mb-3 text-sm text-[#F1E9DA]/60">Change OS using the SmartVPS integration.</p>
+                <p className="mb-3 text-sm text-[#F1E9DA]/60">Change operating system for this server.</p>
                 <select value={smartOs} onChange={(event) => setSmartOs(event.target.value)} className="w-full rounded-xl border border-[#332f2a] bg-[#171717] px-4 py-3 text-sm text-[#F1E9DA]">
                   <option value="ubuntu">Ubuntu</option>
                   <option value="centos">CentOS</option>
@@ -433,7 +439,7 @@ export default function VpsDetail({
                 <p className="mt-2 text-xs text-red-300">OS change may erase server data.</p>
               </div>
             ) : (
-              <p className="mt-3 text-sm text-[#F1E9DA]/50">Server settings and provider controls are not available for {vps.provider} yet.</p>
+              <p className="mt-3 text-sm text-[#F1E9DA]/50">Server settings and configuration controls are not available for this plan yet.</p>
             )}
           </>
         )}
@@ -461,7 +467,7 @@ export default function VpsDetail({
           </>
         )}
       </div>
-      {providerLoading && <p className="mt-3 text-center text-xs text-[#F1E9DA]/40">Refreshing provider information…</p>}
+      {providerLoading && <p className="mt-3 text-center text-xs text-[#F1E9DA]/40">Refreshing server details…</p>}
     </section>
   );
 }

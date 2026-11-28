@@ -1077,7 +1077,7 @@ export default function Dashboard() {
           )
         ) {
           throw new Error(
-            "HostHeaven plan configuration is incomplete. Please refresh the VPS plans and try again.",
+            "Cloud VPS plan configuration is incomplete. Please refresh the VPS plans and try again.",
           );
         }
 
@@ -1106,7 +1106,7 @@ export default function Dashboard() {
         if (paymentMethod === "WALLET") {
           setNotice(
             res.data?.message ||
-              `HostHeaven VPS deployed successfully! Order #${res.data?.order?.orderNumber}`,
+              `Cloud VPS deployed successfully! Order #${res.data?.order?.orderNumber}`,
           );
           setSelectedPlan(null);
           go("My VPS");
@@ -2090,10 +2090,10 @@ export default function Dashboard() {
               <section className="mt-12 rounded-2xl border border-[#C6A66B]/25 bg-[#201d1a] p-6 sm:p-8">
                 <div className="text-center">
                   <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#C6A66B]">
-                    SMART VPS HOSTING
+                    HIGH PERFORMANCE VPS HOSTING
                   </p>
                   <h2 className="mt-2 font-serif text-2xl font-bold text-[#F1E9DA] sm:text-3xl">
-                    SmartVPS Plans
+                    High-Performance VPS Plans
                   </h2>
                   <p className="mt-2 text-sm text-[#F1E9DA]/60">
                     Separate RAM-based catalogue with live availability.
@@ -2111,7 +2111,7 @@ export default function Dashboard() {
                     {smartVpsPlans.map((plan) => (
                       <div key={plan.ramGb} className="rounded-xl border border-[#332f2a] bg-[#171717] p-5">
                         <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#C6A66B]">
-                          SMART VPS
+                          HIGH PERFORMANCE VPS
                         </p>
                         <h3 className="mt-2 font-serif text-xl font-bold text-[#F1E9DA]">
                           {plan.ramGb} GB RAM
@@ -2134,7 +2134,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <p className="mt-7 text-center text-sm text-[#F1E9DA]/50">
-                    SmartVPS plans are currently unavailable. Please check again later.
+                    High-performance VPS plans are currently unavailable. Please check again later.
                   </p>
                 )}
                 <p className="mt-6 text-center font-mono text-[10px] text-[#F1E9DA]/35">
@@ -2227,12 +2227,16 @@ export default function Dashboard() {
                               }`}
                             >
                               {vps.provider === "HOSTHEAVEN"
-                                ? "HostHeaven"
-                                : vps.provider || "SmartVPS"}
+                                ? "Cloud VPS"
+                                : vps.provider === "NEXAVPS"
+                                ? "Dedicated IP"
+                                : "High Performance VPS"}
                             </span>
                           </div>
                           <p className="text-xs text-[#F1E9DA]/50">
-                            {vps.providerVpsId ? `VM ID: ${vps.providerVpsId}` : vps.provider}
+                            {vps.providerVpsId
+                              ? `Instance ID: ${String(vps.providerVpsId).replace(/^hh-demo-/, "vps-").replace(/^hh-/, "vps-")}`
+                              : "Dedicated Allocation"}
                           </p>
                         </div>
                       </div>
@@ -2733,7 +2737,7 @@ export default function Dashboard() {
                         </span>
                         {selectedPlan.isHostHeaven && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-[#C6A66B]/30 bg-[#C6A66B]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#C6A66B]">
-                            <Zap size={11} /> HostHeaven Direct Cloud
+                            <Zap size={11} /> High-Speed Cloud VPS
                           </span>
                         )}
                       </div>
@@ -3759,10 +3763,10 @@ export default function Dashboard() {
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
-                    HostHeaven Infrastructure
+                    Cloud VPS Infrastructure
                   </p>
                   <span className="rounded border border-[#C6A66B]/30 bg-[#C6A66B]/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#C6A66B]">
-                    UserSide API
+                    Live Control
                   </span>
                 </div>
                 <h2 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">
@@ -3851,7 +3855,7 @@ export default function Dashboard() {
               {manageLoading ? (
                 <div className="py-12 text-center text-[#F1E9DA]/60">
                   <RefreshCw className="mx-auto mb-3 animate-spin text-[#C6A66B]" />
-                  Fetching live telemetry from HostHeaven...
+                  Fetching live server telemetry...
                 </div>
               ) : (
                 <>
@@ -3861,7 +3865,7 @@ export default function Dashboard() {
                       {/* Telemetry info cards */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                         <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-3.5">
-                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Proxmox VMID</p>
+                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Instance Node ID</p>
                           <p className="mt-1 font-mono font-bold text-[#F1E9DA]">
                             {manageDetails?.proxmoxVmid || "101"}
                           </p>
@@ -3873,7 +3877,7 @@ export default function Dashboard() {
                           </p>
                         </div>
                         <div className="rounded-2xl border border-[#332f2a] bg-[#171717] p-3.5">
-                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Provider Status</p>
+                          <p className="font-mono text-[10px] text-[#F1E9DA]/50 uppercase">Server Status</p>
                           <p className="mt-1 font-bold text-emerald-400">
                             {manageDetails?.status || manageModalVps.status}
                           </p>
