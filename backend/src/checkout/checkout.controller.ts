@@ -29,6 +29,13 @@ interface AuthenticatedRequest extends Request {
 export class CheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
 
+  @Post('pre-check')
+  async preCheck(
+    @Body() dto: { planId?: string; provider?: string },
+  ) {
+    return this.checkoutService.preCheckServiceHealth(dto.planId, dto.provider);
+  }
+
   @Post('orders')
   async createOrder(
     @Req() req: AuthenticatedRequest,

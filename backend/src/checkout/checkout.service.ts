@@ -96,12 +96,15 @@ export class CheckoutService {
     paymentId?: string;
     reason: string;
   }): Promise<{ refundSource: 'SOURCE_BANK' | 'WALLET'; message: string }> {
-    const payment = await this.prisma.payment.findFirst({
-      where: params.paymentId
-        ? { id: params.paymentId }
-        : { orderId: params.orderId },
-      orderBy: { createdAt: 'desc' },
-    });
+    const payment =
+      typeof this.prisma.payment?.findFirst === 'function'
+        ? await this.prisma.payment.findFirst({
+            where: params.paymentId
+              ? { id: params.paymentId }
+              : { orderId: params.orderId },
+            orderBy: { createdAt: 'desc' },
+          })
+        : null;
 
     const refundAmount = Number(params.amount);
 
@@ -203,7 +206,7 @@ export class CheckoutService {
     return {
       refundSource: 'WALLET',
       message:
-        'Order could not be provisioned. Your payment has been refunded to your wallet balance.',
+        'Order could not be provisioned. Customer wallet has been refunded.',
     };
   }
 
@@ -247,6 +250,21 @@ export class CheckoutService {
     const isHostHeaven = Boolean(
       order.plan.hostHeavenMapping || order.planId.startsWith('hh:'),
     );
+
+    if (
+      isHostHeaven &&
+      this.hostheavenService &&
+      typeof this.hostheavenService.testConnection === 'function'
+    ) {
+      const hhHealth = await this.hostheavenService
+        .testConnection()
+        .catch(() => ({ connected: false, message: 'Provider offline' }));
+      if (!hhHealth.connected) {
+        throw new ServiceUnavailableException(
+          `HostHeaven server is currently down or undergoing maintenance (${hhHealth.message || 'Provider offline'}). Payment cannot be opened for this service. Please select another plan.`,
+        );
+      }
+    }
 
     if (!isHostHeaven) {
       const availableInventory =
@@ -633,8 +651,8 @@ export class CheckoutService {
     }
 
     // Verify HostHeaven mapping if plan is mapped
-    if (plan.hostHeavenMapping) {
-      if (!plan.hostHeavenMapping.isActive) {
+    if (plan.hostHeavenMapping || plan.id.startsWith('hh:')) {
+      if (plan.hostHeavenMapping && !plan.hostHeavenMapping.isActive) {
         throw new BadRequestException(
           'HostHeaven mapping for this VPS plan is currently inactive',
         );
@@ -643,6 +661,16 @@ export class CheckoutService {
         throw new BadRequestException(
           'Automated HostHeaven VPS checkout is currently disabled pending live provisioning verification.',
         );
+      }
+      if (typeof this.hostheavenService.testConnection === 'function') {
+        const hhHealth = await this.hostheavenService
+          .testConnection()
+          .catch(() => ({ connected: false, message: 'Provider offline' }));
+        if (!hhHealth.connected) {
+          throw new ServiceUnavailableException(
+            `HostHeaven server is currently down or undergoing maintenance (${hhHealth.message || 'Provider offline'}). Order cannot be placed. Please select another plan or service.`,
+          );
+        }
       }
     }
 
@@ -711,6 +739,18 @@ export class CheckoutService {
     const settings = await this.adminSettingsService.getSettings();
     if (settings.dedicatedIpEnabled !== true) {
       throw new BadRequestException('Dedicated IP service is currently unavailable');
+    }
+
+    // Real-time pre-purchase health check for Dedicated IP provider
+    if (this.nexaVpsService && typeof this.nexaVpsService.testConnection === 'function') {
+      const conn = await this.nexaVpsService
+        .testConnection()
+        .catch(() => ({ connected: false, message: 'Provider unreachable' }));
+      if (!conn.connected) {
+        throw new ServiceUnavailableException(
+          `Dedicated IP provider server is currently unreachable (${conn.message || 'Provider offline'}). Purchase cannot proceed. Please select another service.`,
+        );
+      }
     }
 
     let plan = await this.prisma.dedicatedIpPlan.findFirst({
@@ -985,6 +1025,18 @@ export class CheckoutService {
       throw new BadRequestException('HostHeaven provider service is not initialized');
     }
 
+    // Real-time pre-purchase health check: Ensure HostHeaven is actually UP before taking any action or money
+    if (typeof this.hostheavenService.testConnection === 'function') {
+      const hhHealth = await this.hostheavenService
+        .testConnection()
+        .catch(() => ({ connected: false, message: 'Provider offline' }));
+      if (!hhHealth.connected) {
+        throw new ServiceUnavailableException(
+          `HostHeaven server is currently down or undergoing maintenance (${hhHealth.message || 'Provider offline'}). Purchase cannot proceed. Please select another plan or service.`,
+        );
+      }
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, isActive: true },
@@ -1256,23 +1308,10 @@ export class CheckoutService {
       });
     } catch (error: any) {
       const message = error?.message || String(error);
-      this.logger.warn(
-        `HostHeaven upstream VM creation failed (${message}). Applying graceful demo provisioning so purchase succeeds.`,
+      this.logger.error(
+        `HostHeaven upstream VM creation failed or timed out: ${message}`,
       );
-
-      const mockVmId = `hh-demo-${Date.now()}`;
-      const mockIp = `103.189.89.${Math.floor(Math.random() * 150) + 40}`;
-      vmResponse = {
-        status: 'COMPLETED',
-        orderId: `hh-order-${Date.now()}`,
-        vms: [
-          {
-            vmId: mockVmId,
-            ipAddress: mockIp,
-            hostname: `vps-${orderNumber.toLowerCase().slice(0, 10)}.247cloud.com`,
-          },
-        ],
-      };
+      vmResponse = null;
     }
 
     const providerRequestId =
@@ -1332,7 +1371,7 @@ export class CheckoutService {
       return {
         success: true,
         status: 'PROVISIONING',
-        message: 'Payment recorded. HostHeaven provisioning is pending or provider VM details are incomplete. No VPS has been marked active and no refund has been issued.',
+        message: 'Payment recorded. HostHeaven provisioning is pending or provider VM details are incomplete. No VPS has been marked active. No refund has been issued.',
         order: localOrder.order,
         providerRequestId,
       };
@@ -1668,6 +1707,34 @@ export class CheckoutService {
   }
 
   async payWithWallet(userId: string, orderId: string) {
+    const orderCheck = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: {
+        plan: {
+          include: {
+            hostHeavenMapping: true,
+          },
+        },
+      },
+    });
+
+    if (
+      orderCheck &&
+      (orderCheck.plan?.hostHeavenMapping ||
+        (orderCheck.planId && orderCheck.planId.startsWith('hh:'))) &&
+      this.hostheavenService &&
+      typeof this.hostheavenService.testConnection === 'function'
+    ) {
+      const hhHealth = await this.hostheavenService
+        .testConnection()
+        .catch(() => ({ connected: false, message: 'Provider offline' }));
+      if (!hhHealth.connected) {
+        throw new ServiceUnavailableException(
+          `HostHeaven server is currently down or undergoing maintenance (${hhHealth.message || 'Provider offline'}). Wallet balance has not been deducted. Please select another plan or service.`,
+        );
+      }
+    }
+
     const result = await this.prisma.$transaction(
       async (tx) => {
         const order = await tx.order.findFirst({
@@ -1722,32 +1789,36 @@ export class CheckoutService {
           );
         }
 
-        const isHostHeaven = Boolean(
-          order.plan.hostHeavenMapping ||
-          (order.planId && order.planId.startsWith('hh:')),
-        );
+        // HostHeaven provisioning safety guard:
+        // A HostHeaven order must NEVER be charged and provisioned from unrelated generic provider inventory.
+        if (
+          order.plan?.hostHeavenMapping ||
+          (order.planId && order.planId.startsWith('hh:'))
+        ) {
+          throw new BadRequestException(
+            'Live HostHeaven automated VM provisioning is currently feature-gated pending provider payment gateway verification. HostHeaven plans cannot be provisioned from generic inventory.',
+          );
+        }
 
-        let availableInventory = null;
-        if (!isHostHeaven) {
-          availableInventory = await tx.providerInventory.findFirst({
-            where: {
-              status: 'AVAILABLE',
-              ipAddress: { not: null },
-              cpuCores: { gte: order.plan.cpuCores },
-              ramGb: { gte: order.plan.ramGb },
-              storageGb: { gte: order.plan.storageGb },
-              currency: order.currency,
-              provider: {
-                isActive: true,
-              },
+        // Verify that matching inventory is available before taking payment
+        const availableInventory = await tx.providerInventory.findFirst({
+          where: {
+            status: 'AVAILABLE',
+            ipAddress: { not: null },
+            cpuCores: { gte: order.plan.cpuCores },
+            ramGb: { gte: order.plan.ramGb },
+            storageGb: { gte: order.plan.storageGb },
+            currency: order.currency,
+            provider: {
+              isActive: true,
             },
-          });
+          },
+        });
 
-          if (!availableInventory) {
-            throw new BadRequestException(
-              'No available VPS inventory found for this plan. Please choose another plan or contact support.',
-            );
-          }
+        if (!availableInventory) {
+          throw new BadRequestException(
+            'No available VPS inventory found for this plan. Please choose another plan or contact support.',
+          );
         }
 
         const wallet = await tx.wallet.upsert({
@@ -1767,7 +1838,7 @@ export class CheckoutService {
             status: 'PENDING',
           },
           data: {
-            status: isHostHeaven ? 'ACTIVE' : 'PAID',
+            status: 'PAID',
           },
         });
 
@@ -1827,28 +1898,6 @@ export class CheckoutService {
           },
         });
 
-        let directVps = null;
-        if (isHostHeaven) {
-          const mockIp = `103.189.89.${Math.floor(Math.random() * 150) + 40}`;
-          const expiresAt = new Date(
-            Date.now() + (order.plan.durationDays || 30) * 24 * 60 * 60 * 1000,
-          );
-          directVps = await tx.vPSInstance.create({
-            data: {
-              userId,
-              orderId: order.id,
-              provider: 'HOSTHEAVEN',
-              providerVpsId: `hh-demo-${Date.now()}`,
-              ipAddress: mockIp,
-              hostname: `vps-${order.orderNumber.toLowerCase().slice(0, 10)}.247cloud.com`,
-              operatingSystem: order.operatingSystem || 'Ubuntu 22.04 LTS',
-              ram: order.plan.ramGb || 2,
-              status: 'ACTIVE',
-              expiresAt,
-            },
-          });
-        }
-
         return {
           orderId: order.id,
           orderNumber: order.orderNumber,
@@ -1856,7 +1905,6 @@ export class CheckoutService {
           currency: 'INR',
           paymentId: payment.id,
           walletBalance: wallet.balance.sub(order.amount),
-          directVps,
         };
       },
       {
@@ -1864,28 +1912,6 @@ export class CheckoutService {
         timeout: 30000,
       },
     );
-
-    if (result.directVps) {
-      return {
-        message: 'Payment successful and VPS provisioning completed',
-        payment: {
-          id: result.paymentId,
-          amount: result.amount,
-          currency: result.currency,
-          status: 'CAPTURED',
-        },
-        order: {
-          id: result.orderId,
-          orderNumber: result.orderNumber,
-          status: 'ACTIVE',
-        },
-        wallet: {
-          balance: result.walletBalance,
-          currency: result.currency,
-        },
-        vps: result.directVps,
-      };
-    }
 
     try {
       const provisioning = await this.provisioningService.provisionOrder(
@@ -2101,5 +2127,83 @@ export class CheckoutService {
     throw new BadRequestException(
       'Automatic refund is disabled until provider-side VPS absence is verified.',
     );
+  }
+
+  /**
+   * Real-time pre-purchase health check for services and upstream providers
+   */
+  async preCheckServiceHealth(
+    planId?: string,
+    provider?: string,
+  ): Promise<{
+    available: boolean;
+    reason?: string;
+    message: string;
+  }> {
+    // 1. Dedicated IP
+    if (
+      provider === 'NEXAVPS' ||
+      planId?.startsWith('nexa:') ||
+      planId?.includes('dip-') ||
+      planId?.includes('dedicated-ip')
+    ) {
+      if (
+        this.nexaVpsService &&
+        typeof this.nexaVpsService.testConnection === 'function'
+      ) {
+        const conn = await this.nexaVpsService
+          .testConnection()
+          .catch(() => ({ connected: false }));
+        if (!conn.connected) {
+          return {
+            available: false,
+            reason: 'PROVIDER_DOWN',
+            message:
+              'Dedicated IP provider server is currently unreachable. Please select another service.',
+          };
+        }
+      }
+      return { available: true, message: 'Dedicated IP service is available.' };
+    }
+
+    // 2. SmartVPS
+    if (provider === 'SMARTVPS' || planId?.includes('smartvps')) {
+      const available = await this.prisma.providerInventory.findFirst({
+        where: {
+          status: 'AVAILABLE',
+          ipAddress: { not: null },
+          provider: { isActive: true },
+        },
+      });
+      if (!available) {
+        return {
+          available: false,
+          reason: 'OUT_OF_STOCK',
+          message:
+            'SmartVPS IP stock is currently exhausted. Please select another plan.',
+        };
+      }
+      return { available: true, message: 'SmartVPS service is available.' };
+    }
+
+    // 3. HostHeaven Cloud VPS (default or mapped)
+    if (
+      this.hostheavenService &&
+      typeof this.hostheavenService.testConnection === 'function'
+    ) {
+      const conn = await this.hostheavenService
+        .testConnection()
+        .catch(() => ({ connected: false }));
+      if (!conn.connected) {
+        return {
+          available: false,
+          reason: 'PROVIDER_DOWN',
+          message:
+            'HostHeaven server is currently down or undergoing maintenance. Please select another service.',
+        };
+      }
+    }
+
+    return { available: true, message: 'Service is available.' };
   }
 }

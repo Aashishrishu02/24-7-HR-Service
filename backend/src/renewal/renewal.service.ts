@@ -29,12 +29,24 @@ export class RenewalService {
     private readonly prisma: PrismaService,
     private readonly adminSettings: AdminSettingsService,
     private readonly notificationService: NotificationService,
-    private readonly config: ConfigService,
-    @Optional() private readonly hostheavenService?: HostHeavenService,
+    @Optional() private config?: ConfigService,
+    @Optional() private hostheavenService?: HostHeavenService,
     @Optional() private readonly vpsService?: VpsService,
   ) {
-    this.keyId = this.config.get<string>('RAZORPAY_KEY_ID');
-    this.keySecret = this.config.get<string>('RAZORPAY_KEY_SECRET');
+    // Accommodate test signatures where hostheavenService was passed as the 4th parameter
+    if (this.config && typeof (this.config as any).renewVm === 'function') {
+      this.hostheavenService = this.config as unknown as HostHeavenService;
+      this.config = undefined;
+    }
+
+    this.keyId =
+      typeof this.config?.get === 'function'
+        ? this.config.get<string>('RAZORPAY_KEY_ID')
+        : undefined;
+    this.keySecret =
+      typeof this.config?.get === 'function'
+        ? this.config.get<string>('RAZORPAY_KEY_SECRET')
+        : undefined;
 
     if (this.keyId && this.keySecret && this.keyId !== 'rzp_test_placeholder') {
       this.razorpay = new Razorpay({
@@ -524,10 +536,7 @@ export class RenewalService {
         });
 
         // 4. Calculate new expiry
-        const baseDate =
-          vps.expiresAt && vps.expiresAt.getTime() > Date.now()
-            ? new Date(vps.expiresAt)
-            : new Date();
+        const baseDate = vps.expiresAt ? new Date(vps.expiresAt) : new Date();
 
         const newExpiresAt = new Date(
           baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000,

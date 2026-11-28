@@ -306,6 +306,8 @@ export default function Dashboard() {
   );
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [providerChecking, setProviderChecking] = useState(false);
+  const [providerUnavailable, setProviderUnavailable] = useState(false);
 
   // Topup modal state
   const [showTopupModal, setShowTopupModal] = useState(false);
@@ -890,8 +892,62 @@ export default function Dashboard() {
 
   const closeCheckout = () => {
     setSelectedPlan(null);
+    setCheckoutError("");
+    setProviderUnavailable(false);
+    setProviderChecking(false);
     go(checkoutReturnPage === "Checkout" ? "Windows VPS" : checkoutReturnPage);
   };
+
+  // Real-time pre-purchase health check when plan is selected for checkout
+  useEffect(() => {
+    if (!selectedPlan) {
+      setProviderUnavailable(false);
+      setProviderChecking(false);
+      return;
+    }
+    let cancelled = false;
+    setProviderChecking(true);
+    setProviderUnavailable(false);
+
+    api
+      .post("/checkout/pre-check", {
+        planId: selectedPlan.id,
+        provider: selectedPlan.isHostHeaven ? "HOSTHEAVEN" : undefined,
+      })
+      .then((res) => {
+        if (cancelled) return;
+        if (res.data && res.data.available === false) {
+          setProviderUnavailable(true);
+          setCheckoutError(
+            res.data.message ||
+              "Provider server is currently undergoing maintenance. Please select another plan or service.",
+          );
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (
+          err.response?.status === 503 ||
+          err.response?.data?.message?.toLowerCase().includes("down") ||
+          err.response?.data?.message?.toLowerCase().includes("unavailable")
+        ) {
+          setProviderUnavailable(true);
+          setCheckoutError(
+            err.response?.data?.message ||
+              "Provider server is currently unreachable. Please select another plan or service.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setProviderChecking(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPlan]);
 
   const openCheckout = (plan: VPSPlan) => {
     setCheckoutReturnPage(page === "Checkout" ? "Windows VPS" : page);
@@ -3169,8 +3225,27 @@ export default function Dashboard() {
 
             <div className="space-y-5 p-5 sm:p-7">
               {checkoutError && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200">
-                  {checkoutError}
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-200">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-400" />
+                    <div className="flex-1">
+                      <p className="font-bold text-red-300">
+                        {providerUnavailable
+                          ? "Provider Server Offline / Unavailable"
+                          : "Checkout Error"}
+                      </p>
+                      <p className="mt-1 text-red-200/90 leading-relaxed">{checkoutError}</p>
+                    </div>
+                  </div>
+                  {providerUnavailable && (
+                    <button
+                      type="button"
+                      onClick={closeCheckout}
+                      className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-lg bg-red-500/20 px-3 py-2 text-xs font-bold text-red-100 hover:bg-red-500/30 transition"
+                    >
+                      ← Browse Other Available Plans
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -3358,15 +3433,26 @@ export default function Dashboard() {
               {/* Submit Button */}
               {paymentMethod === "WALLET" ? (
                 <button
-                  disabled={checkoutLoading || !hasSufficientBalance}
+                  disabled={
+                    checkoutLoading ||
+                    !hasSufficientBalance ||
+                    providerUnavailable ||
+                    providerChecking
+                  }
                   onClick={handleCheckoutSubmit}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {checkoutLoading ? (
+                  {providerChecking ? (
+                    <>
+                      <RefreshCw size={17} className="animate-spin" /> Verifying Server Availability…
+                    </>
+                  ) : checkoutLoading ? (
                     <>
                       <RefreshCw size={17} className="animate-spin" /> Deploying
                       VPS Server…
                     </>
+                  ) : providerUnavailable ? (
+                    "Service Unavailable (Server Down)"
                   ) : (
                     <>
                       <Wallet size={17} /> Pay{" "}
@@ -3376,16 +3462,27 @@ export default function Dashboard() {
                 </button>
               ) : (
                 <button
-                  disabled={checkoutLoading}
+                  disabled={
+                    checkoutLoading ||
+                    providerUnavailable ||
+                    providerChecking
+                  }
                   onClick={handleCheckoutSubmit}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] px-5 py-4 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {checkoutLoading ? (
+                  {providerChecking ? (
+                    <>
+                      <RefreshCw size={17} className="animate-spin" /> Verifying Server Availability…
+                    </>
+                  ) : checkoutLoading ? (
                     <RefreshCw size={17} className="animate-spin" />
+                  ) : providerUnavailable ? (
+                    "Service Unavailable (Server Down)"
                   ) : (
-                    <CreditCard size={17} />
+                    <>
+                      <CreditCard size={17} /> Proceed to Razorpay Checkout
+                    </>
                   )}
-                  Proceed to Razorpay Checkout
                 </button>
               )}
 

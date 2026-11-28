@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
   Clock3,
@@ -51,6 +52,57 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [checkoutSuccess, setCheckoutSuccess] = useState("");
+  const [providerChecking, setProviderChecking] = useState(false);
+  const [providerUnavailable, setProviderUnavailable] = useState(false);
+
+  // Pre-purchase real-time check for Dedicated IP provider
+  useEffect(() => {
+    if (!selectedPlanForCheckout) {
+      setProviderUnavailable(false);
+      setProviderChecking(false);
+      return;
+    }
+    let cancelled = false;
+    setProviderChecking(true);
+    setProviderUnavailable(false);
+
+    api
+      .post("/checkout/pre-check", {
+        planId: selectedPlanForCheckout.id,
+        provider: "NEXAVPS",
+      })
+      .then((res) => {
+        if (cancelled) return;
+        if (res.data && res.data.available === false) {
+          setProviderUnavailable(true);
+          setCheckoutError(
+            res.data.message ||
+              "Dedicated IP provider server is currently unreachable. Please select another service.",
+          );
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (
+          err.response?.status === 503 ||
+          err.response?.data?.message?.toLowerCase().includes("down") ||
+          err.response?.data?.message?.toLowerCase().includes("unreachable")
+        ) {
+          setProviderUnavailable(true);
+          setCheckoutError(
+            err.response?.data?.message ||
+              "Dedicated IP provider server is currently unreachable. Please select another service.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setProviderChecking(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPlanForCheckout]);
 
   const loadPlans = useCallback(async () => {
     setLoading(true);
@@ -493,8 +545,27 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
 
             {/* Error banner */}
             {checkoutError && (
-              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-300">
-                {checkoutError}
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-400" />
+                  <div className="flex-1">
+                    <p className="font-bold text-red-300">
+                      {providerUnavailable
+                        ? "Provider Server Offline / Unavailable"
+                        : "Checkout Error"}
+                    </p>
+                    <p className="mt-1 text-red-200/90 leading-relaxed">{checkoutError}</p>
+                  </div>
+                </div>
+                {providerUnavailable && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlanForCheckout(null)}
+                    className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-lg bg-red-500/20 px-3 py-2 text-xs font-bold text-red-100 hover:bg-red-500/30 transition"
+                  >
+                    ← Browse Other Available Plans
+                  </button>
+                )}
               </div>
             )}
 
@@ -586,14 +657,26 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
               {checkoutPaymentMethod === "WALLET" ? (
                 <button
                   type="button"
-                  disabled={checkoutLoading || !hasSufficientWalletBalance || Boolean(checkoutSuccess)}
+                  disabled={
+                    checkoutLoading ||
+                    !hasSufficientWalletBalance ||
+                    Boolean(checkoutSuccess) ||
+                    providerUnavailable ||
+                    providerChecking
+                  }
                   onClick={handleExecuteCheckout}
                   className="w-full rounded-xl bg-gradient-to-r from-[#C6A66B] to-[#d8ba82] px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {checkoutLoading ? (
+                  {providerChecking ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 size={15} className="animate-spin" /> Verifying Provider Health...
+                    </span>
+                  ) : checkoutLoading ? (
                     <span className="inline-flex items-center gap-2">
                       <Loader2 size={15} className="animate-spin" /> Provisioning Dedicated IP...
                     </span>
+                  ) : providerUnavailable ? (
+                    "Service Unavailable (Provider Down)"
                   ) : !hasSufficientWalletBalance ? (
                     `Insufficient Balance (Requires ₹${selectedPlanForCheckout.price.toFixed(2)})`
                   ) : (
@@ -603,14 +686,25 @@ export default function BuyLinuxIP({ embedded = false }: { embedded?: boolean })
               ) : (
                 <button
                   type="button"
-                  disabled={checkoutLoading || Boolean(checkoutSuccess)}
+                  disabled={
+                    checkoutLoading ||
+                    Boolean(checkoutSuccess) ||
+                    providerUnavailable ||
+                    providerChecking
+                  }
                   onClick={handleExecuteCheckout}
                   className="w-full rounded-xl bg-gradient-to-r from-[#C6A66B] to-[#d8ba82] px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#171717] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {checkoutLoading ? (
+                  {providerChecking ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 size={15} className="animate-spin" /> Verifying Provider Health...
+                    </span>
+                  ) : checkoutLoading ? (
                     <span className="inline-flex items-center gap-2">
                       <Loader2 size={15} className="animate-spin" /> Processing Payment...
                     </span>
+                  ) : providerUnavailable ? (
+                    "Service Unavailable (Provider Down)"
                   ) : (
                     "Proceed to Razorpay Checkout"
                   )}

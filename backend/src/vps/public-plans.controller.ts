@@ -1,8 +1,9 @@
-import { Controller, Get, Inject, forwardRef } from '@nestjs/common';
+import { Controller, Get, Inject, Optional, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AdminSettingsService } from '../renewal/admin-settings.service.js';
 import { calculateSellingPrice, isSlotIpItem } from '../hostheaven/hostheaven-pricing.util.js';
 import { HostHeavenDirectCatalogueService } from '../hostheaven/hostheaven-direct-catalogue.service.js';
+import { HostHeavenService } from '../hostheaven/hostheaven.service.js';
 import { NexaVpsService } from '../nexavps/nexavps.service.js';
 import { VpsService } from './vps.service.js';
 
@@ -15,7 +16,54 @@ export class PublicPlansController {
     private readonly directCatalogueService: HostHeavenDirectCatalogueService,
     private readonly nexaVpsService: NexaVpsService,
     private readonly vpsService: VpsService,
+    @Optional()
+    @Inject(forwardRef(() => HostHeavenService))
+    private readonly hostheavenService?: HostHeavenService,
   ) { }
+
+  /**
+   * Returns live operational status of all infrastructure providers.
+   * Enables frontend to show real-time service availability badges or alerts.
+   */
+  @Get('providers-status')
+  async getProvidersStatus() {
+    const [hhConn, nexaConn, smartVpsStock] = await Promise.all([
+      this.hostheavenService &&
+      typeof this.hostheavenService.testConnection === 'function'
+        ? this.hostheavenService
+            .testConnection()
+            .catch(() => ({ connected: false }))
+        : Promise.resolve({ connected: true }),
+      this.nexaVpsService &&
+      typeof this.nexaVpsService.testConnection === 'function'
+        ? this.nexaVpsService
+            .testConnection()
+            .catch(() => ({ connected: false }))
+        : Promise.resolve({ connected: true }),
+      this.vpsService && typeof this.vpsService.getIpStock === 'function'
+        ? this.vpsService.getIpStock().catch(() => ({ stock: [] }))
+        : Promise.resolve({ stock: [] }),
+    ]);
+
+    const hasSmartVpsStock = (smartVpsStock?.stock || []).some(
+      (row: any) => Number(row.available) > 0,
+    );
+
+    return {
+      hostheaven: {
+        online: Boolean(hhConn?.connected),
+        available: Boolean(hhConn?.connected),
+      },
+      nexavps: {
+        online: Boolean(nexaConn?.connected),
+        available: Boolean(nexaConn?.connected),
+      },
+      smartvps: {
+        online: true,
+        available: hasSmartVpsStock,
+      },
+    };
+  }
 
   /**
    * Public, read-only customer support contact details.
@@ -59,6 +107,19 @@ export class PublicPlansController {
       // Availability is a global customer-facing kill switch.
       if (settings.dedicatedIpEnabled !== true) {
         return { plans: [], total: 0 };
+      }
+
+      // If Nexa provider is down, do NOT show Dedicated IP plans in listing
+      if (
+        this.nexaVpsService &&
+        typeof this.nexaVpsService.testConnection === 'function'
+      ) {
+        const conn = await this.nexaVpsService
+          .testConnection()
+          .catch(() => ({ connected: false }));
+        if (!conn.connected) {
+          return { plans: [], total: 0, providerDown: true };
+        }
       }
 
       const configuredMargin = Number(settings.nexaVpsProfitMarginPercent ?? 20);
@@ -330,7 +391,7 @@ export class PublicPlansController {
    */
   @Get()
   async findActivePlans() {
-    const [plans, settings, directResponse] = await Promise.all([
+    const [plans, settings, directResponse, hhConn] = await Promise.all([
       this.prisma.vPSPlan.findMany({
         where: {
           isActive: true,
@@ -366,12 +427,20 @@ export class PublicPlansController {
         },
       }),
       this.adminSettingsService.getSettings(),
-      this.directCatalogueService.getLiveServices(),
+      this.directCatalogueService.getLiveServices().catch(() => null),
+      this.hostheavenService &&
+      typeof this.hostheavenService.testConnection === 'function'
+        ? this.hostheavenService
+            .testConnection()
+            .catch(() => ({ connected: false }))
+        : Promise.resolve({ connected: true }),
     ]);
 
+    const isHostHeavenOnline = Boolean(hhConn?.connected);
     const margin = settings.hostHeavenProfitMarginPercent ?? 20;
 
     // Filter out plans whose HostHeaven mapping is inactive, unverified, out-of-stock (Coming Soon), or mixes standard and Slot IP resources
+    // If HostHeaven server is down, completely filter out all HostHeaven plans so they do NOT appear in customer listing!
     const visiblePlans = plans.filter((plan) => {
       const planName = (plan.name || '').toLowerCase();
       if (planName.includes('coming soon') || plan.id.includes(':7:')) {
@@ -379,6 +448,10 @@ export class PublicPlansController {
       }
 
       if (!plan.hostHeavenMapping) return true;
+
+      // When HostHeaven provider is down, hide from customer listing
+      if (!isHostHeavenOnline) return false;
+
       if (!plan.hostHeavenMapping.isActive || !plan.hostHeavenMapping.isCostVerified) return false;
 
       const m = plan.hostHeavenMapping;
@@ -466,9 +539,13 @@ export class PublicPlansController {
       };
     });
 
-    // If live HostHeaven services are available, merge them seamlessly
+    // If live HostHeaven services are available and HostHeaven is online, merge them seamlessly
     let allPlans = [...sanitizedPlans];
-    if (directResponse?.services && directResponse.services.length > 0) {
+    if (
+      isHostHeavenOnline &&
+      directResponse?.services &&
+      directResponse.services.length > 0
+    ) {
       const directPlans = directResponse.services.map((svc, idx) => ({
         id: svc.id,
         name: svc.name,
