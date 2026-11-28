@@ -82,6 +82,131 @@ export class CheckoutService {
     return plan.price;
   }
 
+  /**
+   * Processes automatic refund for a failed or rejected order.
+   * If customer paid directly via Razorpay (UPI, bank, cards), initiates a direct source refund
+   * back to the customer's bank/UPI account via Razorpay API.
+   * If customer paid via in-app wallet balance, restores funds to their wallet balance.
+   */
+  async processAutomaticRefund(params: {
+    userId: string;
+    orderId: string;
+    orderNumber: string;
+    amount: Prisma.Decimal | number;
+    paymentId?: string;
+    reason: string;
+  }): Promise<{ refundSource: 'SOURCE_BANK' | 'WALLET'; message: string }> {
+    const payment = await this.prisma.payment.findFirst({
+      where: params.paymentId
+        ? { id: params.paymentId }
+        : { orderId: params.orderId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const refundAmount = Number(params.amount);
+
+    // 1. Direct Source Refund via Razorpay API for UPI / Bank / Card payments
+    if (
+      payment?.provider === 'RAZORPAY' &&
+      payment?.razorpayPaymentId &&
+      this.razorpay
+    ) {
+      try {
+        const amountPaise = Math.round(refundAmount * 100);
+        await this.razorpay.payments.refund(payment.razorpayPaymentId, {
+          amount: amountPaise,
+          notes: {
+            orderNumber: params.orderNumber,
+            orderId: params.orderId,
+            reason: params.reason.slice(0, 100),
+          },
+        });
+
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: 'REFUNDED' },
+        });
+
+        await this.prisma.order.update({
+          where: { id: params.orderId },
+          data: { status: 'FAILED' },
+        });
+
+        this.logger.log(
+          `Razorpay direct bank refund of ₹${refundAmount} initiated for payment ${payment.razorpayPaymentId} (order #${params.orderNumber})`,
+        );
+
+        return {
+          refundSource: 'SOURCE_BANK',
+          message:
+            'Order could not be provisioned. Your payment has been refunded directly to your original bank / UPI account.',
+        };
+      } catch (rzpErr: any) {
+        this.logger.error(
+          `Razorpay direct source refund failed: ${rzpErr?.message}. Falling back to wallet refund.`,
+        );
+      }
+    }
+
+    // 2. Wallet refund for Wallet payments or as fallback
+    const wallet = await this.prisma.wallet.upsert({
+      where: { userId: params.userId },
+      create: { userId: params.userId },
+      update: {},
+    });
+
+    const finalAmountDec = new Prisma.Decimal(refundAmount.toFixed(2));
+
+    await this.prisma.$transaction(
+      async (tx) => {
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balance: { increment: finalAmountDec } },
+        });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            type: 'REFUND',
+            amount: finalAmountDec,
+            currency: 'INR',
+            reference: params.orderNumber,
+            idempotencyKey: `wallet-vps-refund:${params.orderNumber}-${Date.now()}`,
+            description: `Auto-refund for order #${params.orderNumber} (${params.reason.slice(0, 80)})`,
+            paymentId: payment?.id,
+            metadata: {
+              orderId: params.orderId,
+              orderNumber: params.orderNumber,
+              reason: params.reason,
+            },
+          },
+        });
+
+        if (payment) {
+          await tx.payment.update({
+            where: { id: payment.id },
+            data: { status: 'REFUNDED' },
+          });
+        }
+
+        await tx.order.update({
+          where: { id: params.orderId },
+          data: { status: 'FAILED' },
+        });
+      },
+      {
+        maxWait: 15000,
+        timeout: 30000,
+      },
+    );
+
+    return {
+      refundSource: 'WALLET',
+      message:
+        'Order could not be provisioned. Your payment has been refunded to your wallet balance.',
+    };
+  }
+
     async createRazorpayOrder(userId: string, orderId: string) {
     if (!this.razorpay || !this.razorpayKeyId) {
       throw new ServiceUnavailableException(
@@ -1154,55 +1279,30 @@ export class CheckoutService {
       vmResponse?.orderId != null ? String(vmResponse.orderId) : null;
 
     if (vmResponse?.status === 'FAILED') {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.wallet.update({
-          where: { id: localOrder.walletId },
-          data: { balance: { increment: finalAmountDec } },
-        });
+      const refundResult = await this.processAutomaticRefund({
+        userId,
+        orderId: localOrder.order.id,
+        orderNumber,
+        amount: finalAmountDec,
+        paymentId: localOrder.payment.id,
+        reason: String(vmResponse?.message || 'Provider rejected VM creation'),
+      });
 
-        await tx.walletTransaction.create({
-          data: {
-            walletId: localOrder.walletId,
-            type: 'REFUND',
-            amount: finalAmountDec,
-            currency: 'INR',
-            reference: orderNumber,
-            idempotencyKey: `wallet-vps-refund:${orderNumber}`,
-            description: `Refund for failed HostHeaven VPS purchase - ${validated.serviceName}`,
-            paymentId: localOrder.payment.id,
-            metadata: {
-              orderId: localOrder.order.id,
-              providerRequestId,
-            },
-          },
-        });
-
-        await tx.payment.update({
-          where: { id: localOrder.payment.id },
-          data: { status: 'REFUNDED' },
-        });
-
-        await tx.order.update({
-          where: { id: localOrder.order.id },
-          data: { status: 'FAILED' },
-        });
-
-        await tx.provisioningJob.update({
-          where: { id: localOrder.job.id },
-          data: {
-            status: 'FAILED',
-            providerRequestId,
-            errorCode: 'PROVIDER_REJECTED',
-            errorMessage: String(vmResponse?.message || 'Provider rejected VM creation').slice(0, 1000),
-            completedAt: new Date(),
-          },
-        });
+      await this.prisma.provisioningJob.update({
+        where: { id: localOrder.job.id },
+        data: {
+          status: 'FAILED',
+          providerRequestId,
+          errorCode: 'PROVIDER_REJECTED',
+          errorMessage: String(vmResponse?.message || 'Provider rejected VM creation').slice(0, 1000),
+          completedAt: new Date(),
+        },
       });
 
       return {
         success: false,
         status: 'FAILED',
-        message: 'HostHeaven rejected the VPS purchase. Customer wallet has been refunded.',
+        message: refundResult.message,
         orderId: localOrder.order.id,
         providerRequestId,
       };
@@ -1461,40 +1561,24 @@ export class CheckoutService {
         where: { id: paymentId },
       });
       const refundAmount = paymentRecord ? paymentRecord.amount : 0;
+      let refundMsg = 'HostHeaven rejected VM creation.';
+
       if (Number(refundAmount) > 0) {
-        await this.prisma.$transaction(async (tx) => {
-          const w = await tx.wallet.upsert({
-            where: { userId },
-            create: { userId },
-            update: {},
-          });
-          await tx.wallet.update({
-            where: { id: w.id },
-            data: { balance: { increment: refundAmount } },
-          });
-          await tx.walletTransaction.create({
-            data: {
-              walletId: w.id,
-              type: 'REFUND',
-              amount: refundAmount,
-              currency: 'INR',
-              reference: orderNumber,
-              idempotencyKey: `wallet-vps-refund:${orderNumber}`,
-              description: `Refund for failed HostHeaven VPS order #${orderNumber}`,
-              paymentId,
-            },
-          });
-          await tx.order.update({
-            where: { id: orderId },
-            data: { status: 'FAILED' },
-          });
+        const refundResult = await this.processAutomaticRefund({
+          userId,
+          orderId,
+          orderNumber,
+          amount: refundAmount,
+          paymentId,
+          reason: 'HostHeaven rejected VM creation',
         });
+        refundMsg = refundResult.message;
       }
+
       return {
         success: false,
         status: 'FAILED',
-        message:
-          'HostHeaven rejected VM creation. Payment has been refunded to your wallet balance.',
+        message: refundMsg,
         orderNumber,
       };
     }
