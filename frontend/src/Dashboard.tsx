@@ -3086,117 +3086,6 @@ export default function Dashboard() {
         </div>
       </footer>
 
-      {/* Top-Up Wallet Modal */}
-      {showTopupModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#171717]/85 p-3 backdrop-blur-md sm:p-6"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setShowTopupModal(false);
-          }}
-        >
-          <div className="my-auto w-full max-w-md overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
-            <div className="flex items-start justify-between border-b border-[#332f2a] px-6 py-5">
-              <div>
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
-                  Prepaid Balance
-                </p>
-                <h2 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">Top-Up Wallet</h2>
-                <p className="mt-1 text-xs text-[#F1E9DA]/60">
-                  Add funds via UPI, Cards, Netbanking or Razorpay.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowTopupModal(false)}
-                className="rounded-lg border border-[#332f2a] p-2 text-[#F1E9DA]/50 hover:text-[#F1E9DA] transition"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="space-y-5 p-6">
-              {topupError && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
-                  {topupError}
-                </div>
-              )}
-
-              {/* Current balance indicator */}
-              <div className="flex items-center justify-between rounded-xl border border-[#332f2a] bg-[#171717] p-3 text-xs">
-                <span className="font-mono text-[#F1E9DA]/60">Current Balance:</span>
-                <span className="font-serif font-bold text-[#C6A66B]">
-                  {formatDecimal(currentWalletBalance)}
-                </span>
-              </div>
-
-              {/* Quick preset amounts */}
-              <div>
-                <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
-                  Select Amount (INR)
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[500, 1000, 2000, 5000].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setTopupAmount(amt)}
-                      className={`rounded-xl border py-2.5 font-mono text-xs font-bold transition ${
-                        topupAmount === amt
-                          ? "border-[#C6A66B] bg-[#C6A66B]/15 text-[#C6A66B]"
-                          : "border-[#332f2a] bg-[#171717] text-[#F1E9DA]/70 hover:border-[#C6A66B]/40"
-                      }`}
-                    >
-                      ₹{amt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom amount */}
-              <div>
-                <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
-                  Or enter custom amount (Min. ₹100)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-3 font-mono text-sm font-bold text-[#F1E9DA]/50">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    min="100"
-                    max="100000"
-                    step="100"
-                    value={topupAmount}
-                    onChange={(e) => setTopupAmount(Number(e.target.value))}
-                    className="w-full rounded-xl border border-[#332f2a] bg-[#171717] py-3 pl-8 pr-4 font-mono text-sm font-bold text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
-                  />
-                </div>
-              </div>
-
-              <button
-                disabled={topupLoading || topupAmount < 100}
-                onClick={handleTopup}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
-              >
-                {topupLoading ? (
-                  <>
-                    <RefreshCw size={16} className="animate-spin" /> Processing…
-                  </>
-                ) : (
-                  <>
-                    <Wallet size={16} /> Pay ₹{topupAmount} & Add to Wallet
-                  </>
-                )}
-              </button>
-
-              <p className="text-center font-mono text-[10px] text-[#F1E9DA]/40">
-                100% secure payment powered by Razorpay. Funds are credited
-                immediately.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Checkout Modal */}
       {selectedPlan && (
         <div
@@ -3382,7 +3271,7 @@ export default function Dashboard() {
                         <AlertCircle size={15} className="shrink-0" />
                         <span>
                           Insufficient balance. Need ₹
-                          {selectedPlanPrice - currentWalletBalance} more.
+                          {(selectedPlanPrice - currentWalletBalance).toFixed(2)} more.
                         </span>
                       </div>
                       <button
@@ -4129,6 +4018,117 @@ export default function Dashboard() {
                   )}
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top-Up Wallet Modal (Rendered on top of all modals with z-[70]) */}
+      {showTopupModal && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-[#171717]/85 p-3 backdrop-blur-md sm:p-6"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setShowTopupModal(false);
+          }}
+        >
+          <div className="my-auto w-full max-w-md overflow-hidden rounded-3xl border border-[#C6A66B]/30 bg-[#201d1a] shadow-[0_25px_100px_rgba(0,0,0,.65)]">
+            <div className="flex items-start justify-between border-b border-[#332f2a] px-6 py-5">
+              <div>
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[.22em] text-[#C6A66B]">
+                  Prepaid Balance
+                </p>
+                <h2 className="mt-1 font-serif text-2xl font-bold text-[#F1E9DA]">Top-Up Wallet</h2>
+                <p className="mt-1 text-xs text-[#F1E9DA]/60">
+                  Add funds via UPI, Cards, Netbanking or Razorpay.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowTopupModal(false)}
+                className="rounded-lg border border-[#332f2a] p-2 text-[#F1E9DA]/50 hover:text-[#F1E9DA] transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-5 p-6">
+              {topupError && (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
+                  {topupError}
+                </div>
+              )}
+
+              {/* Current balance indicator */}
+              <div className="flex items-center justify-between rounded-xl border border-[#332f2a] bg-[#171717] p-3 text-xs">
+                <span className="font-mono text-[#F1E9DA]/60">Current Balance:</span>
+                <span className="font-serif font-bold text-[#C6A66B]">
+                  {formatDecimal(currentWalletBalance)}
+                </span>
+              </div>
+
+              {/* Quick preset amounts */}
+              <div>
+                <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
+                  Select Amount (INR)
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[500, 1000, 2000, 5000].map((amt) => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setTopupAmount(amt)}
+                      className={`rounded-xl border py-2.5 font-mono text-xs font-bold transition ${
+                        topupAmount === amt
+                          ? "border-[#C6A66B] bg-[#C6A66B]/15 text-[#C6A66B]"
+                          : "border-[#332f2a] bg-[#171717] text-[#F1E9DA]/70 hover:border-[#C6A66B]/40"
+                      }`}
+                    >
+                      ₹{amt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom amount */}
+              <div>
+                <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-[#F1E9DA]/80">
+                  Or enter custom amount (Min. ₹100)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-3 font-mono text-sm font-bold text-[#F1E9DA]/50">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    min="100"
+                    max="100000"
+                    step="100"
+                    value={topupAmount}
+                    onChange={(e) => setTopupAmount(Number(e.target.value))}
+                    className="w-full rounded-xl border border-[#332f2a] bg-[#171717] py-3 pl-8 pr-4 font-mono text-sm font-bold text-[#F1E9DA] outline-none focus:border-[#C6A66B]"
+                  />
+                </div>
+              </div>
+
+              <button
+                disabled={topupLoading || topupAmount < 100}
+                onClick={handleTopup}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A66B] py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-[#171717] shadow-lg shadow-[#C6A66B]/15 transition hover:bg-[#d8ba82] disabled:opacity-50"
+              >
+                {topupLoading ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" /> Processing…
+                  </>
+                ) : (
+                  <>
+                    <Wallet size={16} /> Pay ₹{topupAmount} & Add to Wallet
+                  </>
+                )}
+              </button>
+
+              <p className="text-center font-mono text-[10px] text-[#F1E9DA]/40">
+                100% secure payment powered by Razorpay. Funds are credited
+                immediately.
+              </p>
             </div>
           </div>
         </div>
